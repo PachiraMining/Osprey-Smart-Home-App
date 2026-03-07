@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '/features/auth/presentation/bloc/auth_bloc.dart';
-import '/features/auth/presentation/bloc/auth_event.dart';
-import '/features/auth/presentation/bloc/auth_state.dart';
+import '../bloc/auth_bloc.dart';
+import '../bloc/auth_event.dart';
+import '../bloc/auth_state.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -17,8 +17,15 @@ class _LoginPageState extends State<LoginPage> {
   bool obscurePassword = true;
   String selectedCountry = 'Vietnam';
 
-  final TextEditingController usernameController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
+  final usernameController = TextEditingController();
+  final passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    usernameController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,27 +38,238 @@ class _LoginPageState extends State<LoginPage> {
             builder: (_) => const Center(child: CircularProgressIndicator()),
           );
         }
-
         if (state is AuthSuccess) {
-          Navigator.pop(context); // đóng loading
+          Navigator.pop(context);
           Navigator.pushReplacementNamed(context, '/home');
         }
-
         if (state is AuthFailure) {
-          Navigator.pop(context); // đóng loading
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(state.message)));
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.message)),
+          );
         }
       },
       builder: (context, state) {
         return Scaffold(
-          backgroundColor: Colors.white,
+          backgroundColor: const Color(0xFFF7F8FA),
           resizeToAvoidBottomInset: true,
           body: SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-              child: _buildLoginContent(context),
+            child: Column(
+              children: [
+                // Scrollable content
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 8),
+                        // Back button
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back_ios, size: 22),
+                          padding: EdgeInsets.zero,
+                          alignment: Alignment.centerLeft,
+                          color: Colors.black87,
+                          onPressed: () => Navigator.pop(context),
+                        ),
+
+                        const SizedBox(height: 24),
+
+                        // Title
+                        const Text(
+                          'Log In',
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+
+                        const SizedBox(height: 28),
+
+                        // Country dropdown
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: Colors.grey.shade300),
+                          ),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
+                              value: selectedCountry,
+                              isExpanded: true,
+                              icon: Icon(Icons.keyboard_arrow_down, color: Colors.grey.shade400),
+                              style: const TextStyle(
+                                fontSize: 16,
+                                color: Colors.black87,
+                              ),
+                              items: const [
+                                DropdownMenuItem(value: 'Vietnam', child: Text('Vietnam')),
+                                DropdownMenuItem(value: 'Singapore', child: Text('Singapore')),
+                                DropdownMenuItem(value: 'United States', child: Text('United States')),
+                              ],
+                              onChanged: (v) => setState(() => selectedCountry = v!),
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // Username field
+                        _buildInputField(
+                          controller: usernameController,
+                          hintText: 'Please enter your account',
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // Password field
+                        _buildInputField(
+                          controller: passwordController,
+                          hintText: 'Password',
+                          obscureText: obscurePassword,
+                        ),
+
+                        const SizedBox(height: 28),
+
+                        // Agreement
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: Checkbox(
+                                value: agreePolicy,
+                                onChanged: (v) => setState(() => agreePolicy = v!),
+                                activeColor: const Color(0xFF2196F3),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                side: BorderSide(color: Colors.grey.shade400, width: 1.5),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Wrap(
+                                children: [
+                                  const Text(
+                                    'I agree to the ',
+                                    style: TextStyle(fontSize: 14, color: Colors.black87),
+                                  ),
+                                  GestureDetector(
+                                    onTap: () {},
+                                    child: const Text(
+                                      'Privacy Policy',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Color(0xFF2196F3),
+                                      ),
+                                    ),
+                                  ),
+                                  const Text(
+                                    ' and ',
+                                    style: TextStyle(fontSize: 14, color: Colors.black87),
+                                  ),
+                                  GestureDetector(
+                                    onTap: () {},
+                                    child: const Text(
+                                      'User Agreement',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Color(0xFF2196F3),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 24),
+
+                        // Login button
+                        SizedBox(
+                          width: double.infinity,
+                          height: 52,
+                          child: ElevatedButton(
+                            onPressed: agreePolicy
+                                ? () {
+                                    context.read<AuthBloc>().add(
+                                      LoginRequested(
+                                        usernameController.text.trim(),
+                                        passwordController.text.trim(),
+                                      ),
+                                    );
+                                  }
+                                : null,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFD5E3EC),
+                              disabledBackgroundColor: const Color(0xFFD5E3EC),
+                              foregroundColor: Colors.white,
+                              disabledForegroundColor: Colors.white70,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                            ),
+                            child: const Text(
+                              'Log In',
+                              style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // Forgot password
+                        Center(
+                          child: TextButton(
+                            onPressed: () {},
+                            child: const Text(
+                              'Forgot Password',
+                              style: TextStyle(
+                                color: Color(0xFF2196F3),
+                                fontSize: 15,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // Social login buttons fixed at bottom
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 36, top: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildSocialButton(
+                        icon: Icons.facebook,
+                        color: const Color(0xFF1877F2),
+                        bgColor: const Color(0xFF1877F2),
+                        iconColor: Colors.white,
+                      ),
+                      const SizedBox(width: 28),
+                      _buildSocialButtonImage('assets/icons/google_logo.png'),
+                      const SizedBox(width: 28),
+                      _buildSocialButton(
+                        icon: Icons.apple,
+                        color: Colors.black,
+                        bgColor: Colors.black,
+                        iconColor: Colors.white,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         );
@@ -59,281 +277,73 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget _buildLoginContent(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Nút back nằm sát mép trái
-        Padding(
-          padding: const EdgeInsets.only(left: 0),
-          child: IconButton(
-            icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
-            onPressed: () => Navigator.pop(context),
-          ),
-        ),
-
-        const SizedBox(height: 16),
-
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 10),
-              const Text(
-                'Đăng nhập',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-              const SizedBox(height: 32),
-
-              // Country dropdown
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade300),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: selectedCountry,
-                    isExpanded: true,
-                    items: const [
-                      DropdownMenuItem(
-                        value: 'Vietnam',
-                        child: Text('Vietnam'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'Singapore',
-                        child: Text('Singapore'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'United States',
-                        child: Text('United States'),
-                      ),
-                    ],
-                    onChanged: (value) {
-                      setState(() => selectedCountry = value!);
-                    },
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // Username
-              _buildInputField(
-                controller: usernameController,
-                labelText: 'Vui lòng nhập tài khoản',
-                hasClearButton: true,
-              ),
-
-              const SizedBox(height: 16),
-
-              // Password
-              _buildInputField(
-                controller: passwordController,
-                labelText: 'Mật khẩu',
-                obscureText: obscurePassword,
-                hasClearButton: true,
-                hasVisibilityToggle: true,
-              ),
-
-              const SizedBox(height: 36),
-
-              // Agreement
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Checkbox(
-                    value: agreePolicy,
-                    onChanged: (v) => setState(() => agreePolicy = v!),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                  Expanded(
-                    child: Wrap(
-                      children: [
-                        const Text(
-                          'Tôi đồng ý ',
-                          style: TextStyle(fontSize: 13),
-                        ),
-                        _buildLinkText('Chính sách về quyền riêng tư'),
-                        const Text(', ', style: TextStyle(fontSize: 13)),
-                        _buildLinkText('Thỏa thuận người dùng'),
-                        const Text(' và ', style: TextStyle(fontSize: 13)),
-                        _buildLinkText("Children's Privacy Statement"),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 16),
-
-              // Login button
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: agreePolicy
-                      ? () {
-                          context.read<AuthBloc>().add(
-                            LoginRequested(
-                              usernameController.text.trim(),
-                              passwordController.text.trim(),
-                            ),
-                          );
-                        }
-                      : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFFE0D5),
-                    disabledBackgroundColor: const Color(0xFFFFE0D5),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: const Text(
-                    'Đăng nhập',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              Center(
-                child: TextButton(
-                  onPressed: () {},
-                  child: const Text(
-                    'Quên mật khẩu',
-                    style: TextStyle(color: Colors.blue, fontSize: 15),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 80),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _buildSocialButton('assets/icons/google_logo.png'),
-                  const SizedBox(width: 40),
-                  _buildSocialButton('assets/icons/apple_logo.png'),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  // Input field widget
   Widget _buildInputField({
     required TextEditingController controller,
-    required String labelText,
+    required String hintText,
     bool obscureText = false,
-    bool hasClearButton = false,
-    bool hasVisibilityToggle = false,
   }) {
-    return TextField(
-      controller: controller,
-      obscureText: obscureText,
-      decoration: InputDecoration(
-        filled: true,
-        fillColor: Colors.grey.shade100,
-        labelText: labelText,
-        floatingLabelBehavior: FloatingLabelBehavior.auto,
-        floatingLabelAlignment: FloatingLabelAlignment.start,
-        labelStyle: TextStyle(color: Colors.grey.shade500, fontSize: 16),
-        floatingLabelStyle: const TextStyle(color: Colors.grey, fontSize: 13),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 20,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.teal, width: 1.2),
-        ),
-        suffixIcon: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (hasClearButton && controller.text.isNotEmpty)
-              IconButton(
-                icon: const Icon(Icons.clear, size: 20, color: Colors.grey),
-                onPressed: () {
-                  setState(() {
-                    controller.clear();
-                  });
-                },
-              ),
-            if (hasVisibilityToggle)
-              IconButton(
-                icon: Icon(
-                  obscureText ? Icons.visibility_off : Icons.visibility,
-                  size: 20,
-                  color: Colors.grey,
-                ),
-                onPressed: () {
-                  setState(() => obscurePassword = !obscurePassword);
-                },
-              ),
-          ],
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFF0F1F5),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: TextField(
+        controller: controller,
+        obscureText: obscureText,
+        style: const TextStyle(fontSize: 16, color: Colors.black87),
+        decoration: InputDecoration(
+          hintText: hintText,
+          hintStyle: TextStyle(
+            color: Colors.grey.shade400,
+            fontSize: 15,
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: Color(0xFF2196F3), width: 1.2),
+          ),
         ),
       ),
-      onChanged: (_) => setState(() {}),
     );
   }
 
-  Widget _buildLinkText(String text) {
+  Widget _buildSocialButton({
+    required IconData icon,
+    required Color color,
+    required Color bgColor,
+    required Color iconColor,
+  }) {
     return GestureDetector(
       onTap: () {},
-      child: Text(
-        text,
-        style: const TextStyle(color: Colors.blue, fontSize: 13),
+      child: Container(
+        width: 52,
+        height: 52,
+        decoration: BoxDecoration(
+          color: bgColor,
+          shape: BoxShape.circle,
+        ),
+        child: Icon(icon, color: iconColor, size: 28),
       ),
     );
   }
 
-  Widget _buildSocialButton(String assetPath) {
-    return Container(
-      height: 48,
-      width: 48,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.grey.shade300),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.shade200,
-            blurRadius: 4,
-            offset: const Offset(1, 2),
-          ),
-        ],
-      ),
-      child: Center(
-        child: Image.asset(
-          assetPath,
-          height: 46,
-          width: 46,
-          fit: BoxFit.contain,
+  Widget _buildSocialButtonImage(String assetPath) {
+    return GestureDetector(
+      onTap: () {},
+      child: Container(
+        width: 52,
+        height: 52,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.grey.shade300, width: 1),
+        ),
+        child: Center(
+          child: Image.asset(assetPath, width: 26, height: 26),
         ),
       ),
     );

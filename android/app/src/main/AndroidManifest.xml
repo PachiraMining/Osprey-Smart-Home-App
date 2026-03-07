@@ -21,7 +21,7 @@
     <uses-feature android:name="android.hardware.bluetooth_le" android:required="false" />
     
     <application
-        android:label="smart_curtain_app"
+        android:label="Osprey"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

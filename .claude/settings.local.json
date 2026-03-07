@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:fastmcp.me)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:skillsplayground.com)",
+      "Bash(gh api:*)",
+      "Bash(mkdir:*)",
+      "Bash(flutter pub:*)",
+      "Read(//Users/thuannguyen/development/flutter/bin/**)",
+      "Read(//opt/homebrew/bin/**)",
+      "Read(//Users/thuannguyen/flutter/bin/**)",
+      "Bash(echo $PATH:*)",
+      "Bash(/Users/thuannguyen/fvm/versions/3.29.0/bin/flutter:*)",
+      "Bash(fvm install:*)",
+      "Bash(fvm use:*)",
+      "Bash(fvm flutter:*)",
+      "Bash(cp:*)",
+      "Bash(sips:*)",
+      "Bash(__NEW_LINE_c99d2a369c29faba__ sips:*)",
+      "Bash(/Users/thuannguyen/fvm/versions/3.41.4/bin/flutter run:*)",
+      "Bash(git checkout:*)",
+      "Bash(git add:*)"
+    ]
+  }
+}

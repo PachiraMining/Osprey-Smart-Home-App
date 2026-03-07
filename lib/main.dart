@@ -29,7 +29,7 @@ void main() async {
 //       // ✅ Bọc toàn bộ app trong BlocProvider<AuthBloc>
 //       create: (_) => GetIt.instance<AuthBloc>(),
 //       child: MaterialApp(
-//         title: 'Smart Curtain App',
+//         title: 'Osprey',
 //         debugShowCheckedModeBanner: false,
 //         theme: ThemeData(primarySwatch: Colors.teal),
 //         home: const SmartSplashScreen(),
@@ -58,7 +58,7 @@ class SmartApp extends StatelessWidget {
         ),
       ],
       child: MaterialApp(
-        title: 'Smart Curtain App',
+        title: 'Osprey',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(primarySwatch: Colors.teal),
         home: const SmartSplashScreen(),
