@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'features/auth/presentation/pages/login_page.dart';
 import 'features/auth/presentation/pages/sign_up_page.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
+import 'features/auth/presentation/bloc/auth_event.dart';
+import 'features/auth/presentation/bloc/auth_state.dart';
 
 class SmartSplashScreen extends StatefulWidget {
   const SmartSplashScreen({super.key});
@@ -17,6 +19,7 @@ class _SmartSplashScreenState extends State<SmartSplashScreen>
   static const _navyDark = Color(0xFF1A3A6E);
 
   bool _showUI = false;
+  bool _navigated = false;
   late AnimationController _logoController;
   late Animation<double> _logoScale;
   late Animation<double> _logoFade;
@@ -70,10 +73,15 @@ class _SmartSplashScreenState extends State<SmartSplashScreen>
       curve: const Interval(0.3, 0.9, curve: Curves.easeOutCubic),
     ));
 
+    // Check saved auth status
+    context.read<AuthBloc>().add(CheckAuthStatusEvent());
+
     _logoController.forward().then((_) async {
       await Future.delayed(const Duration(milliseconds: 300));
-      setState(() => _showUI = true);
-      _buttonsController.forward();
+      if (!_navigated) {
+        setState(() => _showUI = true);
+        _buttonsController.forward();
+      }
     });
   }
 
@@ -88,7 +96,14 @@ class _SmartSplashScreenState extends State<SmartSplashScreen>
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
 
-    return Scaffold(
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is AuthSuccess && !_navigated) {
+          _navigated = true;
+          Navigator.pushReplacementNamed(context, '/home');
+        }
+      },
+      child: Scaffold(
       body: Stack(
         children: [
           // Full screen light blue background
@@ -267,6 +282,7 @@ class _SmartSplashScreenState extends State<SmartSplashScreen>
           ),
         ],
       ),
+    ),
     );
   }
 }

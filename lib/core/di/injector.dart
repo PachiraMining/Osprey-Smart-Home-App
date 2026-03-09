@@ -169,7 +169,7 @@ Future<void> setupInjector() async {
   sl.registerLazySingleton<SceneRemoteDataSource>(
     () => SceneRemoteDataSourceImpl(
       client: sl<http.Client>(),
-      schedulerBaseUrl: 'http://1.55.30.61:8000',
+      schedulerBaseUrl: 'http://42.118.11.87:8000',
       thingsboardBaseUrl: 'https://performentmarketing.ddnsgeek.com',
       getToken: () {
         final token = sl<TokenManager>().getTokenSync();

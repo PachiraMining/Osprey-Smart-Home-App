@@ -7,13 +7,19 @@ class TokenManager {
 
   static const String _tokenKey = 'auth_token';
   static const String _refreshTokenKey = 'refresh_token';
-  static const String _customerIdKey = 'customer_id'; // THÊM
+  static const String _customerIdKey = 'customer_id';
+  static const String _emailKey = 'user_email';
+  static const String _firstNameKey = 'user_first_name';
+  static const String _lastNameKey = 'user_last_name';
 
   TokenManager(this._storage);
 
   // Cache in memory
   String? _cachedToken;
-  String? _cachedCustomerId; // THÊM
+  String? _cachedCustomerId;
+  String? _cachedEmail;
+  String? _cachedFirstName;
+  String? _cachedLastName;
 
   // Save tokens và customerId
   Future<void> saveTokens({
@@ -35,6 +41,38 @@ class TokenManager {
   Future<void> saveCustomerId(String customerId) async {
     await _storage.write(key: _customerIdKey, value: customerId);
     _cachedCustomerId = customerId;
+  }
+
+  // Save user profile info
+  Future<void> saveUserInfo({
+    required String email,
+    String? firstName,
+    String? lastName,
+  }) async {
+    await Future.wait([
+      _storage.write(key: _emailKey, value: email),
+      if (firstName != null) _storage.write(key: _firstNameKey, value: firstName),
+      if (lastName != null) _storage.write(key: _lastNameKey, value: lastName),
+    ]);
+    _cachedEmail = email;
+    _cachedFirstName = firstName;
+    _cachedLastName = lastName;
+  }
+
+  Future<String?> getEmail() async => await _storage.read(key: _emailKey);
+  Future<String?> getFirstName() async => await _storage.read(key: _firstNameKey);
+  Future<String?> getLastName() async => await _storage.read(key: _lastNameKey);
+
+  String? getEmailSync() => _cachedEmail;
+  String? getFirstNameSync() => _cachedFirstName;
+  String? getLastNameSync() => _cachedLastName;
+
+  String getDisplayName() {
+    final first = _cachedFirstName ?? '';
+    final last = _cachedLastName ?? '';
+    final full = '$first $last'.trim();
+    if (full.isNotEmpty) return full;
+    return _cachedEmail ?? 'User';
   }
 
   // Get token
@@ -68,15 +106,24 @@ class TokenManager {
       _storage.delete(key: _tokenKey),
       _storage.delete(key: _refreshTokenKey),
       _storage.delete(key: _customerIdKey),
+      _storage.delete(key: _emailKey),
+      _storage.delete(key: _firstNameKey),
+      _storage.delete(key: _lastNameKey),
     ]);
     _cachedToken = null;
     _cachedCustomerId = null;
+    _cachedEmail = null;
+    _cachedFirstName = null;
+    _cachedLastName = null;
   }
 
   // Load to cache
   Future<void> loadTokenToCache() async {
     _cachedToken = await getToken();
     _cachedCustomerId = await getCustomerId();
+    _cachedEmail = await getEmail();
+    _cachedFirstName = await getFirstName();
+    _cachedLastName = await getLastName();
   }
 
   // Set cached token

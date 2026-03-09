@@ -51,8 +51,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
             print('✅ Step 5: Got customerId: ${userResponse.customerId}');
             await tokenMgr.saveCustomerId(userResponse.customerId);
             tokenMgr.setCachedCustomerId(userResponse.customerId);
-            print('✅ Step 6: CustomerId saved');
-            print('✅ Login success - CustomerId: ${userResponse.customerId}');
+            await tokenMgr.saveUserInfo(
+              email: userResponse.email,
+              firstName: userResponse.firstName,
+              lastName: userResponse.lastName,
+            );
+            print('✅ Step 6: CustomerId & user info saved');
+            print('✅ Login success - ${userResponse.firstName} ${userResponse.lastName}');
           } catch (e) {
             print('❌ Step 4-6 FAILED: Could not fetch customerId: $e');
             print('❌ Error type: ${e.runtimeType}');
@@ -103,6 +108,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       if (token != null && token.isNotEmpty) {
         tokenMgr.setCachedToken(token);
+        await tokenMgr.loadTokenToCache();
 
         if (customerId == null || customerId.isEmpty) {
           try {
