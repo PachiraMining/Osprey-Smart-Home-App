@@ -73,6 +73,7 @@ class DeviceRemoteDataSourceImpl implements DeviceRemoteDataSource {
     } catch (e) {
       print('❌ Error loading devices: $e');
       if (e is ServerException) rethrow;
+      if (e is UnauthorizedException) rethrow;
       throw NetworkException();
     }
   }

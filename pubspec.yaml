@@ -47,6 +47,9 @@ dependencies:
   # Secure Storage
   flutter_secure_storage: ^9.0.0
 
+  # QR Code Scanner
+  mobile_scanner: ^6.0.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -78,6 +81,8 @@ flutter:
     - assets/icons/apple_logo.png
     - assets/icons/alexa_logo.png
     - assets/icons/google_assistant_logo.png
+    - assets/icons/curtain_open.png
+    - assets/icons/curtain_close.png
   # To add assets to your application, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg

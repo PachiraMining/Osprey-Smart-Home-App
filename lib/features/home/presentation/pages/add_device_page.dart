@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:smart_curtain_app/features/home/presentation/pages/bluetooth_controller.dart';
 import 'package:smart_curtain_app/features/home/presentation/pages/wifi_config_page.dart';
+import 'package:smart_curtain_app/features/home/presentation/pages/qr_scanner_page.dart';
 
 class AddDevicePage extends StatefulWidget {
   const AddDevicePage({Key? key}) : super(key: key);
@@ -148,7 +149,12 @@ class _AddDevicePageState extends State<AddDevicePage>
                 }
                 return IconButton(
                   icon: const Icon(Icons.qr_code_scanner, color: Colors.black87),
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const QrScannerPage()),
+                    );
+                  },
                 );
               },
             ),

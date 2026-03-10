@@ -17,6 +17,8 @@ class DeviceRepositoryImpl implements DeviceRepository {
     try {
       final devices = await remoteDataSource.getCustomerDevices();
       return Right(devices);
+    } on UnauthorizedException {
+      return Left(ServerFailure('Token has expired. Please login again.', message: 'Token has expired'));
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message, message: ''));
     } on NetworkException catch (e) {
