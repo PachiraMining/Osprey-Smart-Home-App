@@ -94,6 +94,12 @@ class _CurtainControlPageState extends State<CurtainControlPage>
     _animController.stop();
   }
 
+  void _onPercentChanged(double percent) {
+    final intPercent = percent.round();
+    _animController.animateTo(intPercent / 100, curve: Curves.easeInOut);
+    _sendDpCommand(dpId: 2, value: intPercent);
+  }
+
   void _showSnackBar(String msg, Color color) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -157,6 +163,46 @@ class _CurtainControlPageState extends State<CurtainControlPage>
               ),
             ),
           ),
+
+          // Percentage slider
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 30),
+            child: Row(
+              children: [
+                Text(
+                  '${(_position * 100).round()}%',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFFB7727D),
+                  ),
+                ),
+                Expanded(
+                  child: SliderTheme(
+                    data: SliderTheme.of(context).copyWith(
+                      activeTrackColor: const Color(0xFFB7727D),
+                      inactiveTrackColor: const Color(0xFFE0E0E0),
+                      thumbColor: const Color(0xFFB7727D),
+                      overlayColor: const Color(0xFFB7727D).withAlpha(40),
+                      trackHeight: 4,
+                      thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
+                    ),
+                    child: Slider(
+                      value: _position * 100,
+                      min: 0,
+                      max: 100,
+                      onChanged: (v) {
+                        _animController.value = v / 100;
+                      },
+                      onChangeEnd: (v) => _onPercentChanged(v),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 10),
 
           // Control buttons
           Padding(
