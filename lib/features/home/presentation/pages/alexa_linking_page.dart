@@ -1,6 +1,6 @@
 import 'dart:convert';
-import 'dart:developer';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 import 'package:get_it/get_it.dart';
@@ -16,7 +16,6 @@ class AlexaLinkingPage extends StatefulWidget {
 }
 
 class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
-  static const _tag = 'AlexaLinking';
   static const _baseUrl = 'https://performentmarketing.ddnsgeek.com';
   static const _callbackScheme = 'osprey';
 
@@ -26,7 +25,6 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
   bool _isLoading = true;
   bool _isLinked = false;
   bool _isLinking = false;
-  bool _isUnlinking = false;
   String? _error;
 
   Map<String, String> get _headers => {
@@ -38,7 +36,7 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
   @override
   void initState() {
     super.initState();
-    log('initState — checking linking status', name: _tag);
+    debugPrint('[Alexa]initState — checking linking status');
     _checkStatus();
   }
 
@@ -51,7 +49,7 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
     });
 
     final url = '$_baseUrl/api/alexa/app-linking/status';
-    log('API 0: GET $url', name: _tag);
+    debugPrint('[Alexa]API 0: GET $url');
 
     try {
       final response = await _client.get(
@@ -59,8 +57,7 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
         headers: _headers,
       );
 
-      log('API 0 response: ${response.statusCode} — ${response.body}',
-          name: _tag);
+      debugPrint('[Alexa]API 0 response: ${response.statusCode} — ${response.body}');
 
       if (!mounted) return;
       if (response.statusCode == 200) {
@@ -76,7 +73,7 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
         });
       }
     } catch (e, stack) {
-      log('API 0 error: $e', name: _tag, error: e, stackTrace: stack);
+      debugPrint('[Alexa]API 0 error: $e');
       if (!mounted) return;
       setState(() {
         _error = 'Connection error';
@@ -94,15 +91,14 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
 
     try {
       // Step 1: POST /start → get URLs and state from backend
-      log('Step 1: Starting linking...', name: _tag);
+      debugPrint('[Alexa]Step 1: Starting linking...');
       final startUrl = '$_baseUrl/api/alexa/app-linking/start';
       final startRes = await _client.post(
         Uri.parse(startUrl),
         headers: _headers,
       );
 
-      log('API 1 response: ${startRes.statusCode} — ${startRes.body}',
-          name: _tag);
+      debugPrint('[Alexa]API 1 response: ${startRes.statusCode} — ${startRes.body}');
 
       if (startRes.statusCode != 200 && startRes.statusCode != 201) {
         _setError('Failed to start linking: ${startRes.statusCode}');
@@ -112,16 +108,16 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
       final startData = jsonDecode(startRes.body);
       final lwaUrl = startData['lwaFallbackUrl'] as String;
       final state = startData['state'] as String;
-      log('Got LWA URL and state from backend', name: _tag);
+      debugPrint('[Alexa]Got LWA URL and state from backend');
 
       // Step 2: Open browser → user login Amazon → receive callback
-      log('Step 2: Opening Amazon login...', name: _tag);
+      debugPrint('[Alexa]Step 2: Opening Amazon login...');
       final resultUrl = await FlutterWebAuth2.authenticate(
         url: lwaUrl,
         callbackUrlScheme: _callbackScheme,
       );
 
-      log('Callback URL: $resultUrl', name: _tag);
+      debugPrint('[Alexa]Callback URL: $resultUrl');
 
       final uri = Uri.parse(resultUrl);
       final code = uri.queryParameters['code'];
@@ -139,7 +135,7 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
       }
 
       // Step 3: POST /complete → backend handles everything
-      log('Step 3: Completing linking...', name: _tag);
+      debugPrint('[Alexa]Step 3: Completing linking...');
       final completeUrl = '$_baseUrl/api/alexa/app-linking/complete';
       final completeRes = await _client.post(
         Uri.parse(completeUrl),
@@ -150,8 +146,7 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
         }),
       );
 
-      log('API 3 response: ${completeRes.statusCode} — ${completeRes.body}',
-          name: _tag);
+      debugPrint('[Alexa]API 3 response: ${completeRes.statusCode} — ${completeRes.body}');
 
       if (!mounted) return;
 
@@ -166,7 +161,7 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
         _setError(completeData['message'] as String? ?? 'Linking failed');
       }
     } catch (e, stack) {
-      log('Linking error: $e', name: _tag, error: e, stackTrace: stack);
+      debugPrint('[Alexa]Linking error: $e');
       if (e.toString().contains('CANCELED') ||
           e.toString().contains('cancelled')) {
         if (mounted) setState(() => _isLinking = false);
@@ -176,53 +171,8 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
     }
   }
 
-  // ─── Unlink ───
-  Future<void> _unlinkAccount() async {
-    setState(() {
-      _isUnlinking = true;
-      _error = null;
-    });
-
-    try {
-      final url = '$_baseUrl/api/alexa/app-linking/unlink';
-      log('Unlink: POST $url', name: _tag);
-
-      final response = await _client.post(
-        Uri.parse(url),
-        headers: _headers,
-      );
-
-      log('Unlink response: ${response.statusCode} — ${response.body}',
-          name: _tag);
-
-      if (!mounted) return;
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['success'] == true) {
-          setState(() {
-            _isLinked = false;
-            _isUnlinking = false;
-          });
-          _showSnackBar('Account unlinked.', Colors.orange);
-          return;
-        }
-      }
-
-      // Fallback: even if API fails, re-check status
-      setState(() => _isUnlinking = false);
-      await _checkStatus();
-    } catch (e, stack) {
-      log('Unlink error: $e', name: _tag, error: e, stackTrace: stack);
-      if (mounted) {
-        _setError('Failed to unlink. Please try again.');
-        setState(() => _isUnlinking = false);
-      }
-    }
-  }
-
   void _setError(String msg) {
-    log('ERROR: $msg', name: _tag);
+    debugPrint('[Alexa]ERROR: $msg');
     if (!mounted) return;
     setState(() {
       _error = msg;
@@ -382,36 +332,13 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
               height: 1.5,
             ),
           ),
-          const SizedBox(height: 40),
-          SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: OutlinedButton(
-              onPressed: _isUnlinking ? null : _unlinkAccount,
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.red.shade400,
-                side: BorderSide(color: Colors.red.shade300),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(25),
-                ),
-              ),
-              child: _isUnlinking
-                  ? SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        color: Colors.red.shade400,
-                        strokeWidth: 2.5,
-                      ),
-                    )
-                  : const Text(
-                      'UNLINK',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 1,
-                      ),
-                    ),
+          const SizedBox(height: 32),
+          Text(
+            'To unlink, open the Amazon Alexa app and disable the Osprey skill.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.grey.shade500,
             ),
           ),
           const Spacer(flex: 3),
