@@ -8,8 +8,6 @@
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
 	<string>Osprey</string>
-	<key>APIKey</key>
-	<string>eyJhbGciOiJSU0EtU0hBMjU2IiwidmVyIjoiMSJ9.eyJ2ZXIiOiIzIiwiZW5kcG9pbnRzIjp7ImF1dGh6IjoiaHR0cHM6Ly93d3cuYW1hem9uLmNvbS9hcC9vYSIsInRva2VuRXhjaGFuZ2UiOiJodHRwczovL2FwaS5hbWF6b24uY29tL2F1dGgvbzIvdG9rZW4ifSwiY2xpZW50SWQiOiJhbXpuMS5hcHBsaWNhdGlvbi1vYTItY2xpZW50LjA4ZmVmY2NkNDllNTRmZjM4MWI0MmYwMDU1MGZhZjcwIiwiYXBwRmFtaWx5SWQiOiJhbXpuMS5hcHBsaWNhdGlvbi43ZjFiM2JkMGRkZmU0MzBlYmZhOTdmNGViYzZjMGU2NyIsImJ1bmRsZVNlZWRJZCI6ImNvbS5leGFtcGxlLnNtYXJ0Q3VydGFpbkFwcCIsImJ1bmRsZUlkIjoiY29tLmV4YW1wbGUuc21hcnRDdXJ0YWluQXBwIiwiaXNzIjoiQW1hem9uIiwidHlwZSI6IkFQSUtleSIsImFwcFZhcmlhbnRJZCI6ImFtem4xLmFwcGxpY2F0aW9uLWNsaWVudC4zOTViNTRkYmMzYjc0M2NhYWQxNzE5MjI4NGM4Zjk3ZiIsInRydXN0UG9vbCI6bnVsbCwiYXBwSWQiOiJhbXpuMS5hcHBsaWNhdGlvbi1jbGllbnQuMzk1YjU0ZGJjM2I3NDNjYWFkMTcxOTIyODRjOGY5N2YiLCJpZCI6IjIwZTM2ZjE0LTMwNzItNDY4ZC05MTFhLTI2NDk3YTYwYmQzYyIsImlhdCI6IjE3NzMzNzU3MDE5MzIifQ==.ZkkZ9E2kk8f2+ilWZDsNaEwe+UJVhiUwQdxHrpKIEBkKdnnxEiwI7UIG1jl88XgDGybcFywtkuiWUKFBc8D9NCyhP9TNvjJRZbhRvOjv/YjPTu8ugAuhE5GB7LEeteAzCXiq4A0G3Miwcw0oVujImxkp9cALniPp7dGFXlEUxKiwlHFLBvst+TE02XaMhYyapfE215rDhf7P0EjfBvsqHYhxrvYH8/aFtJup/CA7HN2+S/IcEZP5CQkiDBRu7trcplIhQt1Zyi3sazth1OatYNCtL0srcRJV0+o8LZ6DXxzOgWbnPoacR3pzdDOQjGSNo00Dc4xGNzhRrk+9mtHSvg==</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -20,16 +18,6 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>osprey</string>
-			</array>
-		</dict>
-		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Viewer</string>
-			<key>CFBundleURLName</key>
-			<string>Login with Amazon</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>amzn-com.example.smartCurtainApp</string>
 			</array>
 		</dict>
 	</array>
