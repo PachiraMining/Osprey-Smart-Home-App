@@ -46,3 +46,6 @@ app.*.map.json
 
 # FVM Version Cache
 .fvm/
+
+# Alexa secrets (OAuth credentials)
+lib/core/config/alexa_secrets.dart

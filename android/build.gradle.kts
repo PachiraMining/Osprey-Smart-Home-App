@@ -19,6 +19,17 @@ subprojects {
     project.evaluationDependsOn(":app")
 }
 
+// Fix namespace cho các plugin cũ chưa khai báo namespace (AGP 8+)
+subprojects {
+    plugins.withId("com.android.library") {
+        configure<com.android.build.gradle.LibraryExtension> {
+            if (namespace.isNullOrEmpty()) {
+                namespace = project.group.toString().ifEmpty { "com.plugin.${project.name}" }
+            }
+        }
+    }
+}
+
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
 }

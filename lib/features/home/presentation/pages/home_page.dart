@@ -19,6 +19,7 @@ import 'package:smart_curtain_app/features/device/presentation/bloc/device_state
 import 'package:smart_curtain_app/features/device/domain/entities/device_entity.dart';
 import 'package:smart_curtain_app/features/device/presentation/pages/curtain_control_page.dart';
 import 'package:smart_curtain_app/features/home/presentation/pages/settings_page.dart';
+import 'package:smart_curtain_app/features/home/presentation/pages/alexa_linking_page.dart';
 import 'package:smart_curtain_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:smart_curtain_app/features/auth/presentation/bloc/auth_event.dart';
 
@@ -1005,19 +1006,27 @@ class ProfileTab extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: Column(
-                        children: [
-                          Image.asset(
-                            'assets/icons/alexa_logo.png',
-                            width: 44,
-                            height: 44,
-                          ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            'Alexa',
-                            style: TextStyle(fontSize: 14, color: Colors.black87),
-                          ),
-                        ],
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const AlexaLinkingPage()),
+                          );
+                        },
+                        child: Column(
+                          children: [
+                            Image.asset(
+                              'assets/icons/alexa_logo.png',
+                              width: 44,
+                              height: 44,
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Alexa',
+                              style: TextStyle(fontSize: 14, color: Colors.black87),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                     Expanded(

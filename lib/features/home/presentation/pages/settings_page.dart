@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
-import '../../../../core/auth/token_manager.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
 import 'personal_info_page.dart';
@@ -231,9 +230,8 @@ class _SettingsPageState extends State<SettingsPage> {
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);
-              GetIt.instance<TokenManager>().clearTokens();
               GetIt.instance<AuthBloc>().add(LogoutEvent());
-              Navigator.of(context).popUntil((route) => route.isFirst);
+              Navigator.of(context).pushNamedAndRemoveUntil('/', (_) => false);
             },
             child: const Text('Log Out', style: TextStyle(color: Colors.red)),
           ),
