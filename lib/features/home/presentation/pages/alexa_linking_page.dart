@@ -197,151 +197,252 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
-        elevation: 0.5,
+        elevation: 0,
+        scrolledUnderElevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, size: 20, color: Colors.black87),
+          icon: const Icon(Icons.arrow_back_ios, size: 20, color: Colors.black54),
           onPressed: () => Navigator.pop(context),
         ),
-        centerTitle: true,
-        title: const Text(
-          'Amazon Alexa',
-          style: TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
-          ),
-        ),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null && !_isLinked
-              ? _buildErrorView()
-              : _isLinked
-                  ? _buildLinkedView()
-                  : _buildUnlinkedView(),
+      body: SafeArea(
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _error != null && !_isLinked
+                ? _buildErrorView()
+                : _isLinked
+                    ? _buildLinkedView()
+                    : _buildUnlinkedView(),
+      ),
     );
   }
 
   Widget _buildUnlinkedView() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
+      padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
         children: [
-          const Spacer(flex: 2),
-          Image.asset('assets/icons/alexa_logo.png', width: 80, height: 80),
-          const SizedBox(height: 24),
-          const Text(
-            'Link Osprey with Alexa',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-              color: Colors.black87,
-            ),
+          const SizedBox(height: 16),
+          // Alexa logo + title
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset('assets/icons/alexa_logo.png', width: 40, height: 40),
+              const SizedBox(width: 10),
+              const Text(
+                'amazon alexa',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 12),
-          Text(
-            'Link your Osprey account with Amazon Alexa to control your smart home devices with voice commands.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey.shade600,
-              height: 1.5,
-            ),
+          const SizedBox(height: 60),
+          // Illustration row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Speech bubble
+              Icon(Icons.chat_bubble, size: 44, color: Colors.cyan.shade400),
+              const SizedBox(width: 12),
+              // WiFi signal
+              Icon(Icons.wifi, size: 36, color: Colors.amber.shade600),
+              const SizedBox(width: 12),
+              // Echo speaker
+              Icon(Icons.speaker, size: 52, color: Colors.cyan.shade300),
+              const SizedBox(width: 12),
+              // Arrow
+              Icon(Icons.arrow_forward, size: 32, color: Colors.amber.shade600),
+              const SizedBox(width: 12),
+              // Lightbulb
+              Icon(Icons.lightbulb, size: 44, color: Colors.cyan.shade400),
+            ],
           ),
           const SizedBox(height: 40),
-          SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: ElevatedButton(
-              onPressed: _isLinking ? null : _startLinking,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF31C4F3),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(25),
-                ),
-                elevation: 0,
+          // Description text
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 8),
+            child: Text(
+              'Binding your app account to your Amazon account allows '
+              'you to control Alexa-enabled devices through Amazon '
+              'Echo speakers (ex. "Alexa, turn on light.")',
+              textAlign: TextAlign.left,
+              style: TextStyle(
+                fontSize: 15,
+                color: Colors.black87,
+                height: 1.6,
               ),
-              child: _isLinking
-                  ? const SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2.5,
-                      ),
-                    )
-                  : const Text(
-                      'LINK',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 1,
-                      ),
-                    ),
             ),
           ),
-          const Spacer(flex: 3),
+          const Spacer(),
+          // Sign In With Amazon button
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                onPressed: _isLinking ? null : _startLinking,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF2196C8),
+                  disabledBackgroundColor: const Color(0xFF2196C8).withAlpha(150),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  elevation: 0,
+                ),
+                child: _isLinking
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2.5,
+                        ),
+                      )
+                    : const Text(
+                        'Sign In With Amazon',
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          // View more ways to link
+          TextButton(
+            onPressed: () {},
+            child: Text(
+              'View more ways to link',
+              style: TextStyle(
+                fontSize: 15,
+                color: Colors.cyan.shade600,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
         ],
       ),
     );
   }
 
   Widget _buildLinkedView() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
         children: [
-          const Spacer(flex: 2),
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Image.asset('assets/icons/alexa_logo.png', width: 80, height: 80),
-              Positioned(
-                right: -4,
-                bottom: -4,
-                child: Container(
-                  padding: const EdgeInsets.all(2),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.check_circle,
-                      color: Colors.green, size: 28),
-                ),
-              ),
-            ],
-          ),
+          const SizedBox(height: 32),
+          // Alexa logo
+          Image.asset('assets/icons/alexa_logo.png', width: 80, height: 80),
           const SizedBox(height: 24),
+          // Title
           const Text(
-            'Already linked with\nAmazon Alexa',
+            'Already linked with Amazon Alexa',
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
               color: Colors.black87,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 20),
+          // Subtitle
           Text(
-            'Your Osprey account is linked with Amazon Alexa. You can now control your devices with voice commands.',
+            'You can control Alexa-enabled devices with\nAmazon Alexa speakers, such as',
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey.shade600,
+              fontSize: 15,
+              color: Colors.grey.shade700,
               height: 1.5,
             ),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 20),
+          // Example commands
           Text(
-            'To unlink, open the Amazon Alexa app and disable the Osprey skill.',
+            'Alexa, turn on light',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 13,
-              color: Colors.grey.shade500,
+            style: TextStyle(fontSize: 15, color: Colors.grey.shade500),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Alexa, set air conditioning to 20°C',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 15, color: Colors.grey.shade500),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Alexa, turn off diffuser',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 15, color: Colors.grey.shade500),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Alexa, increase air conditioner by 3 degrees',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 15, color: Colors.grey.shade500),
+          ),
+          const SizedBox(height: 20),
+          // View more ways to link
+          TextButton(
+            onPressed: () {},
+            child: Text(
+              'View more ways to link',
+              style: TextStyle(
+                fontSize: 15,
+                color: Colors.cyan.shade600,
+                fontWeight: FontWeight.w400,
+              ),
             ),
           ),
-          const Spacer(flex: 3),
+          const SizedBox(height: 16),
+          // Back button
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.grey.shade200,
+                  foregroundColor: Colors.black87,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  elevation: 0,
+                ),
+                child: const Text(
+                  'Back',
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          // Unlink instructions
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              'Disable Osprey skill on the Amazon Alexa app or tap '
+              'Me > the Setting button in the top right corner > '
+              'Account and Security to unauthorize it.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey.shade500,
+                height: 1.5,
+              ),
+            ),
+          ),
+          const SizedBox(height: 32),
         ],
       ),
     );
