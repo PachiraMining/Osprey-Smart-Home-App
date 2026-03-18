@@ -38,6 +38,19 @@ import '../../features/scene/domain/usecases/delete_scene.dart';
 import '../../features/scene/domain/usecases/toggle_scene.dart';
 import '../../features/scene/presentation/bloc/scene_bloc.dart';
 
+// Tap-to-Run Scene
+import '../../features/scene/data/datasources/tap_to_run_remote_datasource.dart';
+import '../../features/scene/data/repositories/tap_to_run_repository_impl.dart';
+import '../../features/scene/domain/repositories/tap_to_run_repository.dart';
+import '../../features/scene/domain/usecases/get_smart_homes.dart';
+import '../../features/scene/domain/usecases/get_tap_to_run_scenes.dart';
+import '../../features/scene/domain/usecases/create_tap_to_run_scene.dart';
+import '../../features/scene/domain/usecases/update_tap_to_run_scene.dart';
+import '../../features/scene/domain/usecases/delete_tap_to_run_scene.dart';
+import '../../features/scene/domain/usecases/execute_tap_to_run_scene.dart';
+import '../../features/scene/domain/usecases/get_device_data_points.dart';
+import '../../features/scene/presentation/bloc/tap_to_run/tap_to_run_bloc.dart';
+
 final sl = GetIt.instance;
 
 Future<void> setupInjector() async {
@@ -222,6 +235,38 @@ Future<void> setupInjector() async {
       createScene: sl(),
       deleteScene: sl(),
       toggleScene: sl(),
+    ),
+  );
+
+  // ========== Tap-to-Run Scene Feature ==========
+  // Data sources
+  sl.registerLazySingleton<TapToRunRemoteDataSource>(
+    () => TapToRunRemoteDataSourceImpl(apiClient: sl<ApiClient>()),
+  );
+
+  // Repositories
+  sl.registerLazySingleton<TapToRunRepository>(
+    () => TapToRunRepositoryImpl(remoteDataSource: sl()),
+  );
+
+  // Use cases
+  sl.registerLazySingleton(() => GetSmartHomes(sl()));
+  sl.registerLazySingleton(() => GetTapToRunScenes(sl()));
+  sl.registerLazySingleton(() => CreateTapToRunScene(sl()));
+  sl.registerLazySingleton(() => UpdateTapToRunScene(sl()));
+  sl.registerLazySingleton(() => DeleteTapToRunScene(sl()));
+  sl.registerLazySingleton(() => ExecuteTapToRunScene(sl()));
+  sl.registerLazySingleton(() => GetDeviceDataPoints(sl()));
+
+  // BLoC
+  sl.registerFactory(
+    () => TapToRunBloc(
+      getSmartHomes: sl(),
+      getTapToRunScenes: sl(),
+      createTapToRunScene: sl(),
+      updateTapToRunScene: sl(),
+      deleteTapToRunScene: sl(),
+      executeTapToRunScene: sl(),
     ),
   );
 }

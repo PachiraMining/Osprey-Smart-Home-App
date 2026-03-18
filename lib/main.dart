@@ -11,6 +11,8 @@ import 'features/scene/presentation/bloc/scene_event.dart';
 import 'smart_splash.dart';
 import 'features/home/presentation/pages/home_page.dart';
 import 'features/device/presentation/bloc/device_event.dart';
+import 'features/scene/presentation/bloc/tap_to_run/tap_to_run_bloc.dart';
+import 'features/scene/presentation/bloc/tap_to_run/tap_to_run_event.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -55,6 +57,10 @@ class SmartApp extends StatelessWidget {
         BlocProvider(
           create: (_) => GetIt.instance<SceneBloc>()
             ..add(LoadScenesEvent()),
+        ),
+        BlocProvider(
+          create: (_) => GetIt.instance<TapToRunBloc>()
+            ..add(LoadTapToRunScenesEvent()),
         ),
       ],
       child: MaterialApp(
