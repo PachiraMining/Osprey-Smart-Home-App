@@ -22,6 +22,11 @@ import 'package:smart_curtain_app/features/home/presentation/pages/settings_page
 import 'package:smart_curtain_app/features/home/presentation/pages/alexa_linking_page.dart';
 import 'package:smart_curtain_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:smart_curtain_app/features/auth/presentation/bloc/auth_event.dart';
+import 'package:smart_curtain_app/features/scene/presentation/bloc/tap_to_run/tap_to_run_bloc.dart';
+import 'package:smart_curtain_app/features/scene/presentation/bloc/tap_to_run/tap_to_run_event.dart';
+import 'package:smart_curtain_app/features/scene/presentation/bloc/tap_to_run/tap_to_run_state.dart';
+import 'package:smart_curtain_app/features/scene/domain/entities/tap_to_run_scene_entity.dart';
+import 'package:smart_curtain_app/features/scene/presentation/pages/tap_to_run/create_tap_to_run_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -669,25 +674,73 @@ class _SceneTabState extends State<SceneTab> {
   }
 
   Widget _buildTapToRunContent() {
+    return BlocConsumer<TapToRunBloc, TapToRunState>(
+      listener: (context, state) {
+        if (state is TapToRunExecuteResult) {
+          final color = state.status == 'SUCCESS'
+              ? Colors.green
+              : state.status == 'PARTIAL'
+                  ? Colors.orange
+                  : Colors.red;
+          final message = state.status == 'SUCCESS'
+              ? 'Thực thi thành công!'
+              : state.status == 'PARTIAL'
+                  ? 'Một số action thất bại'
+                  : 'Thực thi thất bại';
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(message), backgroundColor: color, duration: const Duration(seconds: 2)),
+          );
+        }
+      },
+      builder: (context, state) {
+        if (state is TapToRunLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (state is TapToRunError) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(state.message, style: const TextStyle(color: Colors.red)),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () => context.read<TapToRunBloc>().add(LoadTapToRunScenesEvent()),
+                  child: const Text('Thử lại'),
+                ),
+              ],
+            ),
+          );
+        }
+
+        final scenes = state is TapToRunLoaded
+            ? state.scenes
+            : state is TapToRunExecuting
+                ? state.scenes
+                : state is TapToRunExecuteResult
+                    ? state.scenes
+                    : <TapToRunSceneEntity>[];
+
+        if (scenes.isEmpty) {
+          return _buildEmptyTapToRun();
+        }
+
+        return _buildTapToRunList(context, scenes, state);
+      },
+    );
+  }
+
+  Widget _buildEmptyTapToRun() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(
-          Icons.touch_app_outlined,
-          size: 64,
-          color: Colors.grey.shade300,
-        ),
+        Icon(Icons.touch_app_outlined, size: 64, color: Colors.grey.shade300),
         const SizedBox(height: 24),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 30),
           child: Text(
-            'Create a task and tap it to run. This enables easy control of your smart devices.',
+            'Tạo một Tap-to-Run scene để điều khiển thiết bị nhanh chóng chỉ với một chạm.',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 15,
-              color: Colors.grey.shade500,
-              height: 1.5,
-            ),
+            style: TextStyle(fontSize: 15, color: Colors.grey.shade500, height: 1.5),
           ),
         ),
         const SizedBox(height: 24),
@@ -699,35 +752,148 @@ class _SceneTabState extends State<SceneTab> {
               backgroundColor: const Color(0xFF2196F3),
               foregroundColor: Colors.white,
               elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(24),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
             ),
-            onPressed: () async {
-              final triggerData = await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const CreateSceneTriggerPage(),
-                ),
-              );
-              if (triggerData == null) return;
-              if (!mounted) return;
-              await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => CreateScenePage(scheduleData: triggerData),
-                ),
-              );
-            },
-            child: const Text(
-              'Create Scene',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-            ),
+            onPressed: () => _navigateToCreateTapToRun(),
+            child: const Text('Tạo Scene', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
           ),
         ),
         const Spacer(),
       ],
     );
+  }
+
+  Widget _buildTapToRunList(BuildContext context, List<TapToRunSceneEntity> scenes, TapToRunState state) {
+    return Column(
+      children: [
+        Expanded(
+          child: RefreshIndicator(
+            onRefresh: () async {
+              context.read<TapToRunBloc>().add(LoadTapToRunScenesEvent());
+            },
+            child: ListView.separated(
+              itemCount: scenes.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              itemBuilder: (context, index) {
+                final scene = scenes[index];
+                final isExecuting = state is TapToRunExecuting && state.sceneId == scene.id;
+                return Dismissible(
+                  key: Key('tap_to_run_${scene.id}'),
+                  direction: DismissDirection.endToStart,
+                  background: Container(
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.only(right: 20),
+                    decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(16)),
+                    child: const Icon(Icons.delete, color: Colors.white),
+                  ),
+                  confirmDismiss: (_) async {
+                    return await showDialog(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                        title: const Text('Xóa scene?'),
+                        content: Text('Bạn có chắc muốn xóa "${scene.name}"?'),
+                        actions: [
+                          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Hủy')),
+                          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Xóa', style: TextStyle(color: Colors.red))),
+                        ],
+                      ),
+                    );
+                  },
+                  onDismissed: (_) {
+                    context.read<TapToRunBloc>().add(DeleteTapToRunSceneEvent(scene.id));
+                  },
+                  child: GestureDetector(
+                    onTap: () => _navigateToEditTapToRun(scene),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withAlpha(200),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 20,
+                            backgroundColor: const Color(0xFF2196F3).withAlpha(30),
+                            child: const Icon(Icons.play_circle_outline, color: Color(0xFF2196F3)),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(scene.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '${scene.actions.length} action${scene.actions.length > 1 ? 's' : ''}',
+                                  style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                                ),
+                              ],
+                            ),
+                          ),
+                          SizedBox(
+                            width: 48,
+                            height: 48,
+                            child: isExecuting
+                                ? const Padding(
+                                    padding: EdgeInsets.all(12),
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  )
+                                : IconButton(
+                                    icon: const Icon(Icons.play_arrow_rounded, color: Color(0xFF2196F3), size: 28),
+                                    onPressed: () {
+                                      context.read<TapToRunBloc>().add(ExecuteTapToRunSceneEvent(scene.id));
+                                    },
+                                  ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          width: double.infinity,
+          height: 48,
+          child: ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF2196F3),
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            ),
+            onPressed: () => _navigateToCreateTapToRun(),
+            icon: const Icon(Icons.add),
+            label: const Text('Thêm Scene', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+          ),
+        ),
+        const SizedBox(height: 12),
+      ],
+    );
+  }
+
+  void _navigateToCreateTapToRun() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const CreateTapToRunPage()),
+    );
+    if (result == true && mounted) {
+      context.read<TapToRunBloc>().add(LoadTapToRunScenesEvent());
+    }
+  }
+
+  void _navigateToEditTapToRun(TapToRunSceneEntity scene) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => CreateTapToRunPage(existingScene: scene)),
+    );
+    if (result == true && mounted) {
+      context.read<TapToRunBloc>().add(LoadTapToRunScenesEvent());
+    }
   }
 
   Widget _buildSceneList(BuildContext context, List<SceneEntity> scenes) {
