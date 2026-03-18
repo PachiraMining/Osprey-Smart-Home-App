@@ -12,6 +12,7 @@ class DeviceEntity extends Equatable {
   final String? icon;
   final DateTime? lastSeen;
   final Map<String, dynamic>? metadata;
+  final String? deviceProfileId;
 
   const DeviceEntity({
     required this.id,
@@ -23,6 +24,7 @@ class DeviceEntity extends Equatable {
     this.icon,
     this.lastSeen,
     this.metadata,
+    this.deviceProfileId,
   });
 
   bool get isOnline => status == 'online';
@@ -39,5 +41,6 @@ class DeviceEntity extends Equatable {
     icon,
     lastSeen,
     metadata,
+    deviceProfileId,
   ];
 }

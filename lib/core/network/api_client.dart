@@ -51,5 +51,11 @@ class ApiClient {
     return _dio.get(path, queryParameters: queryParameters);
   }
 
-  // thêm patch/put/delete nếu cần
+  Future<Response> put(String path, {Map<String, dynamic>? data}) async {
+    return _dio.put(path, data: data);
+  }
+
+  Future<Response> delete(String path) async {
+    return _dio.delete(path);
+  }
 }

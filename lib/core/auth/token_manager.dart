@@ -11,6 +11,7 @@ class TokenManager {
   static const String _emailKey = 'user_email';
   static const String _firstNameKey = 'user_first_name';
   static const String _lastNameKey = 'user_last_name';
+  static const String _homeIdKey = 'home_id';
 
   TokenManager(this._storage);
 
@@ -20,6 +21,7 @@ class TokenManager {
   String? _cachedEmail;
   String? _cachedFirstName;
   String? _cachedLastName;
+  String? _cachedHomeId;
 
   // Save tokens và customerId
   Future<void> saveTokens({
@@ -41,6 +43,11 @@ class TokenManager {
   Future<void> saveCustomerId(String customerId) async {
     await _storage.write(key: _customerIdKey, value: customerId);
     _cachedCustomerId = customerId;
+  }
+
+  Future<void> saveHomeId(String homeId) async {
+    await _storage.write(key: _homeIdKey, value: homeId);
+    _cachedHomeId = homeId;
   }
 
   // Save user profile info
@@ -100,6 +107,8 @@ class TokenManager {
     return _cachedCustomerId;
   }
 
+  String? getHomeIdSync() => _cachedHomeId;
+
   // Clear all
   Future<void> clearTokens() async {
     await Future.wait([
@@ -109,12 +118,14 @@ class TokenManager {
       _storage.delete(key: _emailKey),
       _storage.delete(key: _firstNameKey),
       _storage.delete(key: _lastNameKey),
+      _storage.delete(key: _homeIdKey),
     ]);
     _cachedToken = null;
     _cachedCustomerId = null;
     _cachedEmail = null;
     _cachedFirstName = null;
     _cachedLastName = null;
+    _cachedHomeId = null;
   }
 
   // Load to cache
@@ -124,6 +135,7 @@ class TokenManager {
     _cachedEmail = await getEmail();
     _cachedFirstName = await getFirstName();
     _cachedLastName = await getLastName();
+    _cachedHomeId = await _storage.read(key: _homeIdKey);
   }
 
   // Set cached token

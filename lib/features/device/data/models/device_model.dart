@@ -10,6 +10,7 @@ class DeviceModel extends DeviceEntity {
     required super.status,
     super.connectionType,
     super.macAddress,
+    super.deviceProfileId,
   });
 
   factory DeviceModel.fromJson(Map<String, dynamic> json) {
@@ -20,6 +21,7 @@ class DeviceModel extends DeviceEntity {
       status: _parseStatus(json),
       connectionType: _parseConnectionType(json),
       macAddress: json['label'] ?? json['additionalInfo']?['macAddress'],
+      deviceProfileId: json['deviceProfileId']?['id']?.toString(),
     );
   }
 
