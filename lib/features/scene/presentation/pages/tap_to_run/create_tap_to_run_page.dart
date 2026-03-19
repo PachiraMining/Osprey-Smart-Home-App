@@ -145,57 +145,92 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
   void _showAddActionSheet() {
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        margin: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Title
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 18),
+                child: Text(
+                  'Add Task',
+                  style: TextStyle(fontSize: 16, color: Colors.grey.shade500),
+                ),
+              ),
+              // Control Single Device
+              _buildTaskRow(
+                icon: Icons.lightbulb_outline,
+                iconColor: const Color(0xFFFFB300),
+                label: 'Control Single Device',
+                onTap: () { Navigator.pop(ctx); _addDeviceAction(); },
+              ),
+              // Select smart scenes
+              _buildTaskRow(
+                icon: Icons.wb_sunny_outlined,
+                iconColor: const Color(0xFFFF7043),
+                label: 'Select smart scenes',
+                onTap: () { Navigator.pop(ctx); _addRunSceneAction(); },
+              ),
+              // Send notification (disabled)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                child: Row(
+                  children: [
+                    Icon(Icons.sms_outlined, size: 28, color: Colors.grey.shade300),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Text(
+                        'Send notification',
+                        style: TextStyle(fontSize: 16, color: Colors.grey.shade300),
+                      ),
+                    ),
+                    Icon(Icons.error_outline, size: 22, color: Colors.grey.shade300),
+                  ],
+                ),
+              ),
+              // Delay the action
+              _buildTaskRow(
+                icon: Icons.hourglass_bottom,
+                iconColor: const Color(0xFF2196F3),
+                label: 'Delay the action',
+                onTap: () { Navigator.pop(ctx); _addDelayAction(); },
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        ),
       ),
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+    );
+  }
+
+  Widget _buildTaskRow({
+    required IconData icon,
+    required Color iconColor,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        child: Row(
           children: [
-            const Padding(
-              padding: EdgeInsets.all(16),
+            Icon(icon, size: 28, color: iconColor),
+            const SizedBox(width: 16),
+            Expanded(
               child: Text(
-                'Add Action',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                label,
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.black87),
               ),
             ),
-            ListTile(
-              leading: const CircleAvatar(
-                backgroundColor: Color(0xFFE3F2FD),
-                child: Icon(Icons.devices, color: Color(0xFF2196F3)),
-              ),
-              title: const Text('Control Device'),
-              subtitle: const Text('Select device and function'),
-              onTap: () {
-                Navigator.pop(ctx);
-                _addDeviceAction();
-              },
-            ),
-            ListTile(
-              leading: const CircleAvatar(
-                backgroundColor: Color(0xFFFFF3E0),
-                child: Icon(Icons.timer_outlined, color: Colors.orange),
-              ),
-              title: const Text('Delay'),
-              subtitle: const Text('Wait for a period'),
-              onTap: () {
-                Navigator.pop(ctx);
-                _addDelayAction();
-              },
-            ),
-            ListTile(
-              leading: const CircleAvatar(
-                backgroundColor: Color(0xFFE8F5E9),
-                child: Icon(Icons.play_circle_outline, color: Colors.green),
-              ),
-              title: const Text('Run Another Scene'),
-              subtitle: const Text('Trigger a Tap-to-Run scene'),
-              onTap: () {
-                Navigator.pop(ctx);
-                _addRunSceneAction();
-              },
-            ),
-            const SizedBox(height: 16),
+            Icon(Icons.chevron_right, color: Colors.grey.shade400),
           ],
         ),
       ),
