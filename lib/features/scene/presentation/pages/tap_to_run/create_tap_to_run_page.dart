@@ -248,32 +248,13 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
       return;
     }
 
-    final selectedDevice = await Navigator.push<HomeDeviceEntity>(
-      context,
-      MaterialPageRoute(
-        builder: (_) => _AllDevicesPage(devices: devices),
-      ),
-    );
-
-    if (selectedDevice == null || !mounted) return;
-
-    final profileId = selectedDevice.deviceProfileId;
-    if (profileId == null || profileId.isEmpty) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Device has no profile information')),
-      );
-      return;
-    }
-
+    // All Devices page handles device selection + function selection internally.
+    // Back from function page → returns to All Devices (not here).
+    // Returns SceneActionEntity only when user completes the full flow.
     final action = await Navigator.push<SceneActionEntity>(
       context,
       MaterialPageRoute(
-        builder: (_) => SelectDeviceFunctionPage(
-          deviceId: selectedDevice.deviceId,
-          deviceName: selectedDevice.displayName,
-          deviceProfileId: profileId,
-        ),
+        builder: (_) => _AllDevicesPage(devices: devices),
       ),
     );
 
@@ -684,9 +665,39 @@ class _MoreSettingsCard extends StatelessWidget {
 }
 
 /// Full-page device picker matching Tuya "All Devices" screen.
+/// Full-page device picker. Tapping a device navigates to
+/// [SelectDeviceFunctionPage]; pressing back there returns here.
+/// Only pops with a [SceneActionEntity] when the full flow completes.
 class _AllDevicesPage extends StatelessWidget {
   final List<HomeDeviceEntity> devices;
   const _AllDevicesPage({required this.devices});
+
+  Future<void> _onDeviceTap(BuildContext context, HomeDeviceEntity device) async {
+    final profileId = device.deviceProfileId;
+    if (profileId == null || profileId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Device has no profile information')),
+      );
+      return;
+    }
+
+    final action = await Navigator.push<SceneActionEntity>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => SelectDeviceFunctionPage(
+          deviceId: device.deviceId,
+          deviceName: device.displayName,
+          deviceProfileId: profileId,
+        ),
+      ),
+    );
+
+    // Only pop back to create page if user completed function selection
+    if (action != null && context.mounted) {
+      Navigator.pop(context, action);
+    }
+    // Otherwise stays on this page (user pressed back on function page)
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -714,7 +725,7 @@ class _AllDevicesPage extends StatelessWidget {
           return Material(
             color: Colors.white,
             child: InkWell(
-              onTap: () => Navigator.pop(context, device),
+              onTap: () => _onDeviceTap(context, device),
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
@@ -722,7 +733,6 @@ class _AllDevicesPage extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    // Device icon
                     Container(
                       width: 44,
                       height: 44,
@@ -737,7 +747,6 @@ class _AllDevicesPage extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 14),
-                    // Device name
                     Expanded(
                       child: Text(
                         device.displayName,
@@ -748,7 +757,6 @@ class _AllDevicesPage extends StatelessWidget {
                         ),
                       ),
                     ),
-                    // Chevron
                     Icon(
                       Icons.chevron_right,
                       color: Colors.grey.shade400,
