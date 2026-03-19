@@ -588,115 +588,51 @@ class _SceneTabState extends State<SceneTab> {
   }
 
   Widget _buildTapToRunList(BuildContext context, List<TapToRunSceneEntity> scenes, TapToRunState state) {
-    return Column(
-      children: [
-        Expanded(
-          child: RefreshIndicator(
-            onRefresh: () async {
-              _loadTapToRunScenes();
+    return RefreshIndicator(
+      onRefresh: () async {
+        _loadTapToRunScenes();
+      },
+      child: GridView.builder(
+        padding: const EdgeInsets.only(bottom: 100),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          childAspectRatio: 1.1,
+        ),
+        itemCount: scenes.length,
+        itemBuilder: (context, index) {
+          final scene = scenes[index];
+          final isExecuting = state is TapToRunExecuting && state.sceneId == scene.id;
+          return _TapToRunCard(
+            scene: scene,
+            isExecuting: isExecuting,
+            onTap: () => _navigateToEditTapToRun(scene),
+            onExecute: () {
+              context.read<TapToRunBloc>().add(ExecuteTapToRunSceneEvent(scene.id));
             },
-            child: ListView.separated(
-              itemCount: scenes.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final scene = scenes[index];
-                final isExecuting = state is TapToRunExecuting && state.sceneId == scene.id;
-                return Dismissible(
-                  key: Key('tap_to_run_${scene.id}'),
-                  direction: DismissDirection.endToStart,
-                  background: Container(
-                    alignment: Alignment.centerRight,
-                    padding: const EdgeInsets.only(right: 20),
-                    decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(16)),
-                    child: const Icon(Icons.delete, color: Colors.white),
-                  ),
-                  confirmDismiss: (_) async {
-                    return await showDialog(
-                      context: context,
-                      builder: (ctx) => AlertDialog(
-                        title: const Text('Xóa scene?'),
-                        content: Text('Bạn có chắc muốn xóa "${scene.name}"?'),
-                        actions: [
-                          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Hủy')),
-                          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Xóa', style: TextStyle(color: Colors.red))),
-                        ],
-                      ),
-                    );
-                  },
-                  onDismissed: (_) {
-                    context.read<TapToRunBloc>().add(DeleteTapToRunSceneEvent(scene.id));
-                  },
-                  child: GestureDetector(
-                    onTap: () => _navigateToEditTapToRun(scene),
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withAlpha(200),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Row(
-                        children: [
-                          CircleAvatar(
-                            radius: 20,
-                            backgroundColor: const Color(0xFF2196F3).withAlpha(30),
-                            child: const Icon(Icons.play_circle_outline, color: Color(0xFF2196F3)),
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(scene.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                                const SizedBox(height: 4),
-                                Text(
-                                  '${scene.actions.length} action${scene.actions.length > 1 ? 's' : ''}',
-                                  style: TextStyle(fontSize: 13, color: Colors.grey[600]),
-                                ),
-                              ],
-                            ),
-                          ),
-                          SizedBox(
-                            width: 48,
-                            height: 48,
-                            child: isExecuting
-                                ? const Padding(
-                                    padding: EdgeInsets.all(12),
-                                    child: CircularProgressIndicator(strokeWidth: 2),
-                                  )
-                                : IconButton(
-                                    icon: const Icon(Icons.play_arrow_rounded, color: Color(0xFF2196F3), size: 28),
-                                    onPressed: () {
-                                      context.read<TapToRunBloc>().add(ExecuteTapToRunSceneEvent(scene.id));
-                                    },
-                                  ),
-                          ),
-                        ],
-                      ),
+            onDelete: () {
+              showDialog(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: const Text('Xóa scene?'),
+                  content: Text('Bạn có chắc muốn xóa "${scene.name}"?'),
+                  actions: [
+                    TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Hủy')),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        context.read<TapToRunBloc>().add(DeleteTapToRunSceneEvent(scene.id));
+                      },
+                      child: const Text('Xóa', style: TextStyle(color: Colors.red)),
                     ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          width: double.infinity,
-          height: 48,
-          child: ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF2196F3),
-              foregroundColor: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-            ),
-            onPressed: () => _navigateToCreateTapToRun(),
-            icon: const Icon(Icons.add),
-            label: const Text('Thêm Scene', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-          ),
-        ),
-        const SizedBox(height: 12),
-      ],
+                  ],
+                ),
+              );
+            },
+          );
+        },
+      ),
     );
   }
 
@@ -814,6 +750,109 @@ class _SceneTabState extends State<SceneTab> {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _TapToRunCard extends StatelessWidget {
+  final TapToRunSceneEntity scene;
+  final bool isExecuting;
+  final VoidCallback onTap;
+  final VoidCallback onExecute;
+  final VoidCallback onDelete;
+
+  const _TapToRunCard({
+    required this.scene,
+    required this.isExecuting,
+    required this.onTap,
+    required this.onExecute,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      onLongPress: onDelete,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF9B8FE8),
+              Color(0xFF7B6DD8),
+            ],
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Top row: icon + ... menu
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Scene icon / execute button
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withAlpha(50),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: isExecuting
+                      ? const Padding(
+                          padding: EdgeInsets.all(8),
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        )
+                      : GestureDetector(
+                          onTap: onExecute,
+                          child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 22),
+                        ),
+                ),
+                // ... more / delete button
+                GestureDetector(
+                  onTap: onDelete,
+                  child: Container(
+                    width: 30,
+                    height: 30,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withAlpha(40),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.more_horiz, color: Colors.white, size: 18),
+                  ),
+                ),
+              ],
+            ),
+
+            const Spacer(),
+
+            // Scene name
+            Text(
+              scene.name,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 2),
+            // Task count
+            Text(
+              '${scene.actions.length} task${scene.actions.length != 1 ? 's' : ''}',
+              style: TextStyle(
+                color: Colors.white.withAlpha(180),
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
