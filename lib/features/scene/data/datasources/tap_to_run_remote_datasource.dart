@@ -1,12 +1,10 @@
 import 'package:dio/dio.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/error/exceptions.dart';
-import '../models/smart_home_model.dart';
 import '../models/tap_to_run_scene_model.dart';
 import '../models/data_point_model.dart';
 
 abstract class TapToRunRemoteDataSource {
-  Future<List<SmartHomeModel>> getSmartHomes();
   Future<List<TapToRunSceneModel>> getScenes(String homeId);
   Future<TapToRunSceneModel> getSceneDetail(String sceneId);
   Future<TapToRunSceneModel> createScene(String homeId, Map<String, dynamic> body);
@@ -22,22 +20,6 @@ class TapToRunRemoteDataSourceImpl implements TapToRunRemoteDataSource {
   final ApiClient apiClient;
 
   TapToRunRemoteDataSourceImpl({required this.apiClient});
-
-  @override
-  Future<List<SmartHomeModel>> getSmartHomes() async {
-    try {
-      final response = await apiClient.get('/api/smarthome/homes');
-      final List<dynamic> data = response.data is List ? response.data : [];
-      return data
-          .map((json) => SmartHomeModel.fromJson(json as Map<String, dynamic>))
-          .toList();
-    } on DioException catch (e) {
-      if (e.response?.statusCode == 401) {
-        throw UnauthorizedException();
-      }
-      throw ServerException(message: 'Failed to get homes: ${e.message}');
-    }
-  }
 
   @override
   Future<List<TapToRunSceneModel>> getScenes(String homeId) async {

@@ -1,12 +1,10 @@
 import 'package:dartz/dartz.dart';
 import '../../../../core/error/failure.dart';
-import '../entities/smart_home_entity.dart';
 import '../entities/tap_to_run_scene_entity.dart';
 import '../entities/scene_action_entity.dart';
 import '../entities/data_point_entity.dart';
 
 abstract class TapToRunRepository {
-  Future<Either<Failure, List<SmartHomeEntity>>> getSmartHomes();
   Future<Either<Failure, List<TapToRunSceneEntity>>> getScenes(String homeId);
   Future<Either<Failure, TapToRunSceneEntity>> createScene({
     required String homeId,

@@ -1,7 +1,6 @@
 import 'package:dartz/dartz.dart';
 import '../../../../core/error/failure.dart';
 import '../../../../core/error/exceptions.dart';
-import '../../domain/entities/smart_home_entity.dart';
 import '../../domain/entities/tap_to_run_scene_entity.dart';
 import '../../domain/entities/scene_action_entity.dart';
 import '../../domain/entities/data_point_entity.dart';
@@ -13,20 +12,6 @@ class TapToRunRepositoryImpl implements TapToRunRepository {
   final TapToRunRemoteDataSource remoteDataSource;
 
   TapToRunRepositoryImpl({required this.remoteDataSource});
-
-  @override
-  Future<Either<Failure, List<SmartHomeEntity>>> getSmartHomes() async {
-    try {
-      final homes = await remoteDataSource.getSmartHomes();
-      return Right(homes);
-    } on UnauthorizedException {
-      return const Left(UnauthorizedFailure('Unauthorized', message: 'Phiên đăng nhập hết hạn'));
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message, message: e.message));
-    } catch (e) {
-      return Left(ServerFailure('$e', message: 'Lỗi không xác định'));
-    }
-  }
 
   @override
   Future<Either<Failure, List<TapToRunSceneEntity>>> getScenes(String homeId) async {

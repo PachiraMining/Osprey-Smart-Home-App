@@ -42,7 +42,6 @@ import '../../features/scene/presentation/bloc/scene_bloc.dart';
 import '../../features/scene/data/datasources/tap_to_run_remote_datasource.dart';
 import '../../features/scene/data/repositories/tap_to_run_repository_impl.dart';
 import '../../features/scene/domain/repositories/tap_to_run_repository.dart';
-import '../../features/scene/domain/usecases/get_smart_homes.dart';
 import '../../features/scene/domain/usecases/get_tap_to_run_scenes.dart';
 import '../../features/scene/domain/usecases/create_tap_to_run_scene.dart';
 import '../../features/scene/domain/usecases/update_tap_to_run_scene.dart';
@@ -268,7 +267,6 @@ Future<void> setupInjector() async {
   );
 
   // Use cases
-  sl.registerLazySingleton(() => GetSmartHomes(sl()));
   sl.registerLazySingleton(() => GetTapToRunScenes(sl()));
   sl.registerLazySingleton(() => CreateTapToRunScene(sl()));
   sl.registerLazySingleton(() => UpdateTapToRunScene(sl()));
