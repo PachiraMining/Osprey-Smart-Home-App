@@ -319,7 +319,7 @@ class HomeDeviceModel extends HomeDeviceEntity {
   }
 
   Map<String, dynamic> toJson() => {
-    if (roomId != null) 'roomId': {'id': roomId, 'entityType': 'ROOM'} else 'roomId': null,
+    'roomId': roomId != null ? {'id': roomId, 'entityType': 'ROOM'} : null,
     if (deviceName != null) 'deviceName': deviceName,
     'sortOrder': sortOrder,
   };
@@ -1203,17 +1203,17 @@ class LoadTapToRunScenesEvent extends TapToRunEvent {
 
 - [ ] **Step 2: Update TapToRunBloc — remove getSmartHomes + _ensureHomeId**
 
-In `tap_to_run_bloc.dart`:
+In `tap_to_run_bloc.dart`, make these exact changes:
+
 1. Remove `import get_smart_homes.dart`
 2. Remove `final GetSmartHomes getSmartHomes;` field
-3. Remove `getSmartHomes` from constructor
-4. Remove `String? _homeId;` and `get homeId`
-5. Remove entire `_ensureHomeId()` method
-6. Update `_onLoadScenes` to use `event.homeId` directly
-7. Update `_onCreateScene` to require homeId from event or add homeId parameter
-8. Update internal `add(LoadTapToRunScenesEvent())` calls — these need homeId now. Store homeId in a field set during load.
+3. Remove `getSmartHomes` from constructor parameter
+4. Keep `String? _homeId;` field — now set from events, not fetched internally
+5. Remove `get homeId` getter
+6. Remove entire `_ensureHomeId()` method (lines 42-63)
+7. Update ALL event handlers that reference `_ensureHomeId()` or `LoadTapToRunScenesEvent()`
 
-The simplest approach: keep a `_homeId` field but set it from events rather than fetching internally:
+Complete updated BLoC:
 
 ```dart
 class TapToRunBloc extends Bloc<TapToRunEvent, TapToRunState> {
@@ -1232,10 +1232,14 @@ class TapToRunBloc extends Bloc<TapToRunEvent, TapToRunState> {
     required this.deleteTapToRunScene,
     required this.executeTapToRunScene,
   }) : super(TapToRunInitial()) {
-    // ... same event handlers
+    on<LoadTapToRunScenesEvent>(_onLoadScenes);
+    on<CreateTapToRunSceneEvent>(_onCreateScene);
+    on<UpdateTapToRunSceneEvent>(_onUpdateScene);
+    on<DeleteTapToRunSceneEvent>(_onDeleteScene);
+    on<ExecuteTapToRunSceneEvent>(_onExecuteScene);
+    on<ToggleTapToRunSceneEvent>(_onToggleScene);
   }
 
-  // _onLoadScenes now uses event.homeId:
   Future<void> _onLoadScenes(LoadTapToRunScenesEvent event, Emitter<TapToRunState> emit) async {
     _homeId = event.homeId;
     emit(TapToRunLoading());
@@ -1246,9 +1250,36 @@ class TapToRunBloc extends Bloc<TapToRunEvent, TapToRunState> {
     );
   }
 
-  // _onCreateScene uses cached _homeId:
-  // Replace `await _ensureHomeId()` with `_homeId`
-  // Replace `add(LoadTapToRunScenesEvent())` with `add(LoadTapToRunScenesEvent(_homeId!))`
+  Future<void> _onCreateScene(CreateTapToRunSceneEvent event, Emitter<TapToRunState> emit) async {
+    if (_homeId == null) {
+      emit(const TapToRunError('Không tìm thấy Home'));
+      return;
+    }
+    emit(TapToRunCreating());
+    final result = await createTapToRunScene(homeId: _homeId!, name: event.name, icon: event.icon, actions: event.actions);
+    result.fold(
+      (failure) => emit(TapToRunError(failure.message)),
+      (_) {
+        emit(TapToRunCreated());
+        add(LoadTapToRunScenesEvent(_homeId!));  // ← uses cached _homeId
+      },
+    );
+  }
+
+  Future<void> _onUpdateScene(UpdateTapToRunSceneEvent event, Emitter<TapToRunState> emit) async {
+    emit(TapToRunCreating());
+    final result = await updateTapToRunScene(sceneId: event.sceneId, name: event.name, icon: event.icon, actions: event.actions);
+    result.fold(
+      (failure) => emit(TapToRunError(failure.message)),
+      (_) {
+        emit(TapToRunCreated());
+        if (_homeId != null) add(LoadTapToRunScenesEvent(_homeId!));  // ← null-safe
+      },
+    );
+  }
+
+  // _onDeleteScene, _onExecuteScene, _onToggleScene — keep as-is (they don't call LoadTapToRunScenesEvent)
+}
 ```
 
 - [ ] **Step 3: Update DI — remove GetSmartHomes from TapToRunBloc constructor**
@@ -1268,35 +1299,67 @@ sl.registerFactory(
 );
 ```
 
-- [ ] **Step 4: Update home_page.dart SceneTab — dispatch with homeId**
+- [ ] **Step 4: Update ALL 4 LoadTapToRunScenesEvent() call sites in home_page.dart**
 
-In the `SceneTab` and `_SceneTabState`, wherever `LoadTapToRunScenesEvent()` is dispatched, change to pass homeId from `HomeManagementBloc`:
-
+Add imports at top:
 ```dart
-// Import
 import 'package:smart_curtain_app/features/home/presentation/bloc/home_management_bloc.dart';
 import 'package:smart_curtain_app/features/home/presentation/bloc/home_management_state.dart';
-
-// In _buildTapToRunContent error retry button:
-final homeId = context.read<HomeManagementBloc>().state.selectedHomeId;
-if (homeId != null) {
-  context.read<TapToRunBloc>().add(LoadTapToRunScenesEvent(homeId));
-}
-
-// In _navigateToCreateTapToRun after pop:
-final homeId = context.read<HomeManagementBloc>().state.selectedHomeId;
-if (homeId != null) {
-  context.read<TapToRunBloc>().add(LoadTapToRunScenesEvent(homeId));
-}
-
-// Same for _navigateToEditTapToRun
 ```
 
-Also add a BlocListener on HomeManagementBloc in SceneTab to auto-load scenes when home is loaded:
+Create a helper method in `_SceneTabState`:
 ```dart
-// In SceneTab.initState or build:
-// When HomeManagement finishes loading, load tap-to-run scenes
+void _loadTapToRunScenes() {
+  final homeId = context.read<HomeManagementBloc>().state.selectedHomeId;
+  if (homeId != null) {
+    context.read<TapToRunBloc>().add(LoadTapToRunScenesEvent(homeId));
+  }
+}
 ```
+
+Then replace ALL 4 call sites:
+
+1. **Line ~707** — error retry button in `_buildTapToRunContent`:
+   `onPressed: () => _loadTapToRunScenes()`
+
+2. **Line ~772** — RefreshIndicator in `_buildTapToRunList`:
+   `onRefresh: () async { _loadTapToRunScenes(); }`
+
+3. **Line ~885** — `_navigateToCreateTapToRun` after pop:
+   `if (result == true && mounted) { _loadTapToRunScenes(); }`
+
+4. **Line ~895** — `_navigateToEditTapToRun` after pop:
+   `if (result == true && mounted) { _loadTapToRunScenes(); }`
+
+- [ ] **Step 5: Add BlocListener to auto-load scenes when home is ready**
+
+Wrap SceneTab's `_buildTapToRunContent` in a `BlocListener<HomeManagementBloc, HomeManagementState>`:
+
+```dart
+@override
+void initState() {
+  super.initState();
+  // Load scenes if home is already loaded
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    _loadTapToRunScenes();
+  });
+}
+```
+
+And in the `build` method, wrap the content with a BlocListener that reloads scenes when selectedHomeId changes:
+```dart
+BlocListener<HomeManagementBloc, HomeManagementState>(
+  listenWhen: (prev, curr) => prev.selectedHomeId != curr.selectedHomeId && curr.status == HomeStatus.loaded,
+  listener: (context, state) {
+    _loadTapToRunScenes();
+  },
+  child: // ... existing content
+)
+```
+
+This ensures:
+- Scenes load when Scene tab first appears (if home already loaded)
+- Scenes reload when user switches home
 
 - [ ] **Step 5: Verify no compile errors**
 
@@ -1437,7 +1500,26 @@ New HomeTab widget that replaces the existing one in home_page.dart:
 - Header: selectedHome name (GestureDetector → show HomeSelectorSheet)
 - Room filter chips: "Tất cả" + rooms from state
 - Device ListView: filteredDevices from state
-- Each device card: displayName, isOnline indicator, tap → CurtainControlPage
+- Each device card: displayName, isOnline indicator
+- Tap device → create a `DeviceEntity` from `HomeDeviceEntity` enriched fields for navigation:
+  ```dart
+  onTap: () {
+    final device = DeviceEntity(
+      id: homeDevice.deviceId,
+      name: homeDevice.displayName,
+      type: homeDevice.type ?? '',
+      status: (homeDevice.isOnline ?? false) ? 'online' : 'offline',
+      connectionType: '',
+      macAddress: '',
+      icon: '',
+      lastSeen: '',
+      metadata: {},
+      deviceProfileId: homeDevice.deviceProfileId,
+    );
+    Navigator.push(context, MaterialPageRoute(builder: (_) => CurtainControlPage(device: device)));
+  }
+  ```
+  This bridges `HomeDeviceEntity` → `DeviceEntity` for the existing control page.
 - RefreshIndicator → dispatch LoadHomeDevicesEvent + LoadRoomsEvent
 - Empty state: "Chưa có thiết bị" with button
 
@@ -1569,4 +1651,4 @@ git commit -m "fix: resolve remaining analysis issues from home management integ
 | 13 | Add Device to Home UI | 1 new | 11 |
 | 14 | Full integration verify | — | all |
 
-**Parallelizable tasks:** Tasks 1-3 (entities + usecases + models) can run in parallel. Tasks 8-9 can run in parallel. Tasks 11-13 can run in parallel after Task 7.
+**Parallelizable tasks:** After Task 1 completes, Tasks 2+3 (usecases + models) can run in parallel. Tasks 8+9 can run in parallel. Tasks 11+12+13 can run in parallel after Task 7.
