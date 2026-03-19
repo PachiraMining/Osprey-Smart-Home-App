@@ -446,39 +446,42 @@ class _SelectDeviceFunctionPageState extends State<SelectDeviceFunctionPage> {
   }
 
   Widget _bottomButtons(BuildContext ctx, dynamic Function() getValue) {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: Colors.grey.shade200)),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text(
-                'Cancel',
-                style: TextStyle(fontSize: 16, color: Colors.black54),
-              ),
-            ),
-          ),
-          Container(width: 1, height: 48, color: Colors.grey.shade200),
-          Expanded(
-            child: TextButton(
-              onPressed: () {
-                final val = getValue();
-                if (val != null) Navigator.pop(ctx, val);
-              },
-              child: const Text(
-                'Save',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
+    return SafeArea(
+      top: false,
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border(top: BorderSide(color: Colors.grey.shade200)),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text(
+                  'Cancel',
+                  style: TextStyle(fontSize: 16, color: Colors.black54),
                 ),
               ),
             ),
+            Container(width: 1, height: 48, color: Colors.grey.shade200),
+            Expanded(
+              child: TextButton(
+                onPressed: () {
+                  final val = getValue();
+                  if (val != null) Navigator.pop(ctx, val);
+                },
+                child: const Text(
+                  'Save',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+              ),
           ),
         ],
+      ),
       ),
     );
   }
