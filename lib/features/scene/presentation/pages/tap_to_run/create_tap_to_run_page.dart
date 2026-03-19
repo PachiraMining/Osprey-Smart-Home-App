@@ -32,6 +32,16 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
     Color(0xFF8B47BF), Color(0xFFD14B8F), Color(0xFFC78B6D), Color(0xFF5A7A84),
   ];
 
+  static const _sceneIcons = [
+    Icons.download_outlined, Icons.curtains_outlined, Icons.beach_access_outlined,
+    Icons.play_arrow_rounded, Icons.hourglass_bottom_outlined, Icons.mail_outlined,
+    Icons.local_offer_outlined, Icons.flag_outlined, Icons.lock_outlined,
+    Icons.nightlight_round, Icons.location_on_outlined, Icons.cloud_outlined,
+    Icons.coffee_outlined, Icons.contrast, Icons.wb_sunny_outlined,
+    Icons.schedule_outlined, Icons.water_drop_outlined, Icons.work_outline,
+  ];
+  IconData _selectedIcon = Icons.play_arrow_rounded;
+
   static const _bgColor = Color(0xFFF5F6FA);
   static const _blueAccent = Color(0xFF2196F3);
 
@@ -536,16 +546,16 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
                     ],
                   ),
                   const SizedBox(height: 24),
-                  // Color grid
+                  // Color grid (4 columns, smaller circles)
                   if (selectedTab == 0)
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 32),
+                      padding: const EdgeInsets.symmetric(horizontal: 40),
                       child: GridView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 4,
-                          crossAxisSpacing: 20,
+                          crossAxisSpacing: 24,
                           mainAxisSpacing: 20,
                         ),
                         itemCount: _sceneColors.length,
@@ -558,35 +568,71 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
                               setParentLocal(() {});
                               setLocal(() {});
                             },
-                            child: Container(
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: color,
-                                border: isSelected
-                                    ? Border.all(color: Colors.white, width: 3)
-                                    : null,
-                                boxShadow: isSelected
-                                    ? [BoxShadow(color: color.withAlpha(80), blurRadius: 8, spreadRadius: 2)]
+                            child: Center(
+                              child: Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: color,
+                                  border: isSelected
+                                      ? Border.all(color: color.withAlpha(80), width: 3)
+                                      : null,
+                                ),
+                                child: isSelected
+                                    ? Center(
+                                        child: Container(
+                                          width: 34,
+                                          height: 34,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            border: Border.all(color: Colors.white, width: 2),
+                                          ),
+                                        ),
+                                      )
                                     : null,
                               ),
-                              child: isSelected
-                                  ? Container(
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        border: Border.all(color: color.withAlpha(100), width: 2),
-                                      ),
-                                    )
-                                  : null,
                             ),
                           );
                         },
                       ),
                     ),
-                  // Icon tab placeholder
+                  // Icon grid (6 columns)
                   if (selectedTab == 1)
                     Padding(
-                      padding: const EdgeInsets.all(32),
-                      child: Text('Coming soon', style: TextStyle(color: Colors.grey.shade400)),
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 6,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 16,
+                        ),
+                        itemCount: _sceneIcons.length,
+                        itemBuilder: (_, i) {
+                          final icon = _sceneIcons[i];
+                          final isSelected = _selectedIcon == icon;
+                          return GestureDetector(
+                            onTap: () {
+                              setState(() => _selectedIcon = icon);
+                              setParentLocal(() {});
+                              setLocal(() {});
+                            },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: isSelected ? Colors.grey.shade200 : Colors.transparent,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Icon(
+                                icon,
+                                size: 28,
+                                color: isSelected ? Colors.black87 : Colors.grey.shade500,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
                     ),
                   const SizedBox(height: 24),
                 ],
