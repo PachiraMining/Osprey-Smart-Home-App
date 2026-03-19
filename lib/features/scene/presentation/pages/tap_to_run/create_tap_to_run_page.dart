@@ -706,7 +706,7 @@ class _AllDevicesPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text(
           'All Devices',
-          style: TextStyle(fontWeight: FontWeight.w600),
+          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
         ),
         centerTitle: true,
         backgroundColor: Colors.white,

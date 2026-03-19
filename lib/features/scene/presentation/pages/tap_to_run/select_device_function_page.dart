@@ -89,7 +89,7 @@ class _SelectDeviceFunctionPageState extends State<SelectDeviceFunctionPage> {
       appBar: AppBar(
         title: const Text(
           'Select Function',
-          style: TextStyle(fontWeight: FontWeight.w600),
+          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
         ),
         centerTitle: true,
         backgroundColor: Colors.white,
