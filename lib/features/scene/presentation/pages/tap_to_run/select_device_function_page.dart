@@ -176,9 +176,10 @@ class _SelectDeviceFunctionPageState extends State<SelectDeviceFunctionPage> {
       backgroundColor: Colors.transparent,
       builder: (ctx) {
         bool? selected;
-        return StatefulBuilder(
+        return SafeArea(
+          child: StatefulBuilder(
           builder: (ctx, setLocal) => Container(
-            margin: const EdgeInsets.all(12),
+            margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
@@ -201,6 +202,7 @@ class _SelectDeviceFunctionPageState extends State<SelectDeviceFunctionPage> {
               ],
             ),
           ),
+        ),
         );
       },
     );
@@ -217,9 +219,10 @@ class _SelectDeviceFunctionPageState extends State<SelectDeviceFunctionPage> {
       isScrollControlled: true,
       builder: (ctx) {
         String? selected;
-        return StatefulBuilder(
+        return SafeArea(
+          child: StatefulBuilder(
           builder: (ctx, setLocal) => Container(
-            margin: const EdgeInsets.all(12),
+            margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
             constraints: BoxConstraints(
               maxHeight: MediaQuery.of(ctx).size.height * 0.6,
             ),
@@ -256,6 +259,7 @@ class _SelectDeviceFunctionPageState extends State<SelectDeviceFunctionPage> {
               ],
             ),
           ),
+        ),
         );
       },
     );
@@ -275,9 +279,10 @@ class _SelectDeviceFunctionPageState extends State<SelectDeviceFunctionPage> {
       backgroundColor: Colors.transparent,
       builder: (ctx) {
         double current = min;
-        return StatefulBuilder(
+        return SafeArea(
+          child: StatefulBuilder(
           builder: (ctx, setLocal) => Container(
-            margin: const EdgeInsets.all(12),
+            margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
@@ -342,6 +347,7 @@ class _SelectDeviceFunctionPageState extends State<SelectDeviceFunctionPage> {
               ],
             ),
           ),
+        ),
         );
       },
     );
@@ -357,10 +363,11 @@ class _SelectDeviceFunctionPageState extends State<SelectDeviceFunctionPage> {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (ctx) => Padding(
+      builder: (ctx) => SafeArea(
+        child: Padding(
         padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
         child: Container(
-          margin: const EdgeInsets.all(12),
+          margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(20),
@@ -396,6 +403,7 @@ class _SelectDeviceFunctionPageState extends State<SelectDeviceFunctionPage> {
               }),
             ],
           ),
+        ),
         ),
       ),
     );
@@ -446,42 +454,39 @@ class _SelectDeviceFunctionPageState extends State<SelectDeviceFunctionPage> {
   }
 
   Widget _bottomButtons(BuildContext ctx, dynamic Function() getValue) {
-    return SafeArea(
-      top: false,
-      child: Container(
-        decoration: BoxDecoration(
-          border: Border(top: BorderSide(color: Colors.grey.shade200)),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: const Text(
-                  'Cancel',
-                  style: TextStyle(fontSize: 16, color: Colors.black54),
+    return Container(
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: Colors.grey.shade200)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(fontSize: 16, color: Colors.black54),
+              ),
+            ),
+          ),
+          Container(width: 1, height: 48, color: Colors.grey.shade200),
+          Expanded(
+            child: TextButton(
+              onPressed: () {
+                final val = getValue();
+                if (val != null) Navigator.pop(ctx, val);
+              },
+              child: const Text(
+                'Save',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
                 ),
               ),
             ),
-            Container(width: 1, height: 48, color: Colors.grey.shade200),
-            Expanded(
-              child: TextButton(
-                onPressed: () {
-                  final val = getValue();
-                  if (val != null) Navigator.pop(ctx, val);
-                },
-                child: const Text(
-                  'Save',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-              ),
           ),
         ],
-      ),
       ),
     );
   }

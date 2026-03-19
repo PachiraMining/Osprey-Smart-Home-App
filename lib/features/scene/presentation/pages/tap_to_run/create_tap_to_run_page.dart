@@ -146,14 +146,14 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        margin: const EdgeInsets.all(16),
+      builder: (ctx) => SafeArea(
+        child: Container(
+        margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
         ),
-        child: SafeArea(
-          child: Column(
+        child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               // Title
