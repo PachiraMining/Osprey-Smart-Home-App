@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_curtain_app/features/home/presentation/pages/CreateSceneTriggerPage.dart';
 import 'package:smart_curtain_app/features/home/presentation/pages/create_scene_page.dart';
 import 'package:smart_curtain_app/features/home/presentation/pages/add_device_page.dart';
-import 'package:smart_curtain_app/features/device/presentation/pages/device_management_page.dart';
 import 'package:smart_curtain_app/features/scene/presentation/bloc/scene_bloc.dart';
 import 'package:smart_curtain_app/features/scene/presentation/bloc/scene_event.dart';
 import 'package:smart_curtain_app/features/scene/presentation/bloc/scene_state.dart';
@@ -13,20 +12,15 @@ import 'package:get_it/get_it.dart';
 import 'package:smart_curtain_app/core/auth/token_manager.dart';
 import 'package:smart_curtain_app/features/home/presentation/pages/personal_info_page.dart';
 import 'package:smart_curtain_app/features/home/presentation/pages/qr_scanner_page.dart';
-import 'package:smart_curtain_app/features/device/presentation/bloc/device_bloc.dart';
-import 'package:smart_curtain_app/features/device/presentation/bloc/device_event.dart';
-import 'package:smart_curtain_app/features/device/presentation/bloc/device_state.dart';
-import 'package:smart_curtain_app/features/device/domain/entities/device_entity.dart';
-import 'package:smart_curtain_app/features/device/presentation/pages/curtain_control_page.dart';
 import 'package:smart_curtain_app/features/home/presentation/pages/settings_page.dart';
 import 'package:smart_curtain_app/features/home/presentation/pages/alexa_linking_page.dart';
-import 'package:smart_curtain_app/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:smart_curtain_app/features/auth/presentation/bloc/auth_event.dart';
 import 'package:smart_curtain_app/features/scene/presentation/bloc/tap_to_run/tap_to_run_bloc.dart';
 import 'package:smart_curtain_app/features/scene/presentation/bloc/tap_to_run/tap_to_run_event.dart';
 import 'package:smart_curtain_app/features/scene/presentation/bloc/tap_to_run/tap_to_run_state.dart';
 import 'package:smart_curtain_app/features/home/presentation/bloc/home_management_bloc.dart';
 import 'package:smart_curtain_app/features/home/presentation/bloc/home_management_state.dart';
+import 'package:smart_curtain_app/features/home/presentation/pages/home_tab.dart'
+    as home_tab;
 import 'package:smart_curtain_app/features/scene/domain/entities/tap_to_run_scene_entity.dart';
 import 'package:smart_curtain_app/features/scene/presentation/pages/tap_to_run/create_tap_to_run_page.dart';
 
@@ -48,7 +42,7 @@ class HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _pages = [
-      const HomeTab(),
+      const home_tab.HomeTab(),
       const SceneTab(),
       const MallTab(),
       const ProfileTab(),
@@ -309,200 +303,7 @@ class HomePageState extends State<HomePage> {
   }
 }
 
-// Home Tab - Device list with curtain track cards
-class HomeTab extends StatefulWidget {
-  const HomeTab({super.key});
-
-  @override
-  State<HomeTab> createState() => _HomeTabState();
-}
-
-class _HomeTabState extends State<HomeTab> {
-  @override
-  void initState() {
-    super.initState();
-    context.read<DeviceBloc>().add(LoadDevicesEvent());
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<DeviceBloc, DeviceState>(
-      builder: (context, state) {
-        if (state is DeviceLoading) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (state is DeviceLoaded && state.devices.isNotEmpty) {
-          return _buildDeviceGrid(state.devices);
-        }
-        if (state is DeviceError) {
-          return _buildEmptyState(errorMsg: state.message);
-        }
-        return _buildEmptyState();
-      },
-    );
-  }
-
-  Widget _buildDeviceGrid(List<DeviceEntity> devices) {
-    return RefreshIndicator(
-      onRefresh: () async {
-        context.read<DeviceBloc>().add(LoadDevicesEvent());
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: ListView(
-          children: [
-            const SizedBox(height: 16),
-            // All Devices header
-            Row(
-              children: [
-                const Text(
-                  'All Devices',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-                const Spacer(),
-                Icon(Icons.more_horiz, size: 24, color: Colors.grey.shade600),
-              ],
-            ),
-            const SizedBox(height: 12),
-            // Device list
-            ...devices.map((device) => Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: _DeviceListCard(device: device),
-                )),
-            const SizedBox(height: 100),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyState({String? errorMsg}) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: 120),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.curtains_outlined, size: 80, color: Colors.grey.shade300),
-            const SizedBox(height: 16),
-            Text(
-              errorMsg ?? 'No devices',
-              style: TextStyle(fontSize: 16, color: Colors.grey.shade500),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: 160,
-              height: 44,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const AddDevicePage()),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2196F3),
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: const Text(
-                  'Add Device',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Device list card - matching reference design
-class _DeviceListCard extends StatelessWidget {
-  final DeviceEntity device;
-  const _DeviceListCard({required this.device});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => CurtainControlPage(device: device),
-          ),
-        );
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
-        decoration: BoxDecoration(
-          color: Colors.white.withAlpha(200),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(
-          children: [
-            // Device icon/image
-            Container(
-              width: 68,
-              height: 68,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: const Icon(
-                Icons.curtains_outlined,
-                size: 38,
-                color: Color(0xFF78909C),
-              ),
-            ),
-            const SizedBox(width: 16),
-            // Device name
-            Expanded(
-              child: Text(
-                device.name,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black87,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            const SizedBox(width: 12),
-            // Power button
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: device.isOnline
-                    ? const Color(0xFF4CAF50).withAlpha(20)
-                    : Colors.grey.withAlpha(20),
-              ),
-              child: Icon(
-                Icons.power_settings_new,
-                size: 26,
-                color: device.isOnline
-                    ? const Color(0xFF4CAF50)
-                    : Colors.grey.shade400,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+// HomeTab is now in home_tab.dart (imported as home_tab)
 
 // Scene Tab - with Automation / Tap-to-Run sub-tabs
 class SceneTab extends StatefulWidget {
