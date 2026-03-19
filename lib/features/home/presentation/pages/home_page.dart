@@ -369,7 +369,7 @@ class _SceneTabState extends State<SceneTab> {
                   child: Text(
                     'Automation',
                     style: TextStyle(
-                      fontSize: _selectedSubTab == 0 ? 20 : 16,
+                      fontSize: _selectedSubTab == 0 ? 16 : 14,
                       fontWeight: _selectedSubTab == 0 ? FontWeight.bold : FontWeight.w400,
                       color: _selectedSubTab == 0 ? Colors.black87 : Colors.grey,
                     ),
@@ -381,7 +381,7 @@ class _SceneTabState extends State<SceneTab> {
                   child: Text(
                     'Tap-to-Run',
                     style: TextStyle(
-                      fontSize: _selectedSubTab == 1 ? 20 : 16,
+                      fontSize: _selectedSubTab == 1 ? 16 : 14,
                       fontWeight: _selectedSubTab == 1 ? FontWeight.bold : FontWeight.w400,
                       color: _selectedSubTab == 1 ? Colors.black87 : Colors.grey,
                     ),
