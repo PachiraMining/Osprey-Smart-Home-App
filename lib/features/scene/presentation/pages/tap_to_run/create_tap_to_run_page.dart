@@ -7,9 +7,8 @@ import 'package:smart_curtain_app/features/scene/presentation/bloc/tap_to_run/ta
 import 'package:smart_curtain_app/features/scene/presentation/bloc/tap_to_run/tap_to_run_state.dart';
 import 'package:smart_curtain_app/features/scene/presentation/pages/tap_to_run/select_device_function_page.dart';
 import 'package:smart_curtain_app/features/scene/presentation/pages/tap_to_run/delay_config_sheet.dart';
-import 'package:smart_curtain_app/features/device/presentation/bloc/device_bloc.dart';
-import 'package:smart_curtain_app/features/device/presentation/bloc/device_state.dart';
-import 'package:smart_curtain_app/features/device/domain/entities/device_entity.dart';
+import 'package:smart_curtain_app/features/home/presentation/bloc/home_management_bloc.dart';
+import 'package:smart_curtain_app/features/home/domain/entities/home_device_entity.dart';
 
 class CreateTapToRunPage extends StatefulWidget {
   final TapToRunSceneEntity? existingScene;
@@ -254,18 +253,15 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
   }
 
   Future<void> _addDeviceAction() async {
-    final deviceState = context.read<DeviceBloc>().state;
-    List<DeviceEntity> devices = [];
-    if (deviceState is DeviceLoaded) {
-      devices = deviceState.devices;
-    }
+    final homeState = context.read<HomeManagementBloc>().state;
+    final devices = homeState.devices;
     if (devices.isEmpty) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Không có thiết bị nào')));
       return;
     }
 
-    final selectedDevice = await showModalBottomSheet<DeviceEntity>(
+    final selectedDevice = await showModalBottomSheet<HomeDeviceEntity>(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
@@ -282,14 +278,15 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
                 itemCount: devices.length,
                 itemBuilder: (_, i) {
                   final device = devices[i];
+                  final online = device.isOnline ?? false;
                   return ListTile(
                     leading: CircleAvatar(
-                      backgroundColor: device.isOnline ? Colors.green.withAlpha(30) : Colors.grey.withAlpha(30),
-                      child: Icon(Icons.devices, color: device.isOnline ? Colors.green : Colors.grey),
+                      backgroundColor: online ? Colors.green.withAlpha(30) : Colors.grey.withAlpha(30),
+                      child: Icon(Icons.devices, color: online ? Colors.green : Colors.grey),
                     ),
-                    title: Text(device.name),
-                    subtitle: Text(device.type),
-                    trailing: Icon(Icons.circle, color: device.isOnline ? Colors.green : Colors.grey, size: 10),
+                    title: Text(device.displayName),
+                    subtitle: Text(device.type ?? ''),
+                    trailing: Icon(Icons.circle, color: online ? Colors.green : Colors.grey, size: 10),
                     onTap: () => Navigator.pop(ctx, device),
                   );
                 },
@@ -311,7 +308,11 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
 
     final action = await Navigator.push<SceneActionEntity>(
       context,
-      MaterialPageRoute(builder: (_) => SelectDeviceFunctionPage(deviceId: selectedDevice.id, deviceName: selectedDevice.name, deviceProfileId: profileId)),
+      MaterialPageRoute(builder: (_) => SelectDeviceFunctionPage(
+        deviceId: selectedDevice.deviceId,
+        deviceName: selectedDevice.displayName,
+        deviceProfileId: profileId,
+      )),
     );
 
     if (action != null && mounted) {
