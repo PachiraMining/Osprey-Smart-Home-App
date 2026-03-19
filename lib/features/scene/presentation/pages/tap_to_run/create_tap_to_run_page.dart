@@ -503,10 +503,11 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
     showModalBottomSheet(
       context: parentCtx,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => SafeArea(
+      builder: (ctx) {
+        int selectedTab = 0; // 0 = Color, 1 = Icon
+        return SafeArea(
         child: StatefulBuilder(
           builder: (ctx, setLocal) {
-            int selectedTab = 0; // 0 = Color, 1 = Icon
             return Container(
               decoration: const BoxDecoration(
                 color: Colors.white,
@@ -640,7 +641,8 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
             );
           },
         ),
-      ),
+      );
+      },
     );
   }
 

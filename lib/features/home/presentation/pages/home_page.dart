@@ -591,10 +591,8 @@ class _SceneTabState extends State<SceneTab> {
         itemCount: scenes.length,
         itemBuilder: (context, index) {
           final scene = scenes[index];
-          final isExecuting = state is TapToRunExecuting && state.sceneId == scene.id;
           return _TapToRunCard(
             scene: scene,
-            isExecuting: isExecuting,
             onTap: () {
               context.read<TapToRunBloc>().add(ExecuteTapToRunSceneEvent(scene.id));
             },
@@ -836,13 +834,11 @@ class _SceneTabState extends State<SceneTab> {
 
 class _TapToRunCard extends StatelessWidget {
   final TapToRunSceneEntity scene;
-  final bool isExecuting;
   final VoidCallback onTap;     // tap body → execute
   final VoidCallback onMore;    // tap "..." → edit
 
   const _TapToRunCard({
     required this.scene,
-    required this.isExecuting,
     required this.onTap,
     required this.onMore,
   });
@@ -850,7 +846,7 @@ class _TapToRunCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: isExecuting ? null : onTap,
+      onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
@@ -879,12 +875,7 @@ class _TapToRunCard extends StatelessWidget {
                     color: Colors.white.withAlpha(50),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: isExecuting
-                      ? const Padding(
-                          padding: EdgeInsets.all(8),
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                        )
-                      : const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 22),
+                  child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 22),
                 ),
                 // "..." → edit scene
                 GestureDetector(
