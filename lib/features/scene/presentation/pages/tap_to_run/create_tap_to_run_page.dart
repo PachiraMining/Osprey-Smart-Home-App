@@ -283,12 +283,9 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
   }
 
   Future<void> _addDelayAction() async {
-    final result = await showModalBottomSheet<Map<String, int>>(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (_) => const DelayConfigSheet(),
+    final result = await Navigator.push<Map<String, int>>(
+      context,
+      MaterialPageRoute(builder: (_) => const DelayConfigPage()),
     );
     if (result != null && mounted) {
       setState(() {
