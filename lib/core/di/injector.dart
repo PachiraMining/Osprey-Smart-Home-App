@@ -279,7 +279,6 @@ Future<void> setupInjector() async {
   // BLoC
   sl.registerFactory(
     () => TapToRunBloc(
-      getSmartHomes: sl(),
       getTapToRunScenes: sl(),
       createTapToRunScene: sl(),
       updateTapToRunScene: sl(),

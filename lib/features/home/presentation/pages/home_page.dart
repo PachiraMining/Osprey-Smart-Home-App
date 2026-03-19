@@ -25,6 +25,8 @@ import 'package:smart_curtain_app/features/auth/presentation/bloc/auth_event.dar
 import 'package:smart_curtain_app/features/scene/presentation/bloc/tap_to_run/tap_to_run_bloc.dart';
 import 'package:smart_curtain_app/features/scene/presentation/bloc/tap_to_run/tap_to_run_event.dart';
 import 'package:smart_curtain_app/features/scene/presentation/bloc/tap_to_run/tap_to_run_state.dart';
+import 'package:smart_curtain_app/features/home/presentation/bloc/home_management_bloc.dart';
+import 'package:smart_curtain_app/features/home/presentation/bloc/home_management_state.dart';
 import 'package:smart_curtain_app/features/scene/domain/entities/tap_to_run_scene_entity.dart';
 import 'package:smart_curtain_app/features/scene/presentation/pages/tap_to_run/create_tap_to_run_page.dart';
 
@@ -513,6 +515,21 @@ class SceneTab extends StatefulWidget {
 class _SceneTabState extends State<SceneTab> {
   int _selectedSubTab = 0; // 0 = Automation, 1 = Tap-to-Run
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadTapToRunScenes();
+    });
+  }
+
+  void _loadTapToRunScenes() {
+    final homeId = context.read<HomeManagementBloc>().state.selectedHomeId;
+    if (homeId != null) {
+      context.read<TapToRunBloc>().add(LoadTapToRunScenesEvent(homeId));
+    }
+  }
+
   String _formatRepeatMode(SceneEntity scene) {
     switch (scene.repeatMode) {
       case 'once':
@@ -531,53 +548,59 @@ class _SceneTabState extends State<SceneTab> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 16),
+    return BlocListener<HomeManagementBloc, HomeManagementState>(
+      listenWhen: (prev, curr) => prev.selectedHomeId != curr.selectedHomeId && curr.status == HomeStatus.loaded,
+      listener: (context, state) {
+        _loadTapToRunScenes();
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 16),
 
-          // Sub-tab row: Automation | Tap-to-Run | list icon
-          Row(
-            children: [
-              GestureDetector(
-                onTap: () => setState(() => _selectedSubTab = 0),
-                child: Text(
-                  'Automation',
-                  style: TextStyle(
-                    fontSize: _selectedSubTab == 0 ? 20 : 16,
-                    fontWeight: _selectedSubTab == 0 ? FontWeight.bold : FontWeight.w400,
-                    color: _selectedSubTab == 0 ? Colors.black87 : Colors.grey,
+            // Sub-tab row: Automation | Tap-to-Run | list icon
+            Row(
+              children: [
+                GestureDetector(
+                  onTap: () => setState(() => _selectedSubTab = 0),
+                  child: Text(
+                    'Automation',
+                    style: TextStyle(
+                      fontSize: _selectedSubTab == 0 ? 20 : 16,
+                      fontWeight: _selectedSubTab == 0 ? FontWeight.bold : FontWeight.w400,
+                      color: _selectedSubTab == 0 ? Colors.black87 : Colors.grey,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 20),
-              GestureDetector(
-                onTap: () => setState(() => _selectedSubTab = 1),
-                child: Text(
-                  'Tap-to-Run',
-                  style: TextStyle(
-                    fontSize: _selectedSubTab == 1 ? 20 : 16,
-                    fontWeight: _selectedSubTab == 1 ? FontWeight.bold : FontWeight.w400,
-                    color: _selectedSubTab == 1 ? Colors.black87 : Colors.grey,
+                const SizedBox(width: 20),
+                GestureDetector(
+                  onTap: () => setState(() => _selectedSubTab = 1),
+                  child: Text(
+                    'Tap-to-Run',
+                    style: TextStyle(
+                      fontSize: _selectedSubTab == 1 ? 20 : 16,
+                      fontWeight: _selectedSubTab == 1 ? FontWeight.bold : FontWeight.w400,
+                      color: _selectedSubTab == 1 ? Colors.black87 : Colors.grey,
+                    ),
                   ),
                 ),
-              ),
-              const Spacer(),
-              Icon(Icons.assignment_outlined, size: 22, color: Colors.grey.shade600),
-            ],
-          ),
+                const Spacer(),
+                Icon(Icons.assignment_outlined, size: 22, color: Colors.grey.shade600),
+              ],
+            ),
 
-          const SizedBox(height: 20),
+            const SizedBox(height: 20),
 
-          // Content
-          Expanded(
-            child: _selectedSubTab == 0
-                ? _buildAutomationContent()
-                : _buildTapToRunContent(),
-          ),
-        ],
+            // Content
+            Expanded(
+              child: _selectedSubTab == 0
+                  ? _buildAutomationContent()
+                  : _buildTapToRunContent(),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -704,7 +727,7 @@ class _SceneTabState extends State<SceneTab> {
                 Text(state.message, style: const TextStyle(color: Colors.red)),
                 const SizedBox(height: 16),
                 ElevatedButton(
-                  onPressed: () => context.read<TapToRunBloc>().add(LoadTapToRunScenesEvent()),
+                  onPressed: () => _loadTapToRunScenes(),
                   child: const Text('Thử lại'),
                 ),
               ],
@@ -769,7 +792,7 @@ class _SceneTabState extends State<SceneTab> {
         Expanded(
           child: RefreshIndicator(
             onRefresh: () async {
-              context.read<TapToRunBloc>().add(LoadTapToRunScenesEvent());
+              _loadTapToRunScenes();
             },
             child: ListView.separated(
               itemCount: scenes.length,
@@ -882,7 +905,7 @@ class _SceneTabState extends State<SceneTab> {
       MaterialPageRoute(builder: (_) => const CreateTapToRunPage()),
     );
     if (result == true && mounted) {
-      context.read<TapToRunBloc>().add(LoadTapToRunScenesEvent());
+      _loadTapToRunScenes();
     }
   }
 
@@ -892,7 +915,7 @@ class _SceneTabState extends State<SceneTab> {
       MaterialPageRoute(builder: (_) => CreateTapToRunPage(existingScene: scene)),
     );
     if (result == true && mounted) {
-      context.read<TapToRunBloc>().add(LoadTapToRunScenesEvent());
+      _loadTapToRunScenes();
     }
   }
 

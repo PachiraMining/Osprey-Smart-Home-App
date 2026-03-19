@@ -8,7 +8,12 @@ abstract class TapToRunEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class LoadTapToRunScenesEvent extends TapToRunEvent {}
+class LoadTapToRunScenesEvent extends TapToRunEvent {
+  final String homeId;
+  const LoadTapToRunScenesEvent(this.homeId);
+  @override
+  List<Object?> get props => [homeId];
+}
 
 class CreateTapToRunSceneEvent extends TapToRunEvent {
   final String name;

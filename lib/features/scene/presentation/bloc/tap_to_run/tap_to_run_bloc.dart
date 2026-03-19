@@ -1,8 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../../core/auth/token_manager.dart';
-import '../../../../../core/di/injector.dart';
 import '../../../domain/entities/tap_to_run_scene_entity.dart';
-import '../../../domain/usecases/get_smart_homes.dart';
 import '../../../domain/usecases/get_tap_to_run_scenes.dart';
 import '../../../domain/usecases/create_tap_to_run_scene.dart';
 import '../../../domain/usecases/update_tap_to_run_scene.dart';
@@ -12,7 +9,6 @@ import 'tap_to_run_event.dart';
 import 'tap_to_run_state.dart';
 
 class TapToRunBloc extends Bloc<TapToRunEvent, TapToRunState> {
-  final GetSmartHomes getSmartHomes;
   final GetTapToRunScenes getTapToRunScenes;
   final CreateTapToRunScene createTapToRunScene;
   final UpdateTapToRunScene updateTapToRunScene;
@@ -22,7 +18,6 @@ class TapToRunBloc extends Bloc<TapToRunEvent, TapToRunState> {
   String? _homeId;
 
   TapToRunBloc({
-    required this.getSmartHomes,
     required this.getTapToRunScenes,
     required this.createTapToRunScene,
     required this.updateTapToRunScene,
@@ -37,44 +32,13 @@ class TapToRunBloc extends Bloc<TapToRunEvent, TapToRunState> {
     on<ToggleTapToRunSceneEvent>(_onToggleScene);
   }
 
-  String? get homeId => _homeId;
-
-  Future<String?> _ensureHomeId() async {
-    if (_homeId != null) return _homeId;
-
-    final cached = sl<TokenManager>().getHomeIdSync();
-    if (cached != null && cached.isNotEmpty) {
-      _homeId = cached;
-      return _homeId;
-    }
-
-    final result = await getSmartHomes();
-    return result.fold(
-      (failure) => null,
-      (homes) {
-        if (homes.isNotEmpty) {
-          _homeId = homes.first.id;
-          sl<TokenManager>().saveHomeId(_homeId!);
-          return _homeId;
-        }
-        return null;
-      },
-    );
-  }
-
   Future<void> _onLoadScenes(
     LoadTapToRunScenesEvent event,
     Emitter<TapToRunState> emit,
   ) async {
+    _homeId = event.homeId;
     emit(TapToRunLoading());
-
-    final homeId = await _ensureHomeId();
-    if (homeId == null) {
-      emit(const TapToRunError('Không tìm thấy Home'));
-      return;
-    }
-
-    final result = await getTapToRunScenes(homeId);
+    final result = await getTapToRunScenes(event.homeId);
     result.fold(
       (failure) => emit(TapToRunError(failure.message)),
       (scenes) => emit(TapToRunLoaded(scenes)),
@@ -85,26 +49,22 @@ class TapToRunBloc extends Bloc<TapToRunEvent, TapToRunState> {
     CreateTapToRunSceneEvent event,
     Emitter<TapToRunState> emit,
   ) async {
-    emit(TapToRunCreating());
-
-    final homeId = await _ensureHomeId();
-    if (homeId == null) {
+    if (_homeId == null) {
       emit(const TapToRunError('Không tìm thấy Home'));
       return;
     }
-
+    emit(TapToRunCreating());
     final result = await createTapToRunScene(
-      homeId: homeId,
+      homeId: _homeId!,
       name: event.name,
       icon: event.icon,
       actions: event.actions,
     );
-
     result.fold(
       (failure) => emit(TapToRunError(failure.message)),
       (_) {
         emit(TapToRunCreated());
-        add(LoadTapToRunScenesEvent());
+        add(LoadTapToRunScenesEvent(_homeId!));
       },
     );
   }
@@ -114,19 +74,17 @@ class TapToRunBloc extends Bloc<TapToRunEvent, TapToRunState> {
     Emitter<TapToRunState> emit,
   ) async {
     emit(TapToRunCreating());
-
     final result = await updateTapToRunScene(
       sceneId: event.sceneId,
       name: event.name,
       icon: event.icon,
       actions: event.actions,
     );
-
     result.fold(
       (failure) => emit(TapToRunError(failure.message)),
       (_) {
         emit(TapToRunCreated());
-        add(LoadTapToRunScenesEvent());
+        if (_homeId != null) add(LoadTapToRunScenesEvent(_homeId!));
       },
     );
   }
