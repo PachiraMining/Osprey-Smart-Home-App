@@ -2,146 +2,182 @@ import 'package:flutter/material.dart';
 
 import '../../domain/entities/home_entity.dart';
 
-/// Bottom sheet for switching between homes.
-class HomeSelectorSheet extends StatelessWidget {
+/// Dropdown-style home selector that appears at the top of the screen,
+/// similar to the Tuya Smart app design.
+class HomeSelectorDropdown {
+  /// Shows a dropdown popup anchored near the top of the screen.
+  static Future<void> show({
+    required BuildContext context,
+    required List<HomeEntity> homes,
+    required String? selectedHomeId,
+    required void Function(String homeId) onSelect,
+    required VoidCallback onManageHome,
+  }) async {
+    await showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      barrierColor: Colors.black.withAlpha(60),
+      builder: (ctx) => _HomeSelectorPopup(
+        homes: homes,
+        selectedHomeId: selectedHomeId,
+        onSelect: (id) {
+          Navigator.pop(ctx);
+          onSelect(id);
+        },
+        onManageHome: () {
+          Navigator.pop(ctx);
+          onManageHome();
+        },
+      ),
+    );
+  }
+}
+
+class _HomeSelectorPopup extends StatelessWidget {
   final List<HomeEntity> homes;
   final String? selectedHomeId;
   final void Function(String homeId) onSelect;
-  final void Function(String homeId) onManage;
-  final void Function(String name) onCreate;
+  final VoidCallback onManageHome;
 
-  const HomeSelectorSheet({
-    super.key,
+  const _HomeSelectorPopup({
     required this.homes,
-    this.selectedHomeId,
+    required this.selectedHomeId,
     required this.onSelect,
-    required this.onManage,
-    required this.onCreate,
+    required this.onManageHome,
   });
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Handle bar
-          const SizedBox(height: 12),
-          Container(
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade300,
-              borderRadius: BorderRadius.circular(2),
+    return Align(
+      alignment: Alignment.topCenter,
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.only(top: 60, left: 16, right: 16),
+          child: Material(
+            color: Colors.white,
+            borderRadius: const BorderRadius.only(
+              bottomLeft: Radius.circular(16),
+              bottomRight: Radius.circular(16),
+              topLeft: Radius.circular(12),
+              topRight: Radius.circular(12),
             ),
-          ),
-          const SizedBox(height: 16),
-
-          // Title
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20),
-            child: Text(
-              'Chọn nhà',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
+            elevation: 8,
+            shadowColor: Colors.black.withAlpha(50),
+            child: ClipRRect(
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(16),
+                bottomRight: Radius.circular(16),
+                topLeft: Radius.circular(12),
+                topRight: Radius.circular(12),
               ),
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          // Home list
-          ...homes.map((home) {
-            final isSelected = home.id == selectedHomeId;
-            return ListTile(
-              leading: Icon(
-                Icons.home_outlined,
-                color: isSelected ? const Color(0xFF2196F3) : Colors.grey,
-              ),
-              title: Text(
-                home.name,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                  color: isSelected ? const Color(0xFF2196F3) : Colors.black87,
-                ),
-              ),
-              trailing: Row(
+              child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (isSelected)
-                    const Icon(Icons.check, color: Color(0xFF2196F3), size: 22),
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: () => onManage(home.id),
-                    child: Icon(
-                      Icons.settings_outlined,
-                      color: Colors.grey.shade500,
-                      size: 22,
-                    ),
-                  ),
+                  // Home list
+                  ...homes.map((home) => _HomeRow(
+                        home: home,
+                        isSelected: home.id == selectedHomeId,
+                        onTap: () => onSelect(home.id),
+                      )),
+
+                  // Divider
+                  const Divider(height: 1, thickness: 1),
+
+                  // Home Management row
+                  _ManageHomeRow(onTap: onManageHome),
                 ],
               ),
-              onTap: () {
-                onSelect(home.id);
-                Navigator.pop(context);
-              },
-            );
-          }),
-
-          const Divider(height: 1),
-
-          // Create new home button
-          ListTile(
-            leading: const Icon(Icons.add_circle_outline, color: Color(0xFF2196F3)),
-            title: const Text(
-              'Tạo nhà mới',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF2196F3),
-              ),
             ),
-            onTap: () => _showCreateDialog(context),
           ),
-          const SizedBox(height: 8),
-        ],
+        ),
       ),
     );
   }
+}
 
-  void _showCreateDialog(BuildContext context) {
-    final controller = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Tạo nhà mới'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          decoration: const InputDecoration(
-            hintText: 'Tên nhà',
-            border: OutlineInputBorder(),
-          ),
+class _HomeRow extends StatelessWidget {
+  final HomeEntity home;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _HomeRow({
+    required this.home,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          children: [
+            // Checkmark or spacer for alignment
+            SizedBox(
+              width: 28,
+              child: isSelected
+                  ? const Icon(
+                      Icons.check,
+                      color: Color(0xFF2196F3),
+                      size: 20,
+                    )
+                  : null,
+            ),
+            const SizedBox(width: 4),
+
+            // Home name
+            Expanded(
+              child: Text(
+                home.name,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight:
+                      isSelected ? FontWeight.w600 : FontWeight.w400,
+                  color: isSelected
+                      ? const Color(0xFF2196F3)
+                      : Colors.black87,
+                ),
+              ),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Hủy'),
-          ),
-          TextButton(
-            onPressed: () {
-              final name = controller.text.trim();
-              if (name.isNotEmpty) {
-                Navigator.pop(ctx);
-                Navigator.pop(context);
-                onCreate(name);
-              }
-            },
-            child: const Text('Tạo'),
-          ),
-        ],
+      ),
+    );
+  }
+}
+
+class _ManageHomeRow extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _ManageHomeRow({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          children: [
+            Icon(
+              Icons.tune,
+              color: Colors.black54,
+              size: 22,
+            ),
+            SizedBox(width: 12),
+            Text(
+              'Home Management',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w400,
+                color: Colors.black87,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

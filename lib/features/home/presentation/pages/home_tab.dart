@@ -6,6 +6,7 @@ import '../bloc/home_management_event.dart';
 import '../bloc/home_management_state.dart';
 import '../../domain/entities/home_device_entity.dart';
 import 'home_selector_sheet.dart';
+import 'manage_home_page.dart';
 import 'package:smart_curtain_app/features/device/domain/entities/device_entity.dart';
 import 'package:smart_curtain_app/features/device/presentation/pages/curtain_control_page.dart';
 
@@ -27,34 +28,29 @@ class _HomeTabState extends State<HomeTab> {
     }
   }
 
-  void _openHomeSelectorSheet() {
+  void _openHomeSelector() {
     final bloc = context.read<HomeManagementBloc>();
     final state = bloc.state;
-    showModalBottomSheet(
+    HomeSelectorDropdown.show(
       context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (_) => HomeSelectorSheet(
-        homes: state.homes,
-        selectedHomeId: state.selectedHomeId,
-        onSelect: (homeId) {
-          bloc.add(SelectHomeEvent(homeId));
-        },
-        onManage: (homeId) {
-          Navigator.pop(context); // close sheet
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Quản lý nhà — sắp ra mắt'),
-              duration: Duration(seconds: 2),
+      homes: state.homes,
+      selectedHomeId: state.selectedHomeId,
+      onSelect: (homeId) {
+        bloc.add(SelectHomeEvent(homeId));
+      },
+      onManageHome: () {
+        final homeId = state.selectedHomeId;
+        final homeName = state.selectedHome?.name ?? '';
+        if (homeId != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) =>
+                  ManageHomePage(homeId: homeId, homeName: homeName),
             ),
           );
-        },
-        onCreate: (name) {
-          bloc.add(CreateHomeEvent(name: name));
-        },
-      ),
+        }
+      },
     );
   }
 
@@ -94,7 +90,7 @@ class _HomeTabState extends State<HomeTab> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: GestureDetector(
-                onTap: state.homes.isNotEmpty ? _openHomeSelectorSheet : null,
+                onTap: state.homes.isNotEmpty ? _openHomeSelector : null,
                 child: Row(
                   children: [
                     Text(
@@ -331,13 +327,22 @@ class _DeviceCard extends StatelessWidget {
             ),
             const SizedBox(width: 12),
 
-            // Online indicator
+            // Power button indicator
             Container(
-              width: 10,
-              height: 10,
+              width: 44,
+              height: 44,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: isOnline ? const Color(0xFF4CAF50) : Colors.grey.shade400,
+                color: isOnline
+                    ? const Color(0xFF4CAF50).withAlpha(20)
+                    : Colors.grey.withAlpha(20),
+              ),
+              child: Icon(
+                Icons.power_settings_new,
+                size: 26,
+                color: isOnline
+                    ? const Color(0xFF4CAF50)
+                    : Colors.grey.shade400,
               ),
             ),
           ],
