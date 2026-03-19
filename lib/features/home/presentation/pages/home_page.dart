@@ -501,19 +501,7 @@ class _SceneTabState extends State<SceneTab> {
     return BlocConsumer<TapToRunBloc, TapToRunState>(
       listener: (context, state) {
         if (state is TapToRunExecuteResult) {
-          final color = state.status == 'SUCCESS'
-              ? Colors.green
-              : state.status == 'PARTIAL'
-                  ? Colors.orange
-                  : Colors.red;
-          final message = state.status == 'SUCCESS'
-              ? 'Executed successfully!'
-              : state.status == 'PARTIAL'
-                  ? 'Some actions failed'
-                  : 'Execution failed';
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(message), backgroundColor: color, duration: const Duration(seconds: 2)),
-          );
+          _showExecuteResultDialog(context, state);
         }
       },
       builder: (context, state) {
@@ -607,31 +595,112 @@ class _SceneTabState extends State<SceneTab> {
           return _TapToRunCard(
             scene: scene,
             isExecuting: isExecuting,
-            onTap: () => _navigateToEditTapToRun(scene),
-            onExecute: () {
+            onTap: () {
               context.read<TapToRunBloc>().add(ExecuteTapToRunSceneEvent(scene.id));
             },
-            onDelete: () {
-              showDialog(
-                context: context,
-                builder: (ctx) => AlertDialog(
-                  title: const Text('Delete scene?'),
-                  content: Text('Are you sure you want to delete "${scene.name}"?'),
-                  actions: [
-                    TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pop(ctx);
-                        context.read<TapToRunBloc>().add(DeleteTapToRunSceneEvent(scene.id));
-                      },
-                      child: const Text('Delete', style: TextStyle(color: Colors.red)),
-                    ),
-                  ],
-                ),
-              );
-            },
+            onMore: () => _navigateToEditTapToRun(scene),
           );
         },
+      ),
+    );
+  }
+
+  void _showExecuteResultDialog(BuildContext context, TapToRunExecuteResult state) {
+    // Find the scene that was executed
+    final scene = state.scenes.isNotEmpty
+        ? state.scenes.first
+        : null;
+    final sceneName = scene?.name ?? 'Scene';
+    final actions = scene?.actions ?? [];
+
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Title
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 20, 24, 12),
+              child: Text(
+                sceneName,
+                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+              ),
+            ),
+            // Actions list
+            if (actions.isNotEmpty)
+              ...actions.map((action) {
+                String title;
+                String subtitle;
+                switch (action.actionType) {
+                  case 'DEVICE_CONTROL':
+                    title = action.deviceName ?? 'Device';
+                    final dp = action.executorProperty;
+                    subtitle = action.functionName != null
+                        ? '${action.functionName} : ${dp?['dpValue']}'
+                        : 'dpId ${dp?['dpId']} : ${dp?['dpValue']}';
+                  case 'DELAY':
+                    title = 'Delay';
+                    final m = action.executorProperty?['minutes'] ?? 0;
+                    final s = action.executorProperty?['seconds'] ?? 0;
+                    subtitle = m > 0 ? '${m}m ${s}s' : '${s}s';
+                  case 'SCENE_RUN':
+                    title = 'Run Scene';
+                    subtitle = action.deviceName ?? '';
+                  default:
+                    title = action.actionType;
+                    subtitle = '';
+                }
+                final isSuccess = state.status == 'SUCCESS';
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(Icons.devices_other, size: 20, color: Colors.grey.shade500),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+                            if (subtitle.isNotEmpty)
+                              Text(subtitle, style: TextStyle(fontSize: 13, color: Colors.grey.shade500)),
+                          ],
+                        ),
+                      ),
+                      Icon(
+                        isSuccess ? Icons.check_circle : Icons.error,
+                        color: isSuccess ? Colors.green : Colors.red,
+                        size: 22,
+                      ),
+                    ],
+                  ),
+                );
+              }),
+            const SizedBox(height: 8),
+            // OK button
+            const Divider(height: 1),
+            SizedBox(
+              width: double.infinity,
+              child: TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text(
+                  'OK',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black87),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -758,23 +827,20 @@ class _SceneTabState extends State<SceneTab> {
 class _TapToRunCard extends StatelessWidget {
   final TapToRunSceneEntity scene;
   final bool isExecuting;
-  final VoidCallback onTap;
-  final VoidCallback onExecute;
-  final VoidCallback onDelete;
+  final VoidCallback onTap;     // tap body → execute
+  final VoidCallback onMore;    // tap "..." → edit
 
   const _TapToRunCard({
     required this.scene,
     required this.isExecuting,
     required this.onTap,
-    required this.onExecute,
-    required this.onDelete,
+    required this.onMore,
   });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
-      onLongPress: onDelete,
+      onTap: isExecuting ? null : onTap,
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
@@ -783,19 +849,19 @@ class _TapToRunCard extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFF9B8FE8),
-              Color(0xFF7B6DD8),
+              Color(0xFFD46B6B),  // light red
+              Color(0xFFC25555),  // darker red
             ],
           ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Top row: icon + ... menu
+            // Top row: scene icon + ... menu
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Scene icon / execute button
+                // Scene icon
                 Container(
                   width: 36,
                   height: 36,
@@ -808,14 +874,11 @@ class _TapToRunCard extends StatelessWidget {
                           padding: EdgeInsets.all(8),
                           child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                         )
-                      : GestureDetector(
-                          onTap: onExecute,
-                          child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 22),
-                        ),
+                      : const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 22),
                 ),
-                // ... more / delete button
+                // "..." → edit scene
                 GestureDetector(
-                  onTap: onDelete,
+                  onTap: onMore,
                   child: Container(
                     width: 30,
                     height: 30,
