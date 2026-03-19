@@ -23,7 +23,14 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
   final _nameController = TextEditingController();
   final List<SceneActionEntity> _actions = [];
   bool _showOnHomePage = true;
+  Color _selectedColor = const Color(0xFFD46B6B);
   bool get _isEditing => widget.existingScene != null;
+
+  static const _sceneColors = [
+    Color(0xFFE85D5D), Color(0xFFF5A623), Color(0xFF7ED321), Color(0xFF2EAD4B),
+    Color(0xFF1FBCB5), Color(0xFF2196F3), Color(0xFF2D7DD2), Color(0xFF5B4FCF),
+    Color(0xFF8B47BF), Color(0xFFD14B8F), Color(0xFFC78B6D), Color(0xFF5A7A84),
+  ];
 
   static const _bgColor = Color(0xFFF5F6FA);
   static const _blueAccent = Color(0xFF2196F3);
@@ -351,160 +358,241 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (ctx) => SafeArea(
-        child: StatefulBuilder(
-          builder: (ctx, setLocal) => Container(
-            margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setLocal) => FractionallySizedBox(
+          heightFactor: 0.85,
+          child: Container(
             decoration: const BoxDecoration(
               color: Color(0xFFF5F6FA),
               borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Header: More Settings + Done
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 18, 8, 12),
-                  child: Row(
-                    children: [
-                      const Spacer(),
-                      const Text(
-                        'More Settings',
-                        style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: Colors.black87),
+            child: SafeArea(
+              top: false,
+              child: Column(
+                children: [
+                  // Header
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 18, 8, 12),
+                    child: Row(
+                      children: [
+                        const Spacer(),
+                        const Text('More Settings', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
+                        const Spacer(),
+                        TextButton(
+                          onPressed: () => Navigator.pop(ctx),
+                          child: const Text('Done', style: TextStyle(color: Color(0xFF2196F3), fontSize: 16, fontWeight: FontWeight.w600)),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Content
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Column(
+                        children: [
+                          // Style row
+                          GestureDetector(
+                            onTap: () => _showStylePicker(ctx, setLocal),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+                              child: Row(
+                                children: [
+                                  const Text('Style', style: TextStyle(fontSize: 16)),
+                                  const Spacer(),
+                                  Container(
+                                    width: 32, height: 32,
+                                    decoration: BoxDecoration(color: _selectedColor.withAlpha(30), borderRadius: BorderRadius.circular(8)),
+                                    child: Icon(Icons.play_circle_filled, color: _selectedColor, size: 20),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Icon(Icons.chevron_right, color: Colors.grey.shade400),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          // Show on Home Page
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+                            child: Row(
+                              children: [
+                                const Text('Show on Home Page', style: TextStyle(fontSize: 16)),
+                                const Spacer(),
+                                Switch(
+                                  value: _showOnHomePage,
+                                  onChanged: (v) { setLocal(() {}); setState(() => _showOnHomePage = v); },
+                                  activeTrackColor: Colors.green,
+                                  activeThumbColor: Colors.white,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          // Executed By
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+                            child: Row(
+                              children: [
+                                const Text('Executed By', style: TextStyle(fontSize: 16)),
+                                const Spacer(),
+                                Text('Cloud', style: TextStyle(fontSize: 15, color: Colors.grey.shade500)),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          // Delete
+                          if (_isEditing)
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.pop(ctx);
+                                showDialog(
+                                  context: context,
+                                  builder: (dlg) => AlertDialog(
+                                    title: const Text('Delete scene?'),
+                                    content: const Text('This action cannot be undone.'),
+                                    actions: [
+                                      TextButton(onPressed: () => Navigator.pop(dlg), child: const Text('Cancel')),
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.pop(dlg);
+                                          context.read<TapToRunBloc>().add(DeleteTapToRunSceneEvent(widget.existingScene!.id));
+                                          Navigator.pop(context);
+                                        },
+                                        child: const Text('Delete', style: TextStyle(color: Colors.red)),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                              child: Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+                                child: Text('Delete', textAlign: TextAlign.center, style: TextStyle(fontSize: 16, color: Colors.grey.shade500)),
+                              ),
+                            ),
+                          const SizedBox(height: 24),
+                        ],
                       ),
-                      const Spacer(),
-                      TextButton(
-                        onPressed: () => Navigator.pop(ctx),
-                        child: const Text(
-                          'Done',
-                          style: TextStyle(color: Color(0xFF2196F3), fontSize: 16, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showStylePicker(BuildContext parentCtx, StateSetter setParentLocal) {
+    showModalBottomSheet(
+      context: parentCtx,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => SafeArea(
+        child: StatefulBuilder(
+          builder: (ctx, setLocal) {
+            int selectedTab = 0; // 0 = Color, 1 = Icon
+            return Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(height: 16),
+                  // Tabs: Color | Icon
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      GestureDetector(
+                        onTap: () => setLocal(() => selectedTab = 0),
+                        child: Text(
+                          'Color',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: selectedTab == 0 ? FontWeight.bold : FontWeight.w400,
+                            color: selectedTab == 0 ? Colors.black87 : Colors.grey,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 40),
+                      GestureDetector(
+                        onTap: () => setLocal(() => selectedTab = 1),
+                        child: Text(
+                          'Icon',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: selectedTab == 1 ? FontWeight.bold : FontWeight.w400,
+                            color: selectedTab == 1 ? Colors.black87 : Colors.grey,
+                          ),
                         ),
                       ),
                     ],
                   ),
-                ),
-                // Style row
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        const Text('Style', style: TextStyle(fontSize: 16, color: Colors.black87)),
-                        const Spacer(),
-                        Container(
-                          width: 32,
-                          height: 32,
-                          decoration: BoxDecoration(
-                            color: Colors.red.shade50,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Icon(Icons.play_circle_filled, color: Colors.red.shade400, size: 20),
+                  const SizedBox(height: 24),
+                  // Color grid
+                  if (selectedTab == 0)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 32),
+                      child: GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 4,
+                          crossAxisSpacing: 20,
+                          mainAxisSpacing: 20,
                         ),
-                        const SizedBox(width: 8),
-                        Icon(Icons.chevron_right, color: Colors.grey.shade400),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                // Show on Home Page
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        const Text('Show on Home Page', style: TextStyle(fontSize: 16, color: Colors.black87)),
-                        const Spacer(),
-                        Switch(
-                          value: _showOnHomePage,
-                          onChanged: (v) {
-                            setLocal(() {});
-                            setState(() => _showOnHomePage = v);
-                          },
-                          activeTrackColor: Colors.green,
-                          activeThumbColor: Colors.white,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                // Executed By
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        const Text('Executed By', style: TextStyle(fontSize: 16, color: Colors.black87)),
-                        const Spacer(),
-                        Text('Cloud', style: TextStyle(fontSize: 15, color: Colors.grey.shade500)),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                // Delete button (only in edit mode)
-                if (_isEditing)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.pop(ctx);
-                        showDialog(
-                          context: context,
-                          builder: (dlg) => AlertDialog(
-                            title: const Text('Delete scene?'),
-                            content: const Text('This action cannot be undone.'),
-                            actions: [
-                              TextButton(onPressed: () => Navigator.pop(dlg), child: const Text('Cancel')),
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.pop(dlg);
-                                  context.read<TapToRunBloc>().add(
-                                    DeleteTapToRunSceneEvent(widget.existingScene!.id),
-                                  );
-                                  Navigator.pop(context);
-                                },
-                                child: const Text('Delete', style: TextStyle(color: Colors.red)),
+                        itemCount: _sceneColors.length,
+                        itemBuilder: (_, i) {
+                          final color = _sceneColors[i];
+                          final isSelected = _selectedColor == color;
+                          return GestureDetector(
+                            onTap: () {
+                              setState(() => _selectedColor = color);
+                              setParentLocal(() {});
+                              setLocal(() {});
+                            },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: color,
+                                border: isSelected
+                                    ? Border.all(color: Colors.white, width: 3)
+                                    : null,
+                                boxShadow: isSelected
+                                    ? [BoxShadow(color: color.withAlpha(80), blurRadius: 8, spreadRadius: 2)]
+                                    : null,
                               ),
-                            ],
-                          ),
-                        );
-                      },
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          'Delete',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 16, color: Colors.grey.shade500),
-                        ),
+                              child: isSelected
+                                  ? Container(
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        border: Border.all(color: color.withAlpha(100), width: 2),
+                                      ),
+                                    )
+                                  : null,
+                            ),
+                          );
+                        },
                       ),
                     ),
-                  ),
-                const SizedBox(height: 24),
-              ],
-            ),
-          ),
+                  // Icon tab placeholder
+                  if (selectedTab == 1)
+                    Padding(
+                      padding: const EdgeInsets.all(32),
+                      child: Text('Coming soon', style: TextStyle(color: Colors.grey.shade400)),
+                    ),
+                  const SizedBox(height: 24),
+                ],
+              ),
+            );
+          },
         ),
       ),
     );
