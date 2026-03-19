@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../domain/entities/tap_to_run_scene_entity.dart';
+import '../../../domain/repositories/tap_to_run_repository.dart';
 import '../../../domain/usecases/get_tap_to_run_scenes.dart';
 import '../../../domain/usecases/create_tap_to_run_scene.dart';
 import '../../../domain/usecases/update_tap_to_run_scene.dart';
@@ -14,6 +15,7 @@ class TapToRunBloc extends Bloc<TapToRunEvent, TapToRunState> {
   final UpdateTapToRunScene updateTapToRunScene;
   final DeleteTapToRunScene deleteTapToRunScene;
   final ExecuteTapToRunScene executeTapToRunScene;
+  final TapToRunRepository repository;
 
   String? _homeId;
 
@@ -23,6 +25,7 @@ class TapToRunBloc extends Bloc<TapToRunEvent, TapToRunState> {
     required this.updateTapToRunScene,
     required this.deleteTapToRunScene,
     required this.executeTapToRunScene,
+    required this.repository,
   }) : super(TapToRunInitial()) {
     on<LoadTapToRunScenesEvent>(_onLoadScenes);
     on<CreateTapToRunSceneEvent>(_onCreateScene);
@@ -115,11 +118,21 @@ class TapToRunBloc extends Bloc<TapToRunEvent, TapToRunState> {
         ? (state as TapToRunLoaded).scenes
         : state is TapToRunExecuting
             ? (state as TapToRunExecuting).scenes
-            : <TapToRunSceneEntity>[];
+            : state is TapToRunExecuteResult
+                ? (state as TapToRunExecuteResult).scenes
+                : <TapToRunSceneEntity>[];
 
     emit(TapToRunExecuting(event.sceneId, currentScenes));
 
-    final result = await executeTapToRunScene(event.sceneId);
+    // Try execute; if scene is disabled, auto-enable and retry once
+    var result = await executeTapToRunScene(event.sceneId);
+    final firstFailed = result.isLeft();
+    if (firstFailed) {
+      // Auto-enable then retry
+      await repository.toggleScene(event.sceneId, true);
+      result = await executeTapToRunScene(event.sceneId);
+    }
+
     result.fold(
       (failure) => emit(TapToRunExecuteResult(
         status: 'FAILURE',

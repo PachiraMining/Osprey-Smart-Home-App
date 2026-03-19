@@ -51,8 +51,22 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
     if (_isEditing) {
       _nameController.text = widget.existingScene!.name;
       _actions.addAll(widget.existingScene!.actions);
+      _decodeStyleIcon(widget.existingScene!.icon);
     } else {
       _nameController.text = 'Scene Name';
+    }
+  }
+
+  void _decodeStyleIcon(String? iconStr) {
+    if (iconStr == null || !iconStr.contains('|')) return;
+    final parts = iconStr.split('|');
+    try {
+      final colorHex = parts[0].replaceFirst('#', '');
+      _selectedColor = Color(int.parse('FF$colorHex', radix: 16));
+      final codePoint = int.parse(parts[1]);
+      _selectedIcon = IconData(codePoint, fontFamily: 'MaterialIcons');
+    } catch (_) {
+      // keep defaults if parsing fails
     }
   }
 
@@ -114,7 +128,14 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
               ),
               const SizedBox(height: 20),
               // If card
-              _IfCard(),
+              _IfCard(
+                onTapLaunch: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (_) => const CreateTapToRunPage()),
+                  );
+                },
+              ),
               const SizedBox(height: 12),
               // Then card
               _ThenCard(
@@ -414,7 +435,7 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
                                   Container(
                                     width: 32, height: 32,
                                     decoration: BoxDecoration(color: _selectedColor.withAlpha(30), borderRadius: BorderRadius.circular(8)),
-                                    child: Icon(Icons.play_circle_filled, color: _selectedColor, size: 20),
+                                    child: Icon(_selectedIcon, color: _selectedColor, size: 20),
                                   ),
                                   const SizedBox(width: 8),
                                   Icon(Icons.chevron_right, color: Colors.grey.shade400),
@@ -646,6 +667,12 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
     );
   }
 
+  /// Encode color + icon into a single string: "#RRGGBB|codePoint"
+  String _encodeStyleIcon() {
+    final hex = '#${_selectedColor.toARGB32().toRadixString(16).substring(2)}';
+    return '$hex|${_selectedIcon.codePoint}';
+  }
+
   void _saveScene() {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
@@ -660,15 +687,17 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
       );
       return;
     }
+    final iconStr = _encodeStyleIcon();
     if (_isEditing) {
       context.read<TapToRunBloc>().add(UpdateTapToRunSceneEvent(
             sceneId: widget.existingScene!.id,
             name: name,
+            icon: iconStr,
             actions: _actions,
           ));
     } else {
       context.read<TapToRunBloc>().add(
-            CreateTapToRunSceneEvent(name: name, actions: _actions),
+            CreateTapToRunSceneEvent(name: name, icon: iconStr, actions: _actions),
           );
     }
   }
@@ -715,7 +744,8 @@ class _SceneNameHeader extends StatelessWidget {
 }
 
 class _IfCard extends StatelessWidget {
-  const _IfCard();
+  final VoidCallback? onTapLaunch;
+  const _IfCard({this.onTapLaunch});
 
   @override
   Widget build(BuildContext context) {
@@ -751,18 +781,21 @@ class _IfCard extends StatelessWidget {
           ),
           const Divider(height: 1),
           // Launch Tap-to-Run row
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            child: Row(
-              children: [
-                Icon(Icons.touch_app,
-                    color: Colors.deepOrange.shade300, size: 28),
-                const SizedBox(width: 12),
-                const Text(
-                  'Launch Tap-to-Run',
-                  style: TextStyle(fontSize: 15, color: Colors.black87),
-                ),
-              ],
+          GestureDetector(
+            onTap: onTapLaunch,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              child: Row(
+                children: [
+                  Icon(Icons.touch_app,
+                      color: Colors.deepOrange.shade300, size: 28),
+                  const SizedBox(width: 12),
+                  const Text(
+                    'Launch Tap-to-Run',
+                    style: TextStyle(fontSize: 15, color: Colors.black87),
+                  ),
+                ],
+              ),
             ),
           ),
         ],

@@ -282,6 +282,7 @@ Future<void> setupInjector() async {
       updateTapToRunScene: sl(),
       deleteTapToRunScene: sl(),
       executeTapToRunScene: sl(),
+      repository: sl(),
     ),
   );
 

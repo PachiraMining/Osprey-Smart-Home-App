@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:smart_curtain_app/features/home/presentation/pages/schedule_trigger_page.dart';
+import 'package:smart_curtain_app/features/scene/presentation/pages/tap_to_run/create_tap_to_run_page.dart';
 
 class CreateSceneTriggerPage extends StatelessWidget {
   const CreateSceneTriggerPage({super.key});
@@ -36,7 +37,12 @@ class CreateSceneTriggerPage extends StatelessWidget {
               iconColor: const Color(0xFFFF6B35),
               title: 'Launch Tap-to-Run',
               example: 'Example: turn off all lights in the bedroom with one tap.',
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const CreateTapToRunPage()),
+                );
+              },
             ),
 
             const SizedBox(height: 12),

@@ -23,6 +23,7 @@ import 'package:smart_curtain_app/features/home/presentation/pages/home_tab.dart
     as home_tab;
 import 'package:smart_curtain_app/features/scene/domain/entities/tap_to_run_scene_entity.dart';
 import 'package:smart_curtain_app/features/scene/presentation/pages/tap_to_run/create_tap_to_run_page.dart';
+import 'package:smart_curtain_app/features/scene/presentation/pages/tap_to_run/manage_scenes_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -388,7 +389,44 @@ class _SceneTabState extends State<SceneTab> {
                   ),
                 ),
                 const Spacer(),
-                Icon(Icons.assignment_outlined, size: 22, color: Colors.grey.shade600),
+                PopupMenuButton<String>(
+                  offset: const Offset(0, 36),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  color: Colors.white,
+                  elevation: 4,
+                  onSelected: (value) {
+                    if (value == 'manage') {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const ManageScenesPage()));
+                    } else if (value == 'logs') {
+                      // TODO: navigate to scene logs
+                    }
+                  },
+                  itemBuilder: (_) => [
+                    PopupMenuItem(
+                      value: 'manage',
+                      height: 44,
+                      child: Row(
+                        children: [
+                          Icon(Icons.sort, size: 20, color: Colors.grey.shade700),
+                          const SizedBox(width: 12),
+                          const Text('Manage', style: TextStyle(fontSize: 15)),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'logs',
+                      height: 44,
+                      child: Row(
+                        children: [
+                          Icon(Icons.article_outlined, size: 20, color: Colors.grey.shade700),
+                          const SizedBox(width: 12),
+                          const Text('Logs', style: TextStyle(fontSize: 15)),
+                        ],
+                      ),
+                    ),
+                  ],
+                  child: Icon(Icons.more_horiz, size: 22, color: Colors.grey.shade600),
+                ),
               ],
             ),
 
@@ -501,7 +539,10 @@ class _SceneTabState extends State<SceneTab> {
     return BlocConsumer<TapToRunBloc, TapToRunState>(
       listener: (context, state) {
         if (state is TapToRunExecuteResult) {
-          _showExecuteResultDialog(context, state);
+          _showExecuteResultDialog(context, state).then((_) {
+            // Reload scenes to restore TapToRunLoaded state
+            if (mounted) _loadTapToRunScenes();
+          });
         }
       },
       builder: (context, state) {
@@ -603,7 +644,7 @@ class _SceneTabState extends State<SceneTab> {
     );
   }
 
-  void _showExecuteResultDialog(BuildContext context, TapToRunExecuteResult state) {
+  Future<void> _showExecuteResultDialog(BuildContext context, TapToRunExecuteResult state) async {
     // Find the scene that was executed
     final scene = state.scenes.isNotEmpty
         ? state.scenes.first
@@ -611,7 +652,11 @@ class _SceneTabState extends State<SceneTab> {
     final sceneName = scene?.name ?? 'Scene';
     final actions = scene?.actions ?? [];
 
-    showDialog(
+    // Build device name lookup from HomeManagementBloc
+    final homeState = context.read<HomeManagementBloc>().state;
+    final deviceMap = {for (final d in homeState.devices) d.deviceId: d.displayName};
+
+    await showDialog(
       context: context,
       builder: (ctx) => Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -643,7 +688,7 @@ class _SceneTabState extends State<SceneTab> {
                 String subtitle;
                 switch (action.actionType) {
                   case 'DEVICE_CONTROL':
-                    title = action.deviceName ?? 'Device';
+                    title = action.deviceName ?? deviceMap[action.entityId] ?? 'Device';
                     final dp = action.executorProperty;
                     subtitle = action.functionName != null
                         ? '${action.functionName} : ${dp?['dpValue']}'
@@ -843,21 +888,37 @@ class _TapToRunCard extends StatelessWidget {
     required this.onMore,
   });
 
+  /// Decode "#RRGGBB|codePoint" → (Color, IconData), with defaults.
+  static (Color, IconData) _decodeStyle(String? iconStr) {
+    const defaultColor = Color(0xFFD46B6B);
+    const defaultIcon = Icons.play_arrow_rounded;
+    if (iconStr == null || !iconStr.contains('|')) return (defaultColor, defaultIcon);
+    try {
+      final parts = iconStr.split('|');
+      final hex = parts[0].replaceFirst('#', '');
+      final color = Color(int.parse('FF$hex', radix: 16));
+      final icon = IconData(int.parse(parts[1]), fontFamily: 'MaterialIcons');
+      return (color, icon);
+    } catch (_) {
+      return (defaultColor, defaultIcon);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final (cardColor, cardIcon) = _decodeStyle(scene.icon);
+    final lighterColor = Color.lerp(cardColor, Colors.white, 0.15)!;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
-          gradient: const LinearGradient(
+          gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Color(0xFFD46B6B),  // light red
-              Color(0xFFC25555),  // darker red
-            ],
+            colors: [lighterColor, cardColor],
           ),
         ),
         child: Column(
@@ -875,7 +936,7 @@ class _TapToRunCard extends StatelessWidget {
                     color: Colors.white.withAlpha(50),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 22),
+                  child: Icon(cardIcon, color: Colors.white, size: 22),
                 ),
                 // "..." → edit scene
                 GestureDetector(
