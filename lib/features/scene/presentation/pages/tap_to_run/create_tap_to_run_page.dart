@@ -248,56 +248,10 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
       return;
     }
 
-    final selectedDevice = await showModalBottomSheet<HomeDeviceEntity>(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (ctx) => DraggableScrollableSheet(
-        initialChildSize: 0.5,
-        maxChildSize: 0.8,
-        expand: false,
-        builder: (_, scrollController) => Column(
-          children: [
-            const Padding(
-              padding: EdgeInsets.all(16),
-              child: Text(
-                'Select Device',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-            ),
-            Expanded(
-              child: ListView.builder(
-                controller: scrollController,
-                itemCount: devices.length,
-                itemBuilder: (_, i) {
-                  final device = devices[i];
-                  final online = device.isOnline ?? false;
-                  return ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: online
-                          ? Colors.green.withAlpha(30)
-                          : Colors.grey.withAlpha(30),
-                      child: Icon(
-                        Icons.devices,
-                        color: online ? Colors.green : Colors.grey,
-                      ),
-                    ),
-                    title: Text(device.displayName),
-                    subtitle: Text(device.type ?? ''),
-                    trailing: Icon(
-                      Icons.circle,
-                      color: online ? Colors.green : Colors.grey,
-                      size: 10,
-                    ),
-                    onTap: () => Navigator.pop(ctx, device),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
+    final selectedDevice = await Navigator.push<HomeDeviceEntity>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => _AllDevicesPage(devices: devices),
       ),
     );
 
@@ -727,6 +681,87 @@ class _MoreSettingsCard extends StatelessWidget {
             Icon(Icons.chevron_right, color: Colors.grey.shade400),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Full-page device picker matching Tuya "All Devices" screen.
+class _AllDevicesPage extends StatelessWidget {
+  final List<HomeDeviceEntity> devices;
+  const _AllDevicesPage({required this.devices});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F6FA),
+      appBar: AppBar(
+        title: const Text(
+          'All Devices',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
+        centerTitle: true,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black87,
+        elevation: 0.5,
+      ),
+      body: ListView.separated(
+        itemCount: devices.length,
+        separatorBuilder: (_, __) => Divider(
+          height: 1,
+          indent: 72,
+          color: Colors.grey.shade200,
+        ),
+        itemBuilder: (context, index) {
+          final device = devices[index];
+          return Material(
+            color: Colors.white,
+            child: InkWell(
+              onTap: () => Navigator.pop(context, device),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+                child: Row(
+                  children: [
+                    // Device icon
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        Icons.devices_other,
+                        size: 24,
+                        color: Colors.grey.shade500,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    // Device name
+                    Expanded(
+                      child: Text(
+                        device.displayName,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ),
+                    // Chevron
+                    Icon(
+                      Icons.chevron_right,
+                      color: Colors.grey.shade400,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
