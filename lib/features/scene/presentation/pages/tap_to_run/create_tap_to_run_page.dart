@@ -24,12 +24,17 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
   final List<SceneActionEntity> _actions = [];
   bool get _isEditing => widget.existingScene != null;
 
+  static const _bgColor = Color(0xFFF5F6FA);
+  static const _blueAccent = Color(0xFF2196F3);
+
   @override
   void initState() {
     super.initState();
     if (_isEditing) {
       _nameController.text = widget.existingScene!.name;
       _actions.addAll(widget.existingScene!.actions);
+    } else {
+      _nameController.text = 'Tên Scene';
     }
   }
 
@@ -52,165 +57,87 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
         }
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFF5F5F5),
+        backgroundColor: _bgColor,
         appBar: AppBar(
-          title: Text(_isEditing ? 'Sửa Scene' : 'Tạo Tap-to-Run'),
-          backgroundColor: Colors.white,
-          foregroundColor: Colors.black87,
-          elevation: 0.5,
+          automaticallyImplyLeading: false,
+          backgroundColor: _bgColor,
+          elevation: 0,
+          leading: TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Colors.black87, fontSize: 16),
+            ),
+          ),
+          leadingWidth: 80,
           actions: [
             TextButton(
               onPressed: _saveScene,
-              child: const Text('Lưu', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-            ),
-          ],
-        ),
-        body: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Scene name
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
-                      child: TextField(
-                        controller: _nameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Tên Scene',
-                          hintText: 'Ví dụ: Buổi sáng, Đi ngủ...',
-                          border: InputBorder.none,
-                          prefixIcon: Icon(Icons.edit_outlined),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    // THEN header
-                    Row(
-                      children: [
-                        Container(width: 4, height: 20, decoration: BoxDecoration(color: const Color(0xFF2196F3), borderRadius: BorderRadius.circular(2))),
-                        const SizedBox(width: 8),
-                        const Text('THEN', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF2196F3))),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    // Actions list
-                    if (_actions.isEmpty)
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey.shade200),
-                        ),
-                        child: Column(
-                          children: [
-                            Icon(Icons.add_circle_outline, size: 48, color: Colors.grey.shade300),
-                            const SizedBox(height: 8),
-                            Text('Thêm ít nhất 1 action', style: TextStyle(color: Colors.grey.shade500)),
-                          ],
-                        ),
-                      )
-                    else
-                      ReorderableListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: _actions.length,
-                        onReorder: (oldIndex, newIndex) {
-                          setState(() {
-                            if (newIndex > oldIndex) newIndex--;
-                            final item = _actions.removeAt(oldIndex);
-                            _actions.insert(newIndex, item);
-                          });
-                        },
-                        itemBuilder: (context, index) {
-                          return _buildActionCard(index, key: ValueKey('action_$index'));
-                        },
-                      ),
-                    const SizedBox(height: 12),
-                    // Add action button
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          side: const BorderSide(color: Color(0xFF2196F3)),
-                        ),
-                        onPressed: _showAddActionSheet,
-                        icon: const Icon(Icons.add, color: Color(0xFF2196F3)),
-                        label: const Text('Thêm Action', style: TextStyle(color: Color(0xFF2196F3), fontSize: 15)),
-                      ),
-                    ),
-                  ],
+              child: const Text(
+                'Save',
+                style: TextStyle(
+                  color: _blueAccent,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
           ],
         ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Scene name — large bold text with pencil icon
+              _SceneNameHeader(
+                controller: _nameController,
+                onTap: _showNameEditDialog,
+              ),
+              const SizedBox(height: 20),
+              // If card
+              _IfCard(),
+              const SizedBox(height: 12),
+              // Then card
+              _ThenCard(
+                actions: _actions,
+                onAddAction: _showAddActionSheet,
+                onRemoveAction: (index) => setState(() => _actions.removeAt(index)),
+              ),
+              const SizedBox(height: 12),
+              // More Settings card
+              const _MoreSettingsCard(),
+              const SizedBox(height: 24),
+            ],
+          ),
+        ),
       ),
     );
   }
 
-  Widget _buildActionCard(int index, {Key? key}) {
-    final action = _actions[index];
-    IconData icon;
-    String title;
-    String subtitle;
-
-    switch (action.actionType) {
-      case 'DEVICE_CONTROL':
-        icon = Icons.devices;
-        title = action.deviceName ?? 'Thiết bị';
-        final dp = action.executorProperty;
-        subtitle = action.functionName != null
-            ? '${action.functionName}: ${dp?['dpValue']}'
-            : 'dpId ${dp?['dpId']}: ${dp?['dpValue']}';
-        break;
-      case 'DELAY':
-        icon = Icons.timer_outlined;
-        title = 'Chờ';
-        final minutes = action.executorProperty?['minutes'] ?? 0;
-        final seconds = action.executorProperty?['seconds'] ?? 0;
-        subtitle = minutes > 0 ? '${minutes}m ${seconds}s' : '${seconds}s';
-        break;
-      case 'SCENE_RUN':
-        icon = Icons.play_circle_outline;
-        title = 'Chạy Scene';
-        subtitle = action.deviceName ?? action.entityId ?? '';
-        break;
-      default:
-        icon = Icons.help_outline;
-        title = action.actionType;
-        subtitle = '';
-    }
-
-    return Container(
-      key: key,
-      margin: const EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: const Color(0xFF2196F3).withAlpha(30),
-          child: Icon(icon, color: const Color(0xFF2196F3), size: 20),
+  void _showNameEditDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Tên Scene'),
+        content: TextField(
+          controller: _nameController,
+          autofocus: true,
+          decoration: const InputDecoration(hintText: 'Nhập tên scene'),
         ),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),
-        subtitle: Text(subtitle, style: TextStyle(color: Colors.grey[600], fontSize: 13)),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.drag_handle, color: Colors.grey.shade400),
-            const SizedBox(width: 4),
-            GestureDetector(
-              onTap: () => setState(() => _actions.removeAt(index)),
-              child: const Icon(Icons.close, color: Colors.red, size: 20),
-            ),
-          ],
-        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Hủy'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              setState(() {});
+            },
+            child: const Text('OK'),
+          ),
+        ],
       ),
     );
   }
@@ -218,32 +145,55 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
   void _showAddActionSheet() {
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
       builder: (ctx) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             const Padding(
               padding: EdgeInsets.all(16),
-              child: Text('Thêm Action', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              child: Text(
+                'Thêm Action',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
             ),
             ListTile(
-              leading: const CircleAvatar(backgroundColor: Color(0xFFE3F2FD), child: Icon(Icons.devices, color: Color(0xFF2196F3))),
+              leading: const CircleAvatar(
+                backgroundColor: Color(0xFFE3F2FD),
+                child: Icon(Icons.devices, color: Color(0xFF2196F3)),
+              ),
               title: const Text('Điều khiển thiết bị'),
               subtitle: const Text('Chọn thiết bị và chức năng'),
-              onTap: () { Navigator.pop(ctx); _addDeviceAction(); },
+              onTap: () {
+                Navigator.pop(ctx);
+                _addDeviceAction();
+              },
             ),
             ListTile(
-              leading: const CircleAvatar(backgroundColor: Color(0xFFFFF3E0), child: Icon(Icons.timer_outlined, color: Colors.orange)),
+              leading: const CircleAvatar(
+                backgroundColor: Color(0xFFFFF3E0),
+                child: Icon(Icons.timer_outlined, color: Colors.orange),
+              ),
               title: const Text('Delay'),
               subtitle: const Text('Chờ một khoảng thời gian'),
-              onTap: () { Navigator.pop(ctx); _addDelayAction(); },
+              onTap: () {
+                Navigator.pop(ctx);
+                _addDelayAction();
+              },
             ),
             ListTile(
-              leading: const CircleAvatar(backgroundColor: Color(0xFFE8F5E9), child: Icon(Icons.play_circle_outline, color: Colors.green)),
+              leading: const CircleAvatar(
+                backgroundColor: Color(0xFFE8F5E9),
+                child: Icon(Icons.play_circle_outline, color: Colors.green),
+              ),
               title: const Text('Chạy Scene khác'),
               subtitle: const Text('Trigger một Tap-to-Run scene'),
-              onTap: () { Navigator.pop(ctx); _addRunSceneAction(); },
+              onTap: () {
+                Navigator.pop(ctx);
+                _addRunSceneAction();
+              },
             ),
             const SizedBox(height: 16),
           ],
@@ -257,21 +207,31 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
     final devices = homeState.devices;
     if (devices.isEmpty) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Không có thiết bị nào')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Không có thiết bị nào')),
+      );
       return;
     }
 
     final selectedDevice = await showModalBottomSheet<HomeDeviceEntity>(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
       builder: (ctx) => DraggableScrollableSheet(
         initialChildSize: 0.5,
         maxChildSize: 0.8,
         expand: false,
         builder: (_, scrollController) => Column(
           children: [
-            const Padding(padding: EdgeInsets.all(16), child: Text('Chọn thiết bị', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
+            const Padding(
+              padding: EdgeInsets.all(16),
+              child: Text(
+                'Chọn thiết bị',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
             Expanded(
               child: ListView.builder(
                 controller: scrollController,
@@ -281,12 +241,21 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
                   final online = device.isOnline ?? false;
                   return ListTile(
                     leading: CircleAvatar(
-                      backgroundColor: online ? Colors.green.withAlpha(30) : Colors.grey.withAlpha(30),
-                      child: Icon(Icons.devices, color: online ? Colors.green : Colors.grey),
+                      backgroundColor: online
+                          ? Colors.green.withAlpha(30)
+                          : Colors.grey.withAlpha(30),
+                      child: Icon(
+                        Icons.devices,
+                        color: online ? Colors.green : Colors.grey,
+                      ),
                     ),
                     title: Text(device.displayName),
                     subtitle: Text(device.type ?? ''),
-                    trailing: Icon(Icons.circle, color: online ? Colors.green : Colors.grey, size: 10),
+                    trailing: Icon(
+                      Icons.circle,
+                      color: online ? Colors.green : Colors.grey,
+                      size: 10,
+                    ),
                     onTap: () => Navigator.pop(ctx, device),
                   );
                 },
@@ -302,17 +271,21 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
     final profileId = selectedDevice.deviceProfileId;
     if (profileId == null || profileId.isEmpty) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Thiết bị không có thông tin profile')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Thiết bị không có thông tin profile')),
+      );
       return;
     }
 
     final action = await Navigator.push<SceneActionEntity>(
       context,
-      MaterialPageRoute(builder: (_) => SelectDeviceFunctionPage(
-        deviceId: selectedDevice.deviceId,
-        deviceName: selectedDevice.displayName,
-        deviceProfileId: profileId,
-      )),
+      MaterialPageRoute(
+        builder: (_) => SelectDeviceFunctionPage(
+          deviceId: selectedDevice.deviceId,
+          deviceName: selectedDevice.displayName,
+          deviceProfileId: profileId,
+        ),
+      ),
     );
 
     if (action != null && mounted) {
@@ -323,14 +296,19 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
   Future<void> _addDelayAction() async {
     final result = await showModalBottomSheet<Map<String, int>>(
       context: context,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
       builder: (_) => const DelayConfigSheet(),
     );
     if (result != null && mounted) {
       setState(() {
         _actions.add(SceneActionEntity(
           actionType: 'DELAY',
-          executorProperty: {'minutes': result['minutes'] ?? 0, 'seconds': result['seconds'] ?? 0},
+          executorProperty: {
+            'minutes': result['minutes'] ?? 0,
+            'seconds': result['seconds'] ?? 0,
+          },
         ));
       });
     }
@@ -348,24 +326,39 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
     }
     if (scenes.isEmpty) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Không có scene nào khác')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Không có scene nào khác')),
+      );
       return;
     }
 
     final selected = await showModalBottomSheet<TapToRunSceneEntity>(
       context: context,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
       builder: (ctx) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Padding(padding: EdgeInsets.all(16), child: Text('Chọn Scene', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
-            ...scenes.map((s) => ListTile(
-              leading: const CircleAvatar(backgroundColor: Color(0xFFE8F5E9), child: Icon(Icons.play_circle_outline, color: Colors.green)),
-              title: Text(s.name),
-              subtitle: Text('${s.actions.length} actions'),
-              onTap: () => Navigator.pop(ctx, s),
-            )),
+            const Padding(
+              padding: EdgeInsets.all(16),
+              child: Text(
+                'Chọn Scene',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
+            ...scenes.map(
+              (s) => ListTile(
+                leading: const CircleAvatar(
+                  backgroundColor: Color(0xFFE8F5E9),
+                  child: Icon(Icons.play_circle_outline, color: Colors.green),
+                ),
+                title: Text(s.name),
+                subtitle: Text('${s.actions.length} actions'),
+                onTap: () => Navigator.pop(ctx, s),
+              ),
+            ),
             const SizedBox(height: 16),
           ],
         ),
@@ -373,7 +366,11 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
     );
     if (selected != null && mounted) {
       setState(() {
-        _actions.add(SceneActionEntity(actionType: 'SCENE_RUN', entityId: selected.id, deviceName: selected.name));
+        _actions.add(SceneActionEntity(
+          actionType: 'SCENE_RUN',
+          entityId: selected.id,
+          deviceName: selected.name,
+        ));
       });
     }
   }
@@ -381,17 +378,321 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
   void _saveScene() {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Vui lòng nhập tên scene')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng nhập tên scene')),
+      );
       return;
     }
     if (_actions.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Vui lòng thêm ít nhất 1 action')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng thêm ít nhất 1 action')),
+      );
       return;
     }
     if (_isEditing) {
-      context.read<TapToRunBloc>().add(UpdateTapToRunSceneEvent(sceneId: widget.existingScene!.id, name: name, actions: _actions));
+      context.read<TapToRunBloc>().add(UpdateTapToRunSceneEvent(
+            sceneId: widget.existingScene!.id,
+            name: name,
+            actions: _actions,
+          ));
     } else {
-      context.read<TapToRunBloc>().add(CreateTapToRunSceneEvent(name: name, actions: _actions));
+      context.read<TapToRunBloc>().add(
+            CreateTapToRunSceneEvent(name: name, actions: _actions),
+          );
     }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Private sub-widgets
+// ---------------------------------------------------------------------------
+
+class _SceneNameHeader extends StatelessWidget {
+  const _SceneNameHeader({
+    required this.controller,
+    required this.onTap,
+  });
+
+  final TextEditingController controller;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final text =
+        controller.text.isEmpty ? 'Tên Scene' : controller.text;
+    return GestureDetector(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          children: [
+            Text(
+              text,
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Icon(Icons.edit_outlined, size: 18, color: Colors.grey.shade400),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _IfCard extends StatelessWidget {
+  const _IfCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header row
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                const Text(
+                  'If',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const Spacer(),
+                Container(
+                  width: 28,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.grey.shade300,
+                  ),
+                  child: const Icon(Icons.add, size: 18, color: Colors.white),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1),
+          // Launch Tap-to-Run row
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Row(
+              children: [
+                Icon(Icons.touch_app,
+                    color: Colors.deepOrange.shade300, size: 28),
+                const SizedBox(width: 12),
+                const Text(
+                  'Launch Tap-to-Run',
+                  style: TextStyle(fontSize: 15, color: Colors.black87),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ThenCard extends StatelessWidget {
+  const _ThenCard({
+    required this.actions,
+    required this.onAddAction,
+    required this.onRemoveAction,
+  });
+
+  final List<SceneActionEntity> actions;
+  final VoidCallback onAddAction;
+  final void Function(int index) onRemoveAction;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header row
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                const Text(
+                  'Then',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const Spacer(),
+                GestureDetector(
+                  onTap: onAddAction,
+                  child: Container(
+                    width: 28,
+                    height: 28,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Color(0xFF2196F3),
+                    ),
+                    child: const Icon(Icons.add, size: 18, color: Colors.white),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (actions.isNotEmpty) ...[
+            const Divider(height: 1),
+            ...actions.asMap().entries.map(
+                  (entry) => _ActionRow(
+                    index: entry.key,
+                    action: entry.value,
+                    totalCount: actions.length,
+                    onRemove: () => onRemoveAction(entry.key),
+                  ),
+                ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _ActionRow extends StatelessWidget {
+  const _ActionRow({
+    required this.index,
+    required this.action,
+    required this.totalCount,
+    required this.onRemove,
+  });
+
+  final int index;
+  final SceneActionEntity action;
+  final int totalCount;
+  final VoidCallback onRemove;
+
+  (IconData, String, String) _resolveDisplay() {
+    switch (action.actionType) {
+      case 'DEVICE_CONTROL':
+        final dp = action.executorProperty;
+        final subtitle = action.functionName != null
+            ? '${action.functionName}: ${dp?['dpValue']}'
+            : 'dpId ${dp?['dpId']}: ${dp?['dpValue']}';
+        return (Icons.devices, action.deviceName ?? 'Thiết bị', subtitle);
+      case 'DELAY':
+        final minutes = action.executorProperty?['minutes'] ?? 0;
+        final seconds = action.executorProperty?['seconds'] ?? 0;
+        final subtitle =
+            minutes > 0 ? '${minutes}m ${seconds}s' : '${seconds}s';
+        return (Icons.timer_outlined, 'Chờ', subtitle);
+      case 'SCENE_RUN':
+        return (
+          Icons.play_circle_outline,
+          'Chạy Scene',
+          action.deviceName ?? action.entityId ?? '',
+        );
+      default:
+        return (Icons.help_outline, action.actionType, '');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final (icon, title, subtitle) = _resolveDisplay();
+    return Column(
+      children: [
+        Dismissible(
+          key: Key('action_${action.actionType}_$index'),
+          direction: DismissDirection.endToStart,
+          onDismissed: (_) => onRemove(),
+          background: Container(
+            color: Colors.red,
+            alignment: Alignment.centerRight,
+            padding: const EdgeInsets.only(right: 16),
+            child: const Icon(Icons.delete, color: Colors.white),
+          ),
+          child: Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(icon, size: 20, color: Colors.grey.shade600),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      if (subtitle.isNotEmpty)
+                        Text(
+                          subtitle,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey.shade500,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                Icon(Icons.chevron_right, color: Colors.grey.shade400),
+              ],
+            ),
+          ),
+        ),
+        if (index < totalCount - 1)
+          Divider(
+            height: 1,
+            indent: 64,
+            color: Colors.grey.shade200,
+          ),
+      ],
+    );
+  }
+}
+
+class _MoreSettingsCard extends StatelessWidget {
+  const _MoreSettingsCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Padding(
+        padding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        child: Row(
+          children: [
+            const Text(
+              'More Settings',
+              style: TextStyle(fontSize: 15, color: Colors.black87),
+            ),
+            const Spacer(),
+            Icon(Icons.chevron_right, color: Colors.grey.shade400),
+          ],
+        ),
+      ),
+    );
   }
 }
