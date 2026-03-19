@@ -95,8 +95,16 @@ class HomeDeviceEntity extends Equatable {
   final String? roomId;
   final String? deviceName;  // custom name (null = use original)
   final int sortOrder;
+
+  // Enriched fields (populated by cross-referencing GET /api/device/{deviceId})
+  final String? originalName;      // device name from ThingsBoard
+  final String? deviceProfileId;   // needed for datapoints API + control page
+  final String? type;              // device type
+  final bool? isOnline;            // device status
 }
 ```
+
+Note: The `GET /api/smarthome/homes/{homeId}/devices` response only returns deviceId, roomId, deviceName, sortOrder. To get originalName, deviceProfileId, type, and status, call `GET /api/device/{deviceId}` for each device. The BLoC will enrich HomeDeviceEntity after loading the list.
 
 **RoomEntity:**
 ```dart
@@ -147,8 +155,8 @@ abstract class HomeRepository {
 | UpdateHomeDevice | homeId, deviceId, roomId?, name?, sort? | Either<Failure, void> |
 | RemoveDeviceFromHome | homeId, deviceId | Either<Failure, void> |
 | GetRooms | homeId | Either<Failure, List<RoomEntity>> |
-| CreateRoom | homeId, name, icon?, sort? | Either<Failure, void> |
-| UpdateRoom | homeId, roomId, name, icon?, sort? | Either<Failure, void> |
+| CreateRoom | homeId, name, icon?, sort? | Either<Failure, RoomEntity> |
+| UpdateRoom | homeId, roomId, name, icon?, sort? | Either<Failure, RoomEntity> |
 | DeleteRoom | homeId, roomId | Either<Failure, void> |
 
 ---
@@ -185,6 +193,8 @@ All use `ApiClient` (Dio) with automatic `X-Authorization: Bearer <token>` injec
 
 **HomeDeviceModel** extends HomeDeviceEntity:
 - `fromJson()`: parse id, smartHomeId (`json['smartHomeId']['id']`), deviceId (`json['deviceId']['id']`), roomId (`json['roomId']?['id']`), deviceName, sortOrder
+- `toJson()`: for update body (roomId, deviceName, sortOrder)
+- Enriched fields (originalName, deviceProfileId, type, isOnline) populated separately via `copyWithDeviceInfo()`
 
 **RoomModel** extends RoomEntity:
 - `fromJson()`: parse nested id (`json['id']['id']`), name, icon, sortOrder
@@ -214,27 +224,36 @@ Wraps datasource in `Either<Failure, T>`:
 
 ```dart
 enum HomeStatus { initial, loading, loaded, error }
+enum MutationStatus { idle, loading, success, error }
 
 class HomeManagementState extends Equatable {
   final List<HomeEntity> homes;
   final String? selectedHomeId;
   final List<HomeDeviceEntity> devices;
   final List<RoomEntity> rooms;
-  final HomeStatus status;
+  final HomeStatus status;           // for initial data loading
+  final MutationStatus mutationStatus; // for CRUD operations (doesn't clear lists)
   final String? errorMessage;
+  final String? selectedRoomId;      // null = "Tat ca" tab
 
   HomeEntity? get selectedHome => homes.where((h) => h.id == selectedHomeId).firstOrNull;
+
+  List<HomeDeviceEntity> get filteredDevices =>
+    selectedRoomId == null ? devices : devices.where((d) => d.roomId == selectedRoomId).toList();
 }
 ```
 
-**Events:** LoadHomes, SelectHome, CreateHome, UpdateHome, DeleteHome, LoadHomeDevices, AddDeviceToHome, UpdateHomeDevice, RemoveDeviceFromHome, LoadRooms, CreateRoom, UpdateRoom, DeleteRoom.
+**Events:** LoadHomes, SelectHome, CreateHome, UpdateHome, DeleteHome, LoadHomeDevices, AddDeviceToHome, UpdateHomeDevice, RemoveDeviceFromHome, LoadRooms, CreateRoom, UpdateRoom, DeleteRoom, SelectRoom.
 
 **App startup flow:**
 1. `LoadHomesEvent` dispatched from `main.dart`
-2. BLoC fetches homes → if empty, auto-creates "Nha cua toi"
+2. BLoC fetches homes → if empty, auto-creates "Nha cua toi". If auto-create fails → emit error state with retry
 3. Selects home from TokenManager cache or first home
 4. Auto-dispatches `LoadHomeDevicesEvent` + `LoadRoomsEvent`
-5. State = loaded with homes + devices + rooms
+5. After devices loaded, enrich each with device info (`GET /api/device/{deviceId}` for originalName, deviceProfileId, type, status)
+6. State = loaded with homes + devices + rooms
+
+**Mutation behavior:** CRUD operations (create/update/delete home, room, device) set `mutationStatus = loading` without clearing existing lists. On success, refresh the affected list. On error, show snackbar. This prevents UI flicker during mutations.
 
 ### 5.2 UI Pages (simple, replaceable)
 
@@ -247,6 +266,7 @@ class HomeManagementState extends Equatable {
 **home_selector_sheet.dart:**
 - Bottom sheet with list of homes
 - Current home highlighted
+- Each home row has a gear icon → navigate to `manage_home_page.dart`
 - "Tao nha moi" button at bottom
 - Tap home → SelectHomeEvent
 
@@ -285,35 +305,58 @@ BlocProvider(create: (_) => sl<HomeManagementBloc>()..add(LoadHomesEvent())),
 
 **tap_to_run_bloc.dart:**
 - Remove `_ensureHomeId()` method (no longer self-manages homeId)
+- Remove `getSmartHomes` dependency from constructor
 - `LoadTapToRunScenesEvent` now requires `homeId` parameter
 - homeId passed from UI which reads `HomeManagementBloc.state.selectedHomeId`
+
+**tap_to_run_event.dart:**
+- `LoadTapToRunScenesEvent` gains required `String homeId` field
 
 **create_tap_to_run_page.dart:**
 - Device list from `HomeManagementBloc.state.devices` (not DeviceBloc)
 - homeId from `HomeManagementBloc.state.selectedHomeId`
 - When selecting device for DEVICE_CONTROL action: use homeDevice.deviceId
 
-### 6.4 TokenManager
+**Startup orchestration:**
+- Remove `..add(LoadTapToRunScenesEvent())` from `main.dart` — TapToRunBloc no longer auto-loads at startup
+- Scene tab UI dispatches `LoadTapToRunScenesEvent(homeId: ...)` lazily when user navigates to Scene tab
+- Scene tab reads `homeId` from `context.read<HomeManagementBloc>().state.selectedHomeId`
+- When user switches home → Scene tab re-dispatches `LoadTapToRunScenesEvent` with new homeId
+
+### 6.4 Deprecation: SmartHomeEntity & GetSmartHomes
+
+The existing `SmartHomeEntity` (scene feature) and `GetSmartHomes` use case call the same `GET /api/smarthome/homes` endpoint as the new `HomeEntity` / `GetHomes`. After implementation:
+
+**Remove (dead code):**
+- `lib/features/scene/domain/entities/smart_home_entity.dart`
+- `lib/features/scene/data/models/smart_home_model.dart`
+- `lib/features/scene/domain/usecases/get_smart_homes.dart`
+- `getSmartHomes()` method from `TapToRunRemoteDataSource` and `TapToRunRepository`
+- `GetSmartHomes` registration from `injector.dart`
+
+The new `HomeEntity` replaces `SmartHomeEntity` everywhere.
+
+### 6.5 TokenManager
 No changes needed. `saveHomeId()` / `getHomeIdSync()` already exist for selected home persistence.
 
 ---
 
 ## 7. File Summary
 
-| Category | New Files | Modified Files |
-|----------|-----------|----------------|
-| Domain (entities) | 3 | 0 |
-| Domain (repository) | 1 | 0 |
-| Domain (use cases) | 12 | 0 |
-| Data (models) | 3 | 0 |
-| Data (datasource) | 1 | 0 |
-| Data (repository impl) | 1 | 0 |
-| BLoC | 3 | 0 |
-| UI Pages | 5 | 0 |
-| DI | 0 | 1 (injector.dart) |
-| main.dart | 0 | 1 |
-| Tap-to-Run | 0 | 2 (bloc + create page) |
-| **Total** | **29** | **4** |
+| Category | New Files | Modified Files | Deleted Files |
+|----------|-----------|----------------|---------------|
+| Domain (entities) | 3 | 0 | 1 (smart_home_entity.dart) |
+| Domain (repository) | 1 | 1 (tap_to_run_repository.dart — remove getSmartHomes) | 0 |
+| Domain (use cases) | 12 | 0 | 1 (get_smart_homes.dart) |
+| Data (models) | 3 | 0 | 1 (smart_home_model.dart) |
+| Data (datasource) | 1 | 1 (tap_to_run_remote_datasource.dart — remove getSmartHomes) | 0 |
+| Data (repository impl) | 1 | 1 (tap_to_run_repository_impl.dart — remove getSmartHomes) | 0 |
+| BLoC | 3 | 1 (tap_to_run_bloc.dart — remove _ensureHomeId, getSmartHomes dep) | 0 |
+| BLoC events | 0 | 1 (tap_to_run_event.dart — add homeId to LoadEvent) | 0 |
+| UI Pages | 5 | 1 (create_tap_to_run_page.dart — use HomeManagementBloc) | 0 |
+| DI | 0 | 1 (injector.dart — add Home, remove GetSmartHomes) | 0 |
+| main.dart | 0 | 1 (add HomeManagementBloc, remove TapToRun auto-load) | 0 |
+| **Total** | **29** | **8** | **3** |
 
 ---
 
