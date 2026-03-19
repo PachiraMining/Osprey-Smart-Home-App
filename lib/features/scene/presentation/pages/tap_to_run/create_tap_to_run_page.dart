@@ -22,6 +22,7 @@ class CreateTapToRunPage extends StatefulWidget {
 class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
   final _nameController = TextEditingController();
   final List<SceneActionEntity> _actions = [];
+  bool _showOnHomePage = true;
   bool get _isEditing => widget.existingScene != null;
 
   static const _bgColor = Color(0xFFF5F6FA);
@@ -106,7 +107,10 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
               ),
               const SizedBox(height: 12),
               // More Settings card
-              const _MoreSettingsCard(),
+              GestureDetector(
+                onTap: _showMoreSettings,
+                child: const _MoreSettingsCard(),
+              ),
               const SizedBox(height: 24),
             ],
           ),
@@ -340,6 +344,170 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
         ));
       });
     }
+  }
+
+  void _showMoreSettings() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) => SafeArea(
+        child: StatefulBuilder(
+          builder: (ctx, setLocal) => Container(
+            margin: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+            decoration: const BoxDecoration(
+              color: Color(0xFFF5F6FA),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Header: More Settings + Done
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 18, 8, 12),
+                  child: Row(
+                    children: [
+                      const Spacer(),
+                      const Text(
+                        'More Settings',
+                        style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: Colors.black87),
+                      ),
+                      const Spacer(),
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        child: const Text(
+                          'Done',
+                          style: TextStyle(color: Color(0xFF2196F3), fontSize: 16, fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Style row
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        const Text('Style', style: TextStyle(fontSize: 16, color: Colors.black87)),
+                        const Spacer(),
+                        Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: Colors.red.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(Icons.play_circle_filled, color: Colors.red.shade400, size: 20),
+                        ),
+                        const SizedBox(width: 8),
+                        Icon(Icons.chevron_right, color: Colors.grey.shade400),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                // Show on Home Page
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        const Text('Show on Home Page', style: TextStyle(fontSize: 16, color: Colors.black87)),
+                        const Spacer(),
+                        Switch(
+                          value: _showOnHomePage,
+                          onChanged: (v) {
+                            setLocal(() {});
+                            setState(() => _showOnHomePage = v);
+                          },
+                          activeTrackColor: Colors.green,
+                          activeThumbColor: Colors.white,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                // Executed By
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        const Text('Executed By', style: TextStyle(fontSize: 16, color: Colors.black87)),
+                        const Spacer(),
+                        Text('Cloud', style: TextStyle(fontSize: 15, color: Colors.grey.shade500)),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // Delete button (only in edit mode)
+                if (_isEditing)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        showDialog(
+                          context: context,
+                          builder: (dlg) => AlertDialog(
+                            title: const Text('Delete scene?'),
+                            content: const Text('This action cannot be undone.'),
+                            actions: [
+                              TextButton(onPressed: () => Navigator.pop(dlg), child: const Text('Cancel')),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(dlg);
+                                  context.read<TapToRunBloc>().add(
+                                    DeleteTapToRunSceneEvent(widget.existingScene!.id),
+                                  );
+                                  Navigator.pop(context);
+                                },
+                                child: const Text('Delete', style: TextStyle(color: Colors.red)),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          'Delete',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 16, color: Colors.grey.shade500),
+                        ),
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: 24),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   void _saveScene() {
