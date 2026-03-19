@@ -56,14 +56,14 @@ class BluetoothController extends ChangeNotifier {
 
     // Kiểm tra quyền
     if (!await requestPermissions()) {
-      _errorMessage = 'Cần cấp quyền Bluetooth và Location';
+      _errorMessage = 'Bluetooth and Location permissions required';
       notifyListeners();
       return false;
     }
 
     // Kiểm tra hỗ trợ BLE
     if (!await isBluetoothSupported()) {
-      _errorMessage = 'Thiết bị không hỗ trợ Bluetooth';
+      _errorMessage = 'Device does not support Bluetooth';
       notifyListeners();
       return false;
     }
@@ -76,7 +76,7 @@ class BluetoothController extends ChangeNotifier {
       );
       return true;
     } catch (e) {
-      _errorMessage = 'Lỗi khi scan: $e';
+      _errorMessage = 'Scan error: $e';
       notifyListeners();
       return false;
     }
@@ -87,7 +87,7 @@ class BluetoothController extends ChangeNotifier {
     try {
       await FlutterBluePlus.stopScan();
     } catch (e) {
-      _errorMessage = 'Lỗi khi dừng scan: $e';
+      _errorMessage = 'Stop scan error: $e';
       notifyListeners();
     }
   }
@@ -123,7 +123,7 @@ class BluetoothController extends ChangeNotifier {
 
       return true;
     } catch (e) {
-      _errorMessage = 'Lỗi kết nối: $e';
+      _errorMessage = 'Connection error: $e';
       _isConnecting = false;
       notifyListeners();
       return false;
@@ -138,7 +138,7 @@ class BluetoothController extends ChangeNotifier {
         _connectedDevice = null;
         notifyListeners();
       } catch (e) {
-        _errorMessage = 'Lỗi ngắt kết nối: $e';
+        _errorMessage = 'Disconnect error: $e';
         notifyListeners();
       }
     }
@@ -170,7 +170,7 @@ class BluetoothController extends ChangeNotifier {
   // Gửi WiFi credentials qua BLE (cần implement theo protocol của bạn)
   Future<bool> sendWiFiCredentials(String ssid, String password) async {
     if (_connectedDevice == null) {
-      _errorMessage = 'Chưa kết nối thiết bị';
+      _errorMessage = 'No device connected';
       notifyListeners();
       return false;
     }
@@ -209,7 +209,7 @@ class BluetoothController extends ChangeNotifier {
       await Future.delayed(const Duration(seconds: 2));
       return true;
     } catch (e) {
-      _errorMessage = 'Lỗi gửi WiFi credentials: $e';
+      _errorMessage = 'WiFi credentials send error: $e';
       notifyListeners();
       return false;
     }

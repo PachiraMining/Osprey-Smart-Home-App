@@ -58,15 +58,15 @@ class _CreateScenePageState extends State<CreateScenePage> {
   }
 
   String _getRepeatMode() {
-    final repeat = widget.scheduleData?['repeat'] as String? ?? 'Chỉ một lần';
+    final repeat = widget.scheduleData?['repeat'] as String? ?? 'Once';
     switch (repeat) {
-      case 'Chỉ một lần':
+      case 'Once':
         return 'once';
-      case 'Hằng ngày':
+      case 'Daily':
         return 'daily';
-      case 'Thứ 2 đến Thứ 6':
-      case 'Cuối tuần':
-      case 'Tùy chỉnh...':
+      case 'Monday to Friday':
+      case 'Weekend':
+      case 'Custom...':
         return 'weekly';
       default:
         return 'once';
@@ -74,16 +74,16 @@ class _CreateScenePageState extends State<CreateScenePage> {
   }
 
   String _getDaysOfWeek() {
-    final repeat = widget.scheduleData?['repeat'] as String? ?? 'Chỉ một lần';
+    final repeat = widget.scheduleData?['repeat'] as String? ?? 'Once';
     switch (repeat) {
-      case 'Chỉ một lần':
+      case 'Once':
         final today = DateTime.now().weekday;
         return '$today';
-      case 'Hằng ngày':
+      case 'Daily':
         return '1,2,3,4,5,6,7';
-      case 'Thứ 2 đến Thứ 6':
+      case 'Monday to Friday':
         return '1,2,3,4,5';
-      case 'Cuối tuần':
+      case 'Weekend':
         return '6,7';
       default:
         return '1,2,3,4,5,6,7';

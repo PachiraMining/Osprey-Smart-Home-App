@@ -36,7 +36,7 @@ class _WiFiConfigPageState extends State<WiFiConfigPage> {
   Future<void> _discoverServices() async {
     try {
       setState(() {
-        _statusMessage = 'Đang tìm services...';
+        _statusMessage = 'Finding services...';
       });
 
       _services = await widget.device.discoverServices();
@@ -67,16 +67,16 @@ class _WiFiConfigPageState extends State<WiFiConfigPage> {
 
       if (_rxCharacteristic != null) {
         setState(() {
-          _statusMessage = 'Sẵn sàng gửi WiFi credentials';
+          _statusMessage = 'Ready to send WiFi credentials';
         });
       } else {
         setState(() {
-          _statusMessage = 'Không tìm thấy characteristic phù hợp';
+          _statusMessage = 'Could not find matching characteristic';
         });
       }
     } catch (e) {
       setState(() {
-        _statusMessage = 'Lỗi: $e';
+        _statusMessage = 'Error: $e';
       });
     }
   }
@@ -84,21 +84,21 @@ class _WiFiConfigPageState extends State<WiFiConfigPage> {
   Future<void> _sendWiFiCredentials() async {
     if (_ssidController.text.isEmpty || _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng nhập đầy đủ SSID và Password')),
+        const SnackBar(content: Text('Please enter both SSID and Password')),
       );
       return;
     }
 
     if (_rxCharacteristic == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Chưa sẵn sàng gửi dữ liệu')),
+        const SnackBar(content: Text('Not ready to send data')),
       );
       return;
     }
 
     setState(() {
       _isSending = true;
-      _statusMessage = 'Đang gửi...';
+      _statusMessage = 'Sending...';
     });
 
     try {
@@ -110,22 +110,22 @@ class _WiFiConfigPageState extends State<WiFiConfigPage> {
       await _rxCharacteristic!.write(data, withoutResponse: false);
 
       setState(() {
-        _statusMessage = '✓ Đã gửi WiFi credentials đến Smart Curtain';
+        _statusMessage = '✓ WiFi credentials sent to Smart Curtain';
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('✓ Đã gửi thành công!'),
+          content: Text('✓ Sent successfully!'),
           backgroundColor: Colors.green,
         ),
       );
     } catch (e) {
       setState(() {
-        _statusMessage = '✗ Lỗi: $e';
+        _statusMessage = '✗ Error: $e';
       });
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('✗ Lỗi gửi: $e')));
+      ).showSnackBar(SnackBar(content: Text('✗ Send error: $e')));
     } finally {
       setState(() {
         _isSending = false;
@@ -136,7 +136,7 @@ class _WiFiConfigPageState extends State<WiFiConfigPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Cấu hình WiFi - ${widget.deviceName}')),
+      appBar: AppBar(title: Text('WiFi Config - ${widget.deviceName}')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -155,7 +155,7 @@ class _WiFiConfigPageState extends State<WiFiConfigPage> {
                         const Icon(Icons.info_outline, color: Colors.blue),
                         const SizedBox(width: 8),
                         Text(
-                          'Thiết bị: ${widget.deviceName}',
+                          'Device: ${widget.deviceName}',
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ],
@@ -186,7 +186,7 @@ class _WiFiConfigPageState extends State<WiFiConfigPage> {
 
             // Form nhập WiFi
             Text(
-              'Thông tin WiFi',
+              'WiFi Information',
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 16),
@@ -195,7 +195,7 @@ class _WiFiConfigPageState extends State<WiFiConfigPage> {
               controller: _ssidController,
               decoration: InputDecoration(
                 labelText: 'SSID',
-                hintText: 'Nhập tên WiFi',
+                hintText: 'Enter WiFi name',
                 prefixIcon: const Icon(Icons.wifi),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -210,7 +210,7 @@ class _WiFiConfigPageState extends State<WiFiConfigPage> {
               obscureText: _obscurePassword,
               decoration: InputDecoration(
                 labelText: 'Password',
-                hintText: 'Nhập mật khẩu WiFi',
+                hintText: 'Enter WiFi password',
                 prefixIcon: const Icon(Icons.lock),
                 suffixIcon: IconButton(
                   icon: Icon(
@@ -242,7 +242,7 @@ class _WiFiConfigPageState extends State<WiFiConfigPage> {
                       ),
                     )
                   : const Icon(Icons.send),
-              label: Text(_isSending ? 'Đang gửi...' : 'Gửi đến Smart Curtain'),
+              label: Text(_isSending ? 'Sending...' : 'Send to Smart Curtain'),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 backgroundColor: Colors.blue,
@@ -265,15 +265,15 @@ class _WiFiConfigPageState extends State<WiFiConfigPage> {
                         Icon(Icons.lightbulb_outline, color: Colors.amber[700]),
                         const SizedBox(width: 8),
                         const Text(
-                          'Hướng dẫn',
+                          'Instructions',
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      '1. Nhập SSID và Password của WiFi\n'
-                      '2. Nhấn "Gửi đến Smart Curtain"\n',
+                      '1. Enter WiFi SSID and Password\n'
+                      '2. Tap "Send to Smart Curtain"\n',
                       style: TextStyle(fontSize: 12),
                     ),
                   ],

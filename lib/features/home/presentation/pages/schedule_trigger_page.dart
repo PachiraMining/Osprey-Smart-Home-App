@@ -10,9 +10,9 @@ class ScheduleTriggerPage extends StatefulWidget {
 }
 
 class _ScheduleTriggerPageState extends State<ScheduleTriggerPage> {
-  String selectedPeriod = "Điểm thời gian chỉ định"; // Mặc định chọn cái đầu
+  String selectedPeriod = "Specified Time"; // Mặc định chọn cái đầu
   TimeOfDay selectedTime = const TimeOfDay(hour: 11, minute: 10);
-  String repeatMode = "Chỉ một lần";
+  String repeatMode = "Once";
 
   Future<void> _selectTime(BuildContext context) async {
     final TimeOfDay? picked = await showTimePicker(
@@ -74,7 +74,7 @@ class _ScheduleTriggerPageState extends State<ScheduleTriggerPage> {
               );
             },
             child: const Text(
-              "Xác nhận",
+              "Confirm",
               style: TextStyle(
                 color: Colors.red,
                 fontSize: 17,
@@ -92,27 +92,27 @@ class _ScheduleTriggerPageState extends State<ScheduleTriggerPage> {
 
             // 1. Điểm thời gian chỉ định (có tick đỏ)
             _buildPeriodOption(
-              title: "Điểm thời gian chỉ định",
-              isSelected: selectedPeriod == "Điểm thời gian chỉ định",
+              title: "Specified Time",
+              isSelected: selectedPeriod == "Specified Time",
               onTap: () =>
-                  setState(() => selectedPeriod = "Điểm thời gian chỉ định"),
+                  setState(() => selectedPeriod = "Specified Time"),
             ),
 
             const SizedBox(height: 20),
 
             // 2. Mặt trời mọc / Hoàng hôn
             _buildPeriodOption(
-              title: "Mặt trời mọc",
-              isSelected: selectedPeriod == "Mặt trời mọc",
-              onTap: () => setState(() => selectedPeriod = "Mặt trời mọc"),
+              title: "Sunrise",
+              isSelected: selectedPeriod == "Sunrise",
+              onTap: () => setState(() => selectedPeriod = "Sunrise"),
             ),
 
             const SizedBox(height: 12),
 
             _buildPeriodOption(
-              title: "Hoàng hôn",
-              isSelected: selectedPeriod == "Hoàng hôn",
-              onTap: () => setState(() => selectedPeriod = "Hoàng hôn"),
+              title: "Sunset",
+              isSelected: selectedPeriod == "Sunset",
+              onTap: () => setState(() => selectedPeriod = "Sunset"),
             ),
 
             const SizedBox(height: 30),
@@ -194,7 +194,7 @@ class _ScheduleTriggerPageState extends State<ScheduleTriggerPage> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text(
-              "Thời gian",
+              "Time",
               style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
             ),
             Row(
@@ -237,16 +237,16 @@ class _ScheduleTriggerPageState extends State<ScheduleTriggerPage> {
                 ),
                 const SizedBox(height: 16),
                 const Text(
-                  "Chọn chế độ lặp",
+                  "Select Repeat Mode",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 20),
                 // Danh sách các lựa chọn
-                _buildRepeatOption("Chỉ một lần"),
-                _buildRepeatOption("Hằng ngày"),
-                _buildRepeatOption("Thứ 2 đến Thứ 6"),
-                _buildRepeatOption("Cuối tuần"),
-                _buildRepeatOption("Tùy chỉnh..."),
+                _buildRepeatOption("Once"),
+                _buildRepeatOption("Daily"),
+                _buildRepeatOption("Monday to Friday"),
+                _buildRepeatOption("Weekend"),
+                _buildRepeatOption("Custom..."),
               ],
             ),
           ),
@@ -269,7 +269,7 @@ class _ScheduleTriggerPageState extends State<ScheduleTriggerPage> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text(
-              "Lặp lại",
+              "Repeat",
               style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
             ),
             Row(

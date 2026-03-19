@@ -49,7 +49,7 @@ class _AddDevicePageState extends State<AddDevicePage>
     if (!success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(_bluetoothController.errorMessage ?? 'Lỗi khi quét'),
+          content: Text(_bluetoothController.errorMessage ?? 'Scan error'),
           backgroundColor: Colors.red,
         ),
       );
@@ -75,7 +75,7 @@ class _AddDevicePageState extends State<AddDevicePage>
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content:
-                  Text(_bluetoothController.errorMessage ?? 'Lỗi kết nối'),
+                  Text(_bluetoothController.errorMessage ?? 'Connection error'),
               backgroundColor: Colors.red,
             ),
           );
@@ -86,7 +86,7 @@ class _AddDevicePageState extends State<AddDevicePage>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Đã kết nối với $deviceName'),
+            content: Text('Connected to $deviceName'),
             backgroundColor: Colors.green,
             duration: const Duration(seconds: 2),
           ),
@@ -106,7 +106,7 @@ class _AddDevicePageState extends State<AddDevicePage>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Lỗi kết nối: $e'),
+            content: Text('Connection error: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -274,7 +274,7 @@ class _AddDevicePageState extends State<AddDevicePage>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Đã kết nối',
+                  'Connected',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.green,

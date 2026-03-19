@@ -15,19 +15,19 @@ class AddTaskPage extends StatelessWidget {
     {
       "icon": Icons.auto_awesome,
       "color": Colors.blue,
-      "title": "Chọn Kịch bản thông minh",
+      "title": "Select Smart Scene",
       "example": "Example: disable a specific automation scene",
     },
     {
       "icon": Icons.timer_outlined,
       "color": Colors.orange,
-      "title": "Thời gian trôi đi",
+      "title": "Time Elapsed",
       "example": "Example: run the scene in 15 minutes",
     },
     {
       "icon": Icons.notifications_active_outlined,
       "color": Colors.green,
-      "title": "Gửi thông báo nhắc nhở",
+      "title": "Send Reminder Notification",
       "example":
           "Example: make a phone call to alert me if a water leak is detected",
     },
@@ -49,13 +49,13 @@ class AddTaskPage extends StatelessWidget {
         leading: TextButton(
           onPressed: () => Navigator.pop(context),
           child: const Text(
-            "Hủy bỏ",
+            "Cancel",
             style: TextStyle(color: Colors.black54, fontSize: 16),
           ),
         ),
         leadingWidth: 80,
         title: const Text(
-          "Thêm tác vụ",
+          "Add Task",
           style: TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
@@ -153,7 +153,7 @@ class AddTaskPage extends StatelessWidget {
                 );
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text("Đã chọn: ${item['title']}")),
+                  SnackBar(content: Text("Selected: ${item['title']}")),
                 );
               }
             },

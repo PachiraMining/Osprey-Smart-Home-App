@@ -18,13 +18,13 @@ class ServerFailure extends Failure {
 class NetworkFailure extends Failure {
   const NetworkFailure(
     super.string, {
-    super.message = 'Không có kết nối internet',
+    super.message = 'No internet connection',
   });
 }
 
 class UnauthorizedFailure extends Failure {
   const UnauthorizedFailure(
     super.string, {
-    super.message = 'Phiên đăng nhập hết hạn',
+    super.message = 'Session expired',
   });
 }
