@@ -121,7 +121,11 @@ class TapToRunBloc extends Bloc<TapToRunEvent, TapToRunState> {
 
     final result = await executeTapToRunScene(event.sceneId);
     result.fold(
-      (failure) => emit(TapToRunLoaded(currentScenes)),
+      (failure) => emit(TapToRunExecuteResult(
+        status: 'FAILURE',
+        details: failure.message,
+        scenes: currentScenes,
+      )),
       (data) {
         final status = data['status'] as String? ?? 'FAILURE';
         final details = (data['executionDetails'] as Map<String, dynamic>?)?['details'] as String? ?? '';

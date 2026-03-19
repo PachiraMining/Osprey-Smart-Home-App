@@ -628,6 +628,16 @@ class _SceneTabState extends State<SceneTab> {
                 style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
               ),
             ),
+            // Error message if failed
+            if (state.status == 'FAILURE' && actions.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                child: Text(
+                  state.details.isNotEmpty ? state.details : 'Execution failed',
+                  style: TextStyle(fontSize: 15, color: Colors.red.shade400),
+                  textAlign: TextAlign.center,
+                ),
+              ),
             // Actions list
             if (actions.isNotEmpty)
               ...actions.map((action) {
