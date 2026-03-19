@@ -54,7 +54,7 @@ class _AddDeviceToHomePageState extends State<AddDeviceToHomePage> {
         if (state.mutationStatus == MutationStatus.success) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Đã thêm thiết bị vào nhà'),
+              content: Text('Device added to home'),
               backgroundColor: Colors.green,
             ),
           );
@@ -62,7 +62,7 @@ class _AddDeviceToHomePageState extends State<AddDeviceToHomePage> {
         } else if (state.mutationStatus == MutationStatus.error) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.errorMessage ?? 'Đã xảy ra lỗi'),
+              content: Text(state.errorMessage ?? 'An error occurred'),
               backgroundColor: Colors.red,
             ),
           );
@@ -71,7 +71,7 @@ class _AddDeviceToHomePageState extends State<AddDeviceToHomePage> {
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
-          title: const Text('Thêm thiết bị vào nhà'),
+          title: const Text('Add Device to Home'),
           backgroundColor: Colors.white,
           foregroundColor: Colors.black87,
           elevation: 0.5,
@@ -99,7 +99,7 @@ class _AddDeviceToHomePageState extends State<AddDeviceToHomePage> {
                     ElevatedButton(
                       onPressed: () =>
                           context.read<DeviceBloc>().add(LoadDevicesEvent()),
-                      child: const Text('Thử lại'),
+                      child: const Text('Retry'),
                     ),
                   ],
                 ),
@@ -118,7 +118,7 @@ class _AddDeviceToHomePageState extends State<AddDeviceToHomePage> {
                           size: 64, color: Colors.black26),
                       SizedBox(height: 12),
                       Text(
-                        'Không có thiết bị nào',
+                        'No devices available',
                         style:
                             TextStyle(color: Colors.black54, fontSize: 16),
                       ),
@@ -191,7 +191,7 @@ class _DeviceTile extends StatelessWidget {
       ),
       title: Text(device.name),
       subtitle: Text(
-        isOnline ? 'Trực tuyến' : 'Ngoại tuyến',
+        isOnline ? 'Online' : 'Offline',
         style: TextStyle(
           color: isOnline ? Colors.green : Colors.black38,
           fontSize: 12,
@@ -239,8 +239,8 @@ class _AddButton extends StatelessWidget {
         ),
         child: Text(
           selectedCount > 0
-              ? 'Thêm ($selectedCount thiết bị)'
-              : 'Thêm',
+              ? 'Add ($selectedCount devices)'
+              : 'Add',
           style: const TextStyle(fontSize: 16),
         ),
       ),

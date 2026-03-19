@@ -94,7 +94,7 @@ class _HomeTabState extends State<HomeTab> {
                 child: Row(
                   children: [
                     Text(
-                      state.selectedHome?.name ?? 'Nhà của tôi',
+                      state.selectedHome?.name ?? 'My Home',
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -124,7 +124,7 @@ class _HomeTabState extends State<HomeTab> {
                   child: Row(
                     children: [
                       _RoomChip(
-                        label: 'Tất cả',
+                        label: 'All',
                         isSelected: state.selectedRoomId == null,
                         onTap: () => context
                             .read<HomeManagementBloc>()
@@ -171,7 +171,7 @@ class _HomeTabState extends State<HomeTab> {
               Icon(Icons.error_outline, size: 64, color: Colors.grey.shade300),
               const SizedBox(height: 16),
               Text(
-                state.errorMessage ?? 'Đã xảy ra lỗi',
+                state.errorMessage ?? 'An error occurred',
                 style: TextStyle(fontSize: 15, color: Colors.grey.shade500),
                 textAlign: TextAlign.center,
               ),
@@ -187,7 +187,7 @@ class _HomeTabState extends State<HomeTab> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: const Text('Thử lại'),
+                child: const Text('Retry'),
               ),
             ],
           ),
@@ -206,7 +206,7 @@ class _HomeTabState extends State<HomeTab> {
               Icon(Icons.devices_other, size: 64, color: Colors.grey.shade300),
               const SizedBox(height: 16),
               Text(
-                'Chưa có thiết bị',
+                'No devices',
                 style: TextStyle(fontSize: 16, color: Colors.grey.shade500),
               ),
             ],

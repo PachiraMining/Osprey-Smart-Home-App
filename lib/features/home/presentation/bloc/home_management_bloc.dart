@@ -88,7 +88,7 @@ class HomeManagementBloc
 
         // Auto-create a default home when the user has none
         if (homeList.isEmpty) {
-          final createResult = await createHome(name: 'Nhà của tôi');
+          final createResult = await createHome(name: 'My Home');
           final created = createResult.fold(
             (failure) => null,
             (home) => home,
@@ -96,7 +96,7 @@ class HomeManagementBloc
           if (created == null) {
             emit(state.copyWith(
               status: HomeStatus.error,
-              errorMessage: 'Không thể tạo nhà mặc định',
+              errorMessage: 'Unable to create default home',
             ));
             return;
           }

@@ -20,11 +20,11 @@ class HomeRepositoryImpl implements HomeRepository {
       final homes = await remoteDataSource.getHomes();
       return Right(homes);
     } on UnauthorizedException {
-      return const Left(UnauthorizedFailure('Unauthorized', message: 'Phiên đăng nhập hết hạn'));
+      return const Left(UnauthorizedFailure('Unauthorized', message: 'Session expired'));
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message, message: e.message));
     } catch (e) {
-      return Left(ServerFailure('$e', message: 'Lỗi không xác định'));
+      return Left(ServerFailure('$e', message: 'Unknown error'));
     }
   }
 
@@ -48,11 +48,11 @@ class HomeRepositoryImpl implements HomeRepository {
       final home = await remoteDataSource.createHome(body);
       return Right(home);
     } on UnauthorizedException {
-      return const Left(UnauthorizedFailure('Unauthorized', message: 'Phiên đăng nhập hết hạn'));
+      return const Left(UnauthorizedFailure('Unauthorized', message: 'Session expired'));
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message, message: e.message));
     } catch (e) {
-      return Left(ServerFailure('$e', message: 'Lỗi không xác định'));
+      return Left(ServerFailure('$e', message: 'Unknown error'));
     }
   }
 
@@ -77,11 +77,11 @@ class HomeRepositoryImpl implements HomeRepository {
       final home = await remoteDataSource.updateHome(homeId, body);
       return Right(home);
     } on UnauthorizedException {
-      return const Left(UnauthorizedFailure('Unauthorized', message: 'Phiên đăng nhập hết hạn'));
+      return const Left(UnauthorizedFailure('Unauthorized', message: 'Session expired'));
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message, message: e.message));
     } catch (e) {
-      return Left(ServerFailure('$e', message: 'Lỗi không xác định'));
+      return Left(ServerFailure('$e', message: 'Unknown error'));
     }
   }
 
@@ -91,11 +91,11 @@ class HomeRepositoryImpl implements HomeRepository {
       await remoteDataSource.deleteHome(homeId);
       return const Right(null);
     } on UnauthorizedException {
-      return const Left(UnauthorizedFailure('Unauthorized', message: 'Phiên đăng nhập hết hạn'));
+      return const Left(UnauthorizedFailure('Unauthorized', message: 'Session expired'));
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message, message: e.message));
     } catch (e) {
-      return Left(ServerFailure('$e', message: 'Lỗi không xác định'));
+      return Left(ServerFailure('$e', message: 'Unknown error'));
     }
   }
 
@@ -105,11 +105,11 @@ class HomeRepositoryImpl implements HomeRepository {
       final devices = await remoteDataSource.getHomeDevices(homeId);
       return Right(devices);
     } on UnauthorizedException {
-      return const Left(UnauthorizedFailure('Unauthorized', message: 'Phiên đăng nhập hết hạn'));
+      return const Left(UnauthorizedFailure('Unauthorized', message: 'Session expired'));
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message, message: e.message));
     } catch (e) {
-      return Left(ServerFailure('$e', message: 'Lỗi không xác định'));
+      return Left(ServerFailure('$e', message: 'Unknown error'));
     }
   }
 
@@ -125,11 +125,11 @@ class HomeRepositoryImpl implements HomeRepository {
       await remoteDataSource.addDeviceToHome(homeId, body);
       return const Right(null);
     } on UnauthorizedException {
-      return const Left(UnauthorizedFailure('Unauthorized', message: 'Phiên đăng nhập hết hạn'));
+      return const Left(UnauthorizedFailure('Unauthorized', message: 'Session expired'));
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message, message: e.message));
     } catch (e) {
-      return Left(ServerFailure('$e', message: 'Lỗi không xác định'));
+      return Left(ServerFailure('$e', message: 'Unknown error'));
     }
   }
 
@@ -150,11 +150,11 @@ class HomeRepositoryImpl implements HomeRepository {
       await remoteDataSource.updateHomeDevice(homeId, deviceId, body);
       return const Right(null);
     } on UnauthorizedException {
-      return const Left(UnauthorizedFailure('Unauthorized', message: 'Phiên đăng nhập hết hạn'));
+      return const Left(UnauthorizedFailure('Unauthorized', message: 'Session expired'));
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message, message: e.message));
     } catch (e) {
-      return Left(ServerFailure('$e', message: 'Lỗi không xác định'));
+      return Left(ServerFailure('$e', message: 'Unknown error'));
     }
   }
 
@@ -167,11 +167,11 @@ class HomeRepositoryImpl implements HomeRepository {
       await remoteDataSource.removeDeviceFromHome(homeId, deviceId);
       return const Right(null);
     } on UnauthorizedException {
-      return const Left(UnauthorizedFailure('Unauthorized', message: 'Phiên đăng nhập hết hạn'));
+      return const Left(UnauthorizedFailure('Unauthorized', message: 'Session expired'));
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message, message: e.message));
     } catch (e) {
-      return Left(ServerFailure('$e', message: 'Lỗi không xác định'));
+      return Left(ServerFailure('$e', message: 'Unknown error'));
     }
   }
 
@@ -181,11 +181,11 @@ class HomeRepositoryImpl implements HomeRepository {
       final rooms = await remoteDataSource.getRooms(homeId);
       return Right(rooms);
     } on UnauthorizedException {
-      return const Left(UnauthorizedFailure('Unauthorized', message: 'Phiên đăng nhập hết hạn'));
+      return const Left(UnauthorizedFailure('Unauthorized', message: 'Session expired'));
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message, message: e.message));
     } catch (e) {
-      return Left(ServerFailure('$e', message: 'Lỗi không xác định'));
+      return Left(ServerFailure('$e', message: 'Unknown error'));
     }
   }
 
@@ -206,11 +206,11 @@ class HomeRepositoryImpl implements HomeRepository {
       final room = await remoteDataSource.createRoom(homeId, body);
       return Right(room);
     } on UnauthorizedException {
-      return const Left(UnauthorizedFailure('Unauthorized', message: 'Phiên đăng nhập hết hạn'));
+      return const Left(UnauthorizedFailure('Unauthorized', message: 'Session expired'));
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message, message: e.message));
     } catch (e) {
-      return Left(ServerFailure('$e', message: 'Lỗi không xác định'));
+      return Left(ServerFailure('$e', message: 'Unknown error'));
     }
   }
 
@@ -232,11 +232,11 @@ class HomeRepositoryImpl implements HomeRepository {
       final room = await remoteDataSource.updateRoom(homeId, roomId, body);
       return Right(room);
     } on UnauthorizedException {
-      return const Left(UnauthorizedFailure('Unauthorized', message: 'Phiên đăng nhập hết hạn'));
+      return const Left(UnauthorizedFailure('Unauthorized', message: 'Session expired'));
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message, message: e.message));
     } catch (e) {
-      return Left(ServerFailure('$e', message: 'Lỗi không xác định'));
+      return Left(ServerFailure('$e', message: 'Unknown error'));
     }
   }
 
@@ -249,11 +249,11 @@ class HomeRepositoryImpl implements HomeRepository {
       await remoteDataSource.deleteRoom(homeId, roomId);
       return const Right(null);
     } on UnauthorizedException {
-      return const Left(UnauthorizedFailure('Unauthorized', message: 'Phiên đăng nhập hết hạn'));
+      return const Left(UnauthorizedFailure('Unauthorized', message: 'Session expired'));
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message, message: e.message));
     } catch (e) {
-      return Left(ServerFailure('$e', message: 'Lỗi không xác định'));
+      return Left(ServerFailure('$e', message: 'Unknown error'));
     }
   }
 }

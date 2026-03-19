@@ -507,10 +507,10 @@ class _SceneTabState extends State<SceneTab> {
                   ? Colors.orange
                   : Colors.red;
           final message = state.status == 'SUCCESS'
-              ? 'Thực thi thành công!'
+              ? 'Executed successfully!'
               : state.status == 'PARTIAL'
-                  ? 'Một số action thất bại'
-                  : 'Thực thi thất bại';
+                  ? 'Some actions failed'
+                  : 'Execution failed';
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(message), backgroundColor: color, duration: const Duration(seconds: 2)),
           );
@@ -529,7 +529,7 @@ class _SceneTabState extends State<SceneTab> {
                 const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: () => _loadTapToRunScenes(),
-                  child: const Text('Thử lại'),
+                  child: const Text('Retry'),
                 ),
               ],
             ),
@@ -562,7 +562,7 @@ class _SceneTabState extends State<SceneTab> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 30),
           child: Text(
-            'Tạo một Tap-to-Run scene để điều khiển thiết bị nhanh chóng chỉ với một chạm.',
+            'Create a Tap-to-Run scene to control your devices quickly with a single tap.',
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 15, color: Colors.grey.shade500, height: 1.5),
           ),
@@ -579,7 +579,7 @@ class _SceneTabState extends State<SceneTab> {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
             ),
             onPressed: () => _navigateToCreateTapToRun(),
-            child: const Text('Tạo Scene', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+            child: const Text('Create Scene', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
           ),
         ),
         const Spacer(),
@@ -615,16 +615,16 @@ class _SceneTabState extends State<SceneTab> {
               showDialog(
                 context: context,
                 builder: (ctx) => AlertDialog(
-                  title: const Text('Xóa scene?'),
-                  content: Text('Bạn có chắc muốn xóa "${scene.name}"?'),
+                  title: const Text('Delete scene?'),
+                  content: Text('Are you sure you want to delete "${scene.name}"?'),
                   actions: [
-                    TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Hủy')),
+                    TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
                     TextButton(
                       onPressed: () {
                         Navigator.pop(ctx);
                         context.read<TapToRunBloc>().add(DeleteTapToRunSceneEvent(scene.id));
                       },
-                      child: const Text('Xóa', style: TextStyle(color: Colors.red)),
+                      child: const Text('Delete', style: TextStyle(color: Colors.red)),
                     ),
                   ],
                 ),

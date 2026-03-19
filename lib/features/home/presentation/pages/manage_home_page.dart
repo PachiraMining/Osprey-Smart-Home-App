@@ -50,19 +50,19 @@ class _ManageHomePageState extends State<ManageHomePage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Xóa nhà'),
+        title: const Text('Delete Home'),
         content: Text(
-          'Bạn có chắc muốn xóa "${widget.homeName}" không? Hành động này không thể hoàn tác.',
+          'Are you sure you want to delete "${widget.homeName}"? This action cannot be undone.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Hủy'),
+            child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Xóa'),
+            child: const Text('Delete'),
           ),
         ],
       ),
@@ -85,7 +85,7 @@ class _ManageHomePageState extends State<ManageHomePage> {
         if (state.mutationStatus == MutationStatus.error) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.errorMessage ?? 'Đã xảy ra lỗi'),
+              content: Text(state.errorMessage ?? 'An error occurred'),
               backgroundColor: Colors.red,
             ),
           );
@@ -94,7 +94,7 @@ class _ManageHomePageState extends State<ManageHomePage> {
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
-          title: const Text('Quản lý nhà'),
+          title: const Text('Home Management'),
           backgroundColor: Colors.white,
           foregroundColor: Colors.black87,
           elevation: 0.5,
@@ -105,7 +105,7 @@ class _ManageHomePageState extends State<ManageHomePage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Text(
-                'Tên nhà',
+                'Home Name',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
@@ -116,7 +116,7 @@ class _ManageHomePageState extends State<ManageHomePage> {
               TextField(
                 controller: _nameController,
                 decoration: InputDecoration(
-                  hintText: 'Nhập tên nhà',
+                  hintText: 'Enter home name',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -141,7 +141,7 @@ class _ManageHomePageState extends State<ManageHomePage> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: const Text('Lưu', style: TextStyle(fontSize: 16)),
+                child: const Text('Save', style: TextStyle(fontSize: 16)),
               ),
               const SizedBox(height: 24),
               const Divider(),
@@ -149,7 +149,7 @@ class _ManageHomePageState extends State<ManageHomePage> {
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.door_front_door_outlined,
                     color: Colors.black87),
-                title: const Text('Quản lý phòng'),
+                title: const Text('Room Management'),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute(
@@ -173,7 +173,7 @@ class _ManageHomePageState extends State<ManageHomePage> {
                   ),
                 ),
                 child: const Text(
-                  'Xóa nhà',
+                  'Delete Home',
                   style: TextStyle(fontSize: 16),
                 ),
               ),

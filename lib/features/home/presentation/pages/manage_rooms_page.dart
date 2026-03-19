@@ -17,7 +17,7 @@ class ManageRoomsPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Quản lý phòng'),
+        title: const Text('Room Management'),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black87,
         elevation: 0.5,
@@ -45,12 +45,12 @@ class ManageRoomsPage extends StatelessWidget {
                       size: 64, color: Colors.black26),
                   SizedBox(height: 12),
                   Text(
-                    'Chưa có phòng nào',
+                    'No rooms yet',
                     style: TextStyle(color: Colors.black54, fontSize: 16),
                   ),
                   SizedBox(height: 4),
                   Text(
-                    'Nhấn + để thêm phòng mới',
+                    'Tap + to add a new room',
                     style: TextStyle(color: Colors.black38, fontSize: 14),
                   ),
                 ],
@@ -101,17 +101,17 @@ class ManageRoomsPage extends StatelessWidget {
     return showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Xóa phòng'),
-        content: Text('Bạn có chắc muốn xóa "$roomName" không?'),
+        title: const Text('Delete Room'),
+        content: Text('Are you sure you want to delete "$roomName"?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Hủy'),
+            child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Xóa'),
+            child: const Text('Delete'),
           ),
         ],
       ),
@@ -123,16 +123,16 @@ class ManageRoomsPage extends StatelessWidget {
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Thêm phòng'),
+        title: const Text('Add Room'),
         content: TextField(
           controller: controller,
           autofocus: true,
-          decoration: const InputDecoration(hintText: 'Tên phòng'),
+          decoration: const InputDecoration(hintText: 'Room Name'),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Hủy'),
+            child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () {
@@ -144,7 +144,7 @@ class ManageRoomsPage extends StatelessWidget {
               }
               Navigator.of(ctx).pop();
             },
-            child: const Text('Thêm'),
+            child: const Text('Add'),
           ),
         ],
       ),
@@ -157,16 +157,16 @@ class ManageRoomsPage extends StatelessWidget {
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Đổi tên phòng'),
+        title: const Text('Rename Room'),
         content: TextField(
           controller: controller,
           autofocus: true,
-          decoration: const InputDecoration(hintText: 'Tên phòng'),
+          decoration: const InputDecoration(hintText: 'Room Name'),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Hủy'),
+            child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () {
@@ -182,7 +182,7 @@ class ManageRoomsPage extends StatelessWidget {
               }
               Navigator.of(ctx).pop();
             },
-            child: const Text('Lưu'),
+            child: const Text('Save'),
           ),
         ],
       ),
