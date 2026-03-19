@@ -19,16 +19,16 @@ class _DelayConfigSheetState extends State<DelayConfigSheet> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Cài đặt Delay', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text('Delay Settings', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            Text('Tối đa 5 phút', style: TextStyle(color: Colors.grey[500])),
+            Text('Maximum 5 minutes', style: TextStyle(color: Colors.grey[500])),
             const SizedBox(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Column(
                   children: [
-                    const Text('Phút', style: TextStyle(fontWeight: FontWeight.w500)),
+                    const Text('Minutes', style: TextStyle(fontWeight: FontWeight.w500)),
                     const SizedBox(height: 8),
                     SizedBox(
                       width: 80,
@@ -60,7 +60,7 @@ class _DelayConfigSheetState extends State<DelayConfigSheet> {
                 ),
                 Column(
                   children: [
-                    const Text('Giây', style: TextStyle(fontWeight: FontWeight.w500)),
+                    const Text('Seconds', style: TextStyle(fontWeight: FontWeight.w500)),
                     const SizedBox(height: 8),
                     SizedBox(
                       width: 80,
@@ -89,7 +89,7 @@ class _DelayConfigSheetState extends State<DelayConfigSheet> {
             ),
             const SizedBox(height: 16),
             Text(
-              _minutes > 0 ? '$_minutes phút $_seconds giây' : '$_seconds giây',
+              _minutes > 0 ? '$_minutes min $_seconds sec' : '$_seconds sec',
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 24),
@@ -104,12 +104,12 @@ class _DelayConfigSheetState extends State<DelayConfigSheet> {
                 ),
                 onPressed: () {
                   if (_minutes == 0 && _seconds == 0) {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Vui lòng chọn thời gian > 0')));
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select a time > 0')));
                     return;
                   }
                   Navigator.pop(context, {'minutes': _minutes, 'seconds': _seconds});
                 },
-                child: const Text('Xác nhận', style: TextStyle(fontSize: 16)),
+                child: const Text('Confirm', style: TextStyle(fontSize: 16)),
               ),
             ),
           ],

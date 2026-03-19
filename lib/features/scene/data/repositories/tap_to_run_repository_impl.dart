@@ -19,11 +19,11 @@ class TapToRunRepositoryImpl implements TapToRunRepository {
       final scenes = await remoteDataSource.getScenes(homeId);
       return Right(scenes);
     } on UnauthorizedException {
-      return const Left(UnauthorizedFailure('Unauthorized', message: 'Phiên đăng nhập hết hạn'));
+      return const Left(UnauthorizedFailure('Unauthorized', message: 'Session expired'));
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message, message: e.message));
     } catch (e) {
-      return Left(ServerFailure('$e', message: 'Lỗi không xác định'));
+      return Left(ServerFailure('$e', message: 'Unknown error'));
     }
   }
 
@@ -51,11 +51,11 @@ class TapToRunRepositoryImpl implements TapToRunRepository {
       final scene = await remoteDataSource.createScene(homeId, body);
       return Right(scene);
     } on UnauthorizedException {
-      return const Left(UnauthorizedFailure('Unauthorized', message: 'Phiên đăng nhập hết hạn'));
+      return const Left(UnauthorizedFailure('Unauthorized', message: 'Session expired'));
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message, message: e.message));
     } catch (e) {
-      return Left(ServerFailure('$e', message: 'Lỗi không xác định'));
+      return Left(ServerFailure('$e', message: 'Unknown error'));
     }
   }
 
@@ -83,11 +83,11 @@ class TapToRunRepositoryImpl implements TapToRunRepository {
       final scene = await remoteDataSource.updateScene(sceneId, body);
       return Right(scene);
     } on UnauthorizedException {
-      return const Left(UnauthorizedFailure('Unauthorized', message: 'Phiên đăng nhập hết hạn'));
+      return const Left(UnauthorizedFailure('Unauthorized', message: 'Session expired'));
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message, message: e.message));
     } catch (e) {
-      return Left(ServerFailure('$e', message: 'Lỗi không xác định'));
+      return Left(ServerFailure('$e', message: 'Unknown error'));
     }
   }
 
@@ -97,11 +97,11 @@ class TapToRunRepositoryImpl implements TapToRunRepository {
       await remoteDataSource.deleteScene(sceneId);
       return const Right(null);
     } on UnauthorizedException {
-      return const Left(UnauthorizedFailure('Unauthorized', message: 'Phiên đăng nhập hết hạn'));
+      return const Left(UnauthorizedFailure('Unauthorized', message: 'Session expired'));
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message, message: e.message));
     } catch (e) {
-      return Left(ServerFailure('$e', message: 'Lỗi không xác định'));
+      return Left(ServerFailure('$e', message: 'Unknown error'));
     }
   }
 
@@ -111,11 +111,11 @@ class TapToRunRepositoryImpl implements TapToRunRepository {
       final result = await remoteDataSource.executeScene(sceneId);
       return Right(result);
     } on UnauthorizedException {
-      return const Left(UnauthorizedFailure('Unauthorized', message: 'Phiên đăng nhập hết hạn'));
+      return const Left(UnauthorizedFailure('Unauthorized', message: 'Session expired'));
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message, message: e.message));
     } catch (e) {
-      return Left(ServerFailure('$e', message: 'Lỗi không xác định'));
+      return Left(ServerFailure('$e', message: 'Unknown error'));
     }
   }
 
@@ -129,11 +129,11 @@ class TapToRunRepositoryImpl implements TapToRunRepository {
       }
       return const Right(null);
     } on UnauthorizedException {
-      return const Left(UnauthorizedFailure('Unauthorized', message: 'Phiên đăng nhập hết hạn'));
+      return const Left(UnauthorizedFailure('Unauthorized', message: 'Session expired'));
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message, message: e.message));
     } catch (e) {
-      return Left(ServerFailure('$e', message: 'Lỗi không xác định'));
+      return Left(ServerFailure('$e', message: 'Unknown error'));
     }
   }
 
@@ -143,11 +143,11 @@ class TapToRunRepositoryImpl implements TapToRunRepository {
       final dataPoints = await remoteDataSource.getDeviceDataPoints(deviceProfileId);
       return Right(dataPoints);
     } on UnauthorizedException {
-      return const Left(UnauthorizedFailure('Unauthorized', message: 'Phiên đăng nhập hết hạn'));
+      return const Left(UnauthorizedFailure('Unauthorized', message: 'Session expired'));
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message, message: e.message));
     } catch (e) {
-      return Left(ServerFailure('$e', message: 'Lỗi không xác định'));
+      return Left(ServerFailure('$e', message: 'Unknown error'));
     }
   }
 }

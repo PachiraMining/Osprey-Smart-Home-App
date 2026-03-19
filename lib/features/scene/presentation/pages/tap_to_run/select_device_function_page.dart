@@ -63,11 +63,11 @@ class _SelectDeviceFunctionPageState extends State<SelectDeviceFunctionPage> {
                   children: [
                     Text(_error!, style: const TextStyle(color: Colors.red)),
                     const SizedBox(height: 16),
-                    ElevatedButton(onPressed: _loadDataPoints, child: const Text('Thử lại')),
+                    ElevatedButton(onPressed: _loadDataPoints, child: const Text('Retry')),
                   ],
                 ))
               : _dataPoints == null || _dataPoints!.isEmpty
-                  ? const Center(child: Text('Không có chức năng nào'))
+                  ? const Center(child: Text('No functions available'))
                   : ListView.separated(
                       padding: const EdgeInsets.all(16),
                       itemCount: _dataPoints!.length,
@@ -167,7 +167,7 @@ class _SelectDeviceFunctionPageState extends State<SelectDeviceFunctionPage> {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
             onPressed: () => _returnAction(dp, currentValue.toInt()),
-            child: Text('Đặt ${currentValue.toInt()}'),
+            child: Text('Set ${currentValue.toInt()}'),
           ),
         ],
       ),
@@ -182,7 +182,7 @@ class _SelectDeviceFunctionPageState extends State<SelectDeviceFunctionPage> {
         Expanded(child: TextField(
           controller: controller,
           maxLength: maxLen,
-          decoration: InputDecoration(hintText: 'Nhập giá trị...', border: OutlineInputBorder(borderRadius: BorderRadius.circular(8))),
+          decoration: InputDecoration(hintText: 'Enter value...', border: OutlineInputBorder(borderRadius: BorderRadius.circular(8))),
         )),
         const SizedBox(width: 8),
         ElevatedButton(onPressed: () { if (controller.text.isNotEmpty) _returnAction(dp, controller.text); }, child: const Text('OK')),

@@ -50,7 +50,7 @@ class TapToRunBloc extends Bloc<TapToRunEvent, TapToRunState> {
     Emitter<TapToRunState> emit,
   ) async {
     if (_homeId == null) {
-      emit(const TapToRunError('Không tìm thấy Home'));
+      emit(const TapToRunError('Home not found'));
       return;
     }
     emit(TapToRunCreating());

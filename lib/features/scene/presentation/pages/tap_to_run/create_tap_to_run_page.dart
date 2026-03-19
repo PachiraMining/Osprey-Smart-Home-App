@@ -34,7 +34,7 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
       _nameController.text = widget.existingScene!.name;
       _actions.addAll(widget.existingScene!.actions);
     } else {
-      _nameController.text = 'Tên Scene';
+      _nameController.text = 'Scene Name';
     }
   }
 
@@ -119,16 +119,16 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Tên Scene'),
+        title: const Text('Scene Name'),
         content: TextField(
           controller: _nameController,
           autofocus: true,
-          decoration: const InputDecoration(hintText: 'Nhập tên scene'),
+          decoration: const InputDecoration(hintText: 'Enter scene name'),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Hủy'),
+            child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () {
@@ -155,7 +155,7 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
             const Padding(
               padding: EdgeInsets.all(16),
               child: Text(
-                'Thêm Action',
+                'Add Action',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ),
@@ -164,8 +164,8 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
                 backgroundColor: Color(0xFFE3F2FD),
                 child: Icon(Icons.devices, color: Color(0xFF2196F3)),
               ),
-              title: const Text('Điều khiển thiết bị'),
-              subtitle: const Text('Chọn thiết bị và chức năng'),
+              title: const Text('Control Device'),
+              subtitle: const Text('Select device and function'),
               onTap: () {
                 Navigator.pop(ctx);
                 _addDeviceAction();
@@ -177,7 +177,7 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
                 child: Icon(Icons.timer_outlined, color: Colors.orange),
               ),
               title: const Text('Delay'),
-              subtitle: const Text('Chờ một khoảng thời gian'),
+              subtitle: const Text('Wait for a period'),
               onTap: () {
                 Navigator.pop(ctx);
                 _addDelayAction();
@@ -188,8 +188,8 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
                 backgroundColor: Color(0xFFE8F5E9),
                 child: Icon(Icons.play_circle_outline, color: Colors.green),
               ),
-              title: const Text('Chạy Scene khác'),
-              subtitle: const Text('Trigger một Tap-to-Run scene'),
+              title: const Text('Run Another Scene'),
+              subtitle: const Text('Trigger a Tap-to-Run scene'),
               onTap: () {
                 Navigator.pop(ctx);
                 _addRunSceneAction();
@@ -208,7 +208,7 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
     if (devices.isEmpty) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Không có thiết bị nào')),
+        const SnackBar(content: Text('No devices available')),
       );
       return;
     }
@@ -228,7 +228,7 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
             const Padding(
               padding: EdgeInsets.all(16),
               child: Text(
-                'Chọn thiết bị',
+                'Select Device',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ),
@@ -272,7 +272,7 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
     if (profileId == null || profileId.isEmpty) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Thiết bị không có thông tin profile')),
+        const SnackBar(content: Text('Device has no profile information')),
       );
       return;
     }
@@ -327,7 +327,7 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
     if (scenes.isEmpty) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Không có scene nào khác')),
+        const SnackBar(content: Text('No other scenes available')),
       );
       return;
     }
@@ -344,7 +344,7 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
             const Padding(
               padding: EdgeInsets.all(16),
               child: Text(
-                'Chọn Scene',
+                'Select Scene',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ),
@@ -379,13 +379,13 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng nhập tên scene')),
+        const SnackBar(content: Text('Please enter a scene name')),
       );
       return;
     }
     if (_actions.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng thêm ít nhất 1 action')),
+        const SnackBar(content: Text('Please add at least 1 action')),
       );
       return;
     }
@@ -419,7 +419,7 @@ class _SceneNameHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text =
-        controller.text.isEmpty ? 'Tên Scene' : controller.text;
+        controller.text.isEmpty ? 'Scene Name' : controller.text;
     return GestureDetector(
       onTap: onTap,
       child: Padding(
@@ -583,17 +583,17 @@ class _ActionRow extends StatelessWidget {
         final subtitle = action.functionName != null
             ? '${action.functionName}: ${dp?['dpValue']}'
             : 'dpId ${dp?['dpId']}: ${dp?['dpValue']}';
-        return (Icons.devices, action.deviceName ?? 'Thiết bị', subtitle);
+        return (Icons.devices, action.deviceName ?? 'Device', subtitle);
       case 'DELAY':
         final minutes = action.executorProperty?['minutes'] ?? 0;
         final seconds = action.executorProperty?['seconds'] ?? 0;
         final subtitle =
             minutes > 0 ? '${minutes}m ${seconds}s' : '${seconds}s';
-        return (Icons.timer_outlined, 'Chờ', subtitle);
+        return (Icons.timer_outlined, 'Wait', subtitle);
       case 'SCENE_RUN':
         return (
           Icons.play_circle_outline,
-          'Chạy Scene',
+          'Run Scene',
           action.deviceName ?? action.entityId ?? '',
         );
       default:
