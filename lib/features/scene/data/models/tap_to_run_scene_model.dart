@@ -14,7 +14,7 @@ class TapToRunSceneModel extends TapToRunSceneEntity {
   factory TapToRunSceneModel.fromJson(Map<String, dynamic> json) {
     final actionsList = json['actions'] as List<dynamic>? ?? [];
     return TapToRunSceneModel(
-      id: json['id']?['id'] ?? json['id'] ?? '',
+      id: json['id'] is Map ? json['id']['id'] : (json['id']?.toString() ?? ''),
       name: json['name'] ?? '',
       sceneType: json['sceneType'] ?? 'TAP_TO_RUN',
       icon: json['icon'] as String?,
