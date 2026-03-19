@@ -12,7 +12,8 @@ import 'smart_splash.dart';
 import 'features/home/presentation/pages/home_page.dart';
 import 'features/device/presentation/bloc/device_event.dart';
 import 'features/scene/presentation/bloc/tap_to_run/tap_to_run_bloc.dart';
-import 'features/scene/presentation/bloc/tap_to_run/tap_to_run_event.dart';
+import 'features/home/presentation/bloc/home_management_bloc.dart';
+import 'features/home/presentation/bloc/home_management_event.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -48,6 +49,10 @@ class SmartApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
+        BlocProvider(
+          create: (_) => GetIt.instance<HomeManagementBloc>()
+            ..add(const LoadHomesEvent()),
+        ),
         BlocProvider(create: (_) => GetIt.instance<AuthBloc>()),
         // Thêm DeviceBloc vào đây để toàn app dùng chung được
         BlocProvider(
@@ -58,10 +63,7 @@ class SmartApp extends StatelessWidget {
           create: (_) => GetIt.instance<SceneBloc>()
             ..add(LoadScenesEvent()),
         ),
-        BlocProvider(
-          create: (_) => GetIt.instance<TapToRunBloc>()
-            ..add(LoadTapToRunScenesEvent()),
-        ),
+        BlocProvider(create: (_) => GetIt.instance<TapToRunBloc>()),
       ],
       child: MaterialApp(
         title: 'Osprey',

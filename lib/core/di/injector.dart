@@ -51,6 +51,24 @@ import '../../features/scene/domain/usecases/execute_tap_to_run_scene.dart';
 import '../../features/scene/domain/usecases/get_device_data_points.dart';
 import '../../features/scene/presentation/bloc/tap_to_run/tap_to_run_bloc.dart';
 
+// Home Management
+import '../../features/home/data/datasources/home_remote_datasource.dart';
+import '../../features/home/data/repositories/home_repository_impl.dart';
+import '../../features/home/domain/repositories/home_repository.dart';
+import '../../features/home/domain/usecases/get_homes.dart';
+import '../../features/home/domain/usecases/create_home.dart';
+import '../../features/home/domain/usecases/update_home.dart';
+import '../../features/home/domain/usecases/delete_home.dart';
+import '../../features/home/domain/usecases/get_home_devices.dart';
+import '../../features/home/domain/usecases/add_device_to_home.dart';
+import '../../features/home/domain/usecases/update_home_device.dart';
+import '../../features/home/domain/usecases/remove_device_from_home.dart';
+import '../../features/home/domain/usecases/get_rooms.dart';
+import '../../features/home/domain/usecases/create_room.dart';
+import '../../features/home/domain/usecases/update_room.dart';
+import '../../features/home/domain/usecases/delete_room.dart';
+import '../../features/home/presentation/bloc/home_management_bloc.dart';
+
 final sl = GetIt.instance;
 
 Future<void> setupInjector() async {
@@ -267,6 +285,50 @@ Future<void> setupInjector() async {
       updateTapToRunScene: sl(),
       deleteTapToRunScene: sl(),
       executeTapToRunScene: sl(),
+    ),
+  );
+
+  // ========== Home Management Feature ==========
+  // Data source
+  sl.registerLazySingleton<HomeRemoteDataSource>(
+    () => HomeRemoteDataSourceImpl(apiClient: sl<ApiClient>()),
+  );
+
+  // Repository
+  sl.registerLazySingleton<HomeRepository>(
+    () => HomeRepositoryImpl(remoteDataSource: sl()),
+  );
+
+  // Use cases (12)
+  sl.registerLazySingleton(() => GetHomes(sl()));
+  sl.registerLazySingleton(() => CreateHome(sl()));
+  sl.registerLazySingleton(() => UpdateHome(sl()));
+  sl.registerLazySingleton(() => DeleteHome(sl()));
+  sl.registerLazySingleton(() => GetHomeDevices(sl()));
+  sl.registerLazySingleton(() => AddDeviceToHome(sl()));
+  sl.registerLazySingleton(() => UpdateHomeDevice(sl()));
+  sl.registerLazySingleton(() => RemoveDeviceFromHome(sl()));
+  sl.registerLazySingleton(() => GetRooms(sl()));
+  sl.registerLazySingleton(() => CreateRoom(sl()));
+  sl.registerLazySingleton(() => UpdateRoom(sl()));
+  sl.registerLazySingleton(() => DeleteRoom(sl()));
+
+  // BLoC
+  sl.registerFactory(
+    () => HomeManagementBloc(
+      getHomes: sl(),
+      createHome: sl(),
+      updateHome: sl(),
+      deleteHome: sl(),
+      getHomeDevices: sl(),
+      addDeviceToHome: sl(),
+      updateHomeDevice: sl(),
+      removeDeviceFromHome: sl(),
+      getRooms: sl(),
+      createRoom: sl(),
+      updateRoom: sl(),
+      deleteRoom: sl(),
+      homeRemoteDataSource: sl(),
     ),
   );
 }
