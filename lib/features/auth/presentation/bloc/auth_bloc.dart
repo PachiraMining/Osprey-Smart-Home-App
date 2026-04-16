@@ -26,7 +26,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
 
     try {
-      print('🔐 Step 1: Calling login API...');
       final result = await loginUseCase(
         LoginRequestModel(email: event.username, password: event.password),
       );
@@ -36,19 +35,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           emit(AuthFailure(failure.message));
         },
         (response) async {
-          print('✅ Step 2: Login success, got token');
           final tokenMgr = tokenManager ?? sl<TokenManager>();
           await tokenMgr.saveTokens(
             token: response.token,
             refreshToken: response.refreshToken,
           );
           tokenMgr.setCachedToken(response.token);
-          print('✅ Step 3: Token saved');
           try {
-            print('🔍 Step 4: Fetching customerId...');
             final dataSource = authDataSource ?? sl<AuthRemoteDataSource>();
             final userResponse = await dataSource.getCurrentUser();
-            print('✅ Step 5: Got customerId: ${userResponse.customerId}');
             await tokenMgr.saveCustomerId(userResponse.customerId);
             tokenMgr.setCachedCustomerId(userResponse.customerId);
             await tokenMgr.saveUserInfo(
@@ -56,12 +51,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
               firstName: userResponse.firstName,
               lastName: userResponse.lastName,
             );
-            print('✅ Step 6: CustomerId & user info saved');
-            print('✅ Login success - ${userResponse.firstName} ${userResponse.lastName}');
           } catch (e) {
-            print('❌ Step 4-6 FAILED: Could not fetch customerId: $e');
-            print('❌ Error type: ${e.runtimeType}');
-            print('❌ Error details: $e');
+            // Could not fetch customerId after login
           }
 
           // TEMPORARY FIX - HARDCODE CUSTOMER ID ĐỂ TEST
@@ -81,8 +72,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         },
       );
     } catch (e) {
-      print('❌ Unexpected error in login: $e');
-      emit(AuthFailure('Đã xảy ra lỗi: ${e.toString()}'));
+      emit(AuthFailure('An error occurred: ${e.toString()}'));
     }
   }
 
@@ -92,7 +82,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       await tokenMgr.clearTokens();
       emit(AuthInitial());
     } catch (e) {
-      emit(AuthFailure('Lỗi khi đăng xuất: ${e.toString()}'));
+      emit(AuthFailure('Logout error: ${e.toString()}'));
     }
   }
 
@@ -117,7 +107,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
             await tokenMgr.saveCustomerId(userResponse.customerId);
             tokenMgr.setCachedCustomerId(userResponse.customerId);
           } catch (e) {
-            print('⚠️ Could not fetch customerId on app start');
+            // Could not fetch customerId on app start
           }
         } else {
           tokenMgr.setCachedCustomerId(customerId);

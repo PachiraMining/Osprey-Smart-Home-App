@@ -23,17 +23,10 @@ class ApiClient {
           final token = sl<TokenManager>().getTokenSync();
           if (token != null && token.isNotEmpty) {
             options.headers['X-Authorization'] = 'Bearer $token';
-            print('Auto added token to request: ${options.uri}');
-          } else {
-            print('No token found for request: ${options.uri}');
           }
           handler.next(options);
         },
         onError: (error, handler) {
-          print(
-            'Dio Error: ${error.response?.statusCode} ${error.requestOptions.uri}',
-          );
-          print('Response body: ${error.response?.data}');
           handler.next(error);
         },
       ),

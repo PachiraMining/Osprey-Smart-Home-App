@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:quickalert/quickalert.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../core/config/app_config.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
@@ -16,6 +19,7 @@ class _LoginPageState extends State<LoginPage> {
   bool agreePolicy = false;
   bool obscurePassword = true;
   String selectedCountry = 'Vietnam';
+  bool _isLoadingDialogShowing = false;
 
   final usernameController = TextEditingController();
   final passwordController = TextEditingController();
@@ -32,20 +36,32 @@ class _LoginPageState extends State<LoginPage> {
     return BlocConsumer<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthLoading) {
+          _isLoadingDialogShowing = true;
           showDialog(
             context: context,
             barrierDismissible: false,
             builder: (_) => const Center(child: CircularProgressIndicator()),
-          );
+          ).then((_) => _isLoadingDialogShowing = false);
         }
         if (state is AuthSuccess) {
-          Navigator.pop(context);
+          if (_isLoadingDialogShowing) {
+            Navigator.pop(context);
+            _isLoadingDialogShowing = false;
+          }
           Navigator.pushReplacementNamed(context, '/home');
         }
         if (state is AuthFailure) {
-          Navigator.pop(context);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
+          if (_isLoadingDialogShowing) {
+            Navigator.pop(context);
+            _isLoadingDialogShowing = false;
+          }
+          QuickAlert.show(
+            context: context,
+            type: QuickAlertType.error,
+            title: 'Login Failed',
+            text: state.message,
+            confirmBtnText: 'Try Again',
+            confirmBtnColor: const Color(0xFF2196F3),
           );
         }
       },
@@ -159,7 +175,7 @@ class _LoginPageState extends State<LoginPage> {
                                     style: TextStyle(fontSize: 14, color: Colors.black87),
                                   ),
                                   GestureDetector(
-                                    onTap: () {},
+                                    onTap: () => launchUrl(Uri.parse(AppConfig.privacyPolicyUrl)),
                                     child: const Text(
                                       'Privacy Policy',
                                       style: TextStyle(
@@ -173,7 +189,7 @@ class _LoginPageState extends State<LoginPage> {
                                     style: TextStyle(fontSize: 14, color: Colors.black87),
                                   ),
                                   GestureDetector(
-                                    onTap: () {},
+                                    onTap: () => launchUrl(Uri.parse(AppConfig.userAgreementUrl)),
                                     child: const Text(
                                       'User Agreement',
                                       style: TextStyle(
@@ -240,33 +256,27 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           ),
                         ),
+
+                        const SizedBox(height: 16),
+
+                        // Social login buttons
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            _buildSocialButton(
+                              icon: Icons.facebook,
+                              color: const Color(0xFF1877F2),
+                              bgColor: const Color(0xFF1877F2),
+                              iconColor: Colors.white,
+                            ),
+                            const SizedBox(width: 28),
+                            _buildSocialButtonImage('assets/icons/google_logo.png'),
+                          ],
+                        ),
+
+                        const SizedBox(height: 36),
                       ],
                     ),
-                  ),
-                ),
-
-                // Social login buttons fixed at bottom
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 36, top: 16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _buildSocialButton(
-                        icon: Icons.facebook,
-                        color: const Color(0xFF1877F2),
-                        bgColor: const Color(0xFF1877F2),
-                        iconColor: Colors.white,
-                      ),
-                      const SizedBox(width: 28),
-                      _buildSocialButtonImage('assets/icons/google_logo.png'),
-                      const SizedBox(width: 28),
-                      _buildSocialButton(
-                        icon: Icons.apple,
-                        color: Colors.black,
-                        bgColor: Colors.black,
-                        iconColor: Colors.white,
-                      ),
-                    ],
                   ),
                 ),
               ],

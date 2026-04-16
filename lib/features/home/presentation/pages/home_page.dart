@@ -14,6 +14,7 @@ import 'package:smart_curtain_app/features/home/presentation/pages/personal_info
 import 'package:smart_curtain_app/features/home/presentation/pages/qr_scanner_page.dart';
 import 'package:smart_curtain_app/features/home/presentation/pages/settings_page.dart';
 import 'package:smart_curtain_app/features/home/presentation/pages/alexa_linking_page.dart';
+import 'package:smart_curtain_app/features/home/presentation/pages/google_assistant_linking_page.dart';
 import 'package:smart_curtain_app/features/scene/presentation/bloc/tap_to_run/tap_to_run_bloc.dart';
 import 'package:smart_curtain_app/features/scene/presentation/bloc/tap_to_run/tap_to_run_event.dart';
 import 'package:smart_curtain_app/features/scene/presentation/bloc/tap_to_run/tap_to_run_state.dart';
@@ -1184,19 +1185,29 @@ class ProfileTab extends StatelessWidget {
                       ),
                     ),
                     Expanded(
-                      child: Column(
-                        children: [
-                          Image.asset(
-                            'assets/icons/google_assistant_logo.png',
-                            width: 44,
-                            height: 44,
-                          ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            'Google Assistant',
-                            style: TextStyle(fontSize: 14, color: Colors.black87),
-                          ),
-                        ],
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) =>
+                                    const GoogleAssistantLinkingPage()),
+                          );
+                        },
+                        child: Column(
+                          children: [
+                            Image.asset(
+                              'assets/icons/google_assistant_logo.png',
+                              width: 44,
+                              height: 44,
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Google Assistant',
+                              style: TextStyle(fontSize: 14, color: Colors.black87),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],

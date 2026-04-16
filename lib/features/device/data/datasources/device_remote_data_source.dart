@@ -33,9 +33,7 @@ class DeviceRemoteDataSourceImpl implements DeviceRemoteDataSource {
   Future<List<DeviceModel>> getCustomerDevices() async {
     try {
       final token = getToken();
-      print('Token: ${token.isEmpty ? "EMPTY" : token.substring(0, 20)}...');
       final customerId = getCustomerId(); // THÊM
-      print('Customer: ${customerId.isEmpty ? "EMPTY" : customerId}');
       if (customerId.isEmpty) {
         // THÊM
         throw ServerException(
@@ -43,22 +41,14 @@ class DeviceRemoteDataSourceImpl implements DeviceRemoteDataSource {
         );
       }
 
-      // DEBUG: Full URL
       final url =
           '$baseUrl/api/customer/$customerId/deviceInfos?pageSize=100&page=0&sortOrder=DESC';
-      print('🌐 API URL: $url');
 
       final response = await client.get(Uri.parse(url), headers: _headers);
-
-      // DEBUG: Response
-      print('📡 Status Code: ${response.statusCode}');
-      print('📦 Response Body: ${response.body}');
 
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body);
         final List<dynamic> devicesList = json['data'] ?? [];
-
-        print('✅ Found ${devicesList.length} devices');
 
         return devicesList
             .map((device) => DeviceModel.fromJson(device))
@@ -71,7 +61,6 @@ class DeviceRemoteDataSourceImpl implements DeviceRemoteDataSource {
         );
       }
     } catch (e) {
-      print('❌ Error loading devices: $e');
       if (e is ServerException) rethrow;
       if (e is UnauthorizedException) rethrow;
       throw NetworkException();

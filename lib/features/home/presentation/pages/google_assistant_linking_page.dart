@@ -1,21 +1,25 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/auth/token_manager.dart';
 import '../../../../core/config/app_config.dart';
 
-class AlexaLinkingPage extends StatefulWidget {
-  const AlexaLinkingPage({super.key});
+class GoogleAssistantLinkingPage extends StatefulWidget {
+  const GoogleAssistantLinkingPage({super.key});
 
   @override
-  State<AlexaLinkingPage> createState() => _AlexaLinkingPageState();
+  State<GoogleAssistantLinkingPage> createState() =>
+      _GoogleAssistantLinkingPageState();
 }
 
-class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
+class _GoogleAssistantLinkingPageState
+    extends State<GoogleAssistantLinkingPage> with WidgetsBindingObserver {
   static const _baseUrl = AppConfig.thingsboardBaseUrl;
   static const _callbackScheme = AppConfig.callbackScheme;
 
@@ -25,6 +29,7 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
   bool _isLoading = true;
   bool _isLinked = false;
   bool _isLinking = false;
+  bool _waitingForGoogleHome = false;
   String? _error;
 
   Map<String, String> get _headers => {
@@ -36,7 +41,23 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _checkStatus();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Re-check status when user returns from Google Home app
+    if (state == AppLifecycleState.resumed && _waitingForGoogleHome) {
+      _waitingForGoogleHome = false;
+      _checkStatus();
+    }
   }
 
   // ─── API 0: Check trạng thái linking ───
@@ -47,7 +68,7 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
       _error = null;
     });
 
-    final url = '$_baseUrl/api/alexa/app-linking/status';
+    final url = '$_baseUrl/api/google/app-linking/status';
 
     try {
       final response = await _client.get(
@@ -68,7 +89,7 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
           _isLoading = false;
         });
       }
-    } catch (e, stack) {
+    } catch (e) {
       if (!mounted) return;
       setState(() {
         _error = 'Connection error';
@@ -77,7 +98,7 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
     }
   }
 
-  // ─── 3-step linking flow (V2 — backend-driven) ───
+  // ─── API 1: Start linking ───
   Future<void> _startLinking() async {
     setState(() {
       _isLinking = true;
@@ -86,7 +107,7 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
 
     try {
       // Step 1: POST /start → get URLs and state from backend
-      final startUrl = '$_baseUrl/api/alexa/app-linking/start';
+      final startUrl = '$_baseUrl/api/google/app-linking/start';
       final startRes = await _client.post(
         Uri.parse(startUrl),
         headers: _headers,
@@ -98,60 +119,76 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
       }
 
       final startData = jsonDecode(startRes.body);
-      final lwaUrl = startData['lwaFallbackUrl'] as String;
-      final state = startData['state'] as String;
+      final googleHomeUrl = startData['googleHomeUrl'] as String;
+      final browserFallbackUrl = startData['browserFallbackUrl'] as String;
 
-      // Step 2: Open browser → user login Amazon → receive callback
-      final resultUrl = await FlutterWebAuth2.authenticate(
-        url: lwaUrl,
-        callbackUrlScheme: _callbackScheme,
-      );
+      // Step 2: Check if Google Home app is installed
+      final hasGoogleHome = await _isGoogleHomeInstalled();
 
-      final uri = Uri.parse(resultUrl);
-      final code = uri.queryParameters['code'];
-      final error = uri.queryParameters['error'];
-
-      if (error != null) {
-        final desc = uri.queryParameters['error_description'] ?? error;
-        _setError('Amazon login failed: $desc');
-        return;
-      }
-
-      if (code == null || code.isEmpty) {
-        _setError('No authorization code received');
-        return;
-      }
-
-      // Step 3: POST /complete → backend handles everything
-      final completeUrl = '$_baseUrl/api/alexa/app-linking/complete';
-      final completeRes = await _client.post(
-        Uri.parse(completeUrl),
-        headers: _headers,
-        body: jsonEncode({
-          'amazonAuthCode': code,
-          'state': state,
-        }),
-      );
-
-      if (!mounted) return;
-
-      final completeData = jsonDecode(completeRes.body);
-      if (completeData['success'] == true) {
-        setState(() {
-          _isLinked = true;
-          _isLinking = false;
-        });
-        _showSnackBar('Account linked successfully!', Colors.green);
+      if (hasGoogleHome) {
+        // Open Google Home app
+        _waitingForGoogleHome = true;
+        final launched = await launchUrl(
+          Uri.parse(googleHomeUrl),
+          mode: LaunchMode.externalApplication,
+        );
+        if (!launched) {
+          _waitingForGoogleHome = false;
+          _setError('Could not open Google Home app');
+          return;
+        }
+        // Status will be re-checked in didChangeAppLifecycleState
+        if (mounted) setState(() => _isLinking = false);
       } else {
-        _setError(completeData['message'] as String? ?? 'Linking failed');
+        // Open browser fallback
+        final resultUrl = await FlutterWebAuth2.authenticate(
+          url: browserFallbackUrl,
+          callbackUrlScheme: _callbackScheme,
+        );
+
+        final uri = Uri.parse(resultUrl);
+        final error = uri.queryParameters['error'];
+
+        if (error != null) {
+          _setError('Linking failed: $error');
+          return;
+        }
+
+        // Step 3: Re-check status
+        if (mounted) {
+          setState(() => _isLinking = false);
+          await _checkStatus();
+          if (_isLinked) {
+            _showSnackBar('Account linked successfully!', Colors.green);
+          }
+        }
       }
-    } catch (e, stack) {
+    } catch (e) {
       if (e.toString().contains('CANCELED') ||
           e.toString().contains('cancelled')) {
         if (mounted) setState(() => _isLinking = false);
         return;
       }
       _setError('An error occurred. Please try again.');
+    }
+  }
+
+  Future<bool> _isGoogleHomeInstalled() async {
+    try {
+      switch (defaultTargetPlatform) {
+        case TargetPlatform.android:
+          // Try to launch Google Home package on Android
+          return await canLaunchUrl(
+            Uri.parse(
+                'android-app://com.google.android.apps.chromecast.app'),
+          );
+        case TargetPlatform.iOS:
+          return await canLaunchUrl(Uri.parse('googlehome://'));
+        default:
+          return false;
+      }
+    } catch (_) {
+      return false;
     }
   }
 
@@ -186,6 +223,20 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
           icon: const Icon(Icons.arrow_back_ios, size: 20, color: Colors.black54),
           onPressed: () => Navigator.pop(context),
         ),
+        actions: [
+          if (_isLinked)
+            TextButton(
+              onPressed: _startLinking,
+              child: const Text(
+                'Re-Login',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+            ),
+        ],
       ),
       body: SafeArea(
         child: _isLoading
@@ -199,20 +250,25 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
     );
   }
 
+  // ─── Chưa linked ───
   Widget _buildUnlinkedView() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
         children: [
           const SizedBox(height: 16),
-          // Alexa logo + title
+          // Google Assistant logo + title
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset('assets/icons/alexa_logo.png', width: 40, height: 40),
+              Image.asset(
+                'assets/icons/google_assistant_logo.png',
+                width: 40,
+                height: 40,
+              ),
               const SizedBox(width: 10),
               const Text(
-                'amazon alexa',
+                'Google Assistant',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.w500,
@@ -221,25 +277,25 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
               ),
             ],
           ),
-          const SizedBox(height: 60),
+          const SizedBox(height: 48),
           // Illustration row
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Speech bubble
-              Icon(Icons.chat_bubble, size: 44, color: Colors.cyan.shade400),
-              const SizedBox(width: 12),
-              // WiFi signal
-              Icon(Icons.wifi, size: 36, color: Colors.amber.shade600),
-              const SizedBox(width: 12),
-              // Echo speaker
-              Icon(Icons.speaker, size: 52, color: Colors.cyan.shade300),
-              const SizedBox(width: 12),
+              // Chat bubble
+              Icon(Icons.chat_bubble, size: 44, color: Colors.lightBlue.shade400),
+              const SizedBox(width: 8),
+              // Sound waves
+              Icon(Icons.sensors, size: 36, color: Colors.amber.shade600),
+              const SizedBox(width: 8),
+              // Smart speaker
+              Icon(Icons.speaker, size: 48, color: Colors.lightBlue.shade300),
+              const SizedBox(width: 8),
               // Arrow
               Icon(Icons.arrow_forward, size: 32, color: Colors.amber.shade600),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               // Lightbulb
-              Icon(Icons.lightbulb, size: 44, color: Colors.cyan.shade400),
+              Icon(Icons.lightbulb_outline, size: 44, color: Colors.lightBlue.shade400),
             ],
           ),
           const SizedBox(height: 40),
@@ -247,9 +303,10 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 8),
             child: Text(
-              'Binding your app account to your Amazon account allows '
-              'you to control Alexa-enabled devices through Amazon '
-              'Echo speakers (ex. "Alexa, turn on light.")',
+              'After connecting your App account and Google  account, '
+              'you can use Google Home Smart Speakers to control '
+              'devices that work with Google Assistant.  For example, '
+              'you can say, "OK Google, please turn on  the light."',
               textAlign: TextAlign.left,
               style: TextStyle(
                 fontSize: 15,
@@ -259,7 +316,7 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
             ),
           ),
           const Spacer(),
-          // Sign In With Amazon button
+          // Link button
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: SizedBox(
@@ -268,8 +325,9 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
               child: ElevatedButton(
                 onPressed: _isLinking ? null : _startLinking,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2196C8),
-                  disabledBackgroundColor: const Color(0xFF2196C8).withAlpha(150),
+                  backgroundColor: const Color(0xFF2196F3),
+                  disabledBackgroundColor:
+                      const Color(0xFF2196F3).withAlpha(150),
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
@@ -286,7 +344,7 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
                         ),
                       )
                     : const Text(
-                        'Sign In With Amazon',
+                        'Link with Google Assistant',
                         style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w500,
@@ -295,7 +353,7 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           // View more ways to link
           TextButton(
             onPressed: () {},
@@ -303,7 +361,7 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
               'View more ways to link',
               style: TextStyle(
                 fontSize: 15,
-                color: Colors.cyan.shade600,
+                color: Colors.blue.shade600,
                 fontWeight: FontWeight.w400,
               ),
             ),
@@ -314,29 +372,34 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
     );
   }
 
+  // ─── Đã linked ───
   Widget _buildLinkedView() {
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
         children: [
-          const SizedBox(height: 32),
-          // Alexa logo
-          Image.asset('assets/icons/alexa_logo.png', width: 80, height: 80),
+          const SizedBox(height: 24),
+          // Google Assistant logo (centered, larger)
+          Image.asset(
+            'assets/icons/google_assistant_logo.png',
+            width: 80,
+            height: 80,
+          ),
           const SizedBox(height: 24),
           // Title
           const Text(
-            'Already linked with Amazon Alexa',
+            'Linked with Google Assistant',
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
+              fontSize: 26,
+              fontWeight: FontWeight.bold,
               color: Colors.black87,
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
           // Subtitle
           Text(
-            'You can control Alexa-enabled devices with\nAmazon Alexa speakers, such as',
+            'You can now use Google Home voicebox to\ncontrol Google Assistant devices, like',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 15,
@@ -344,32 +407,13 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
               height: 1.5,
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
           // Example commands
-          Text(
-            'Alexa, turn on light',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 15, color: Colors.grey.shade500),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Alexa, set air conditioning to 20°C',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 15, color: Colors.grey.shade500),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Alexa, turn off diffuser',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 15, color: Colors.grey.shade500),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Alexa, increase air conditioner by 3 degrees',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 15, color: Colors.grey.shade500),
-          ),
-          const SizedBox(height: 20),
+          _buildExampleCommand('OK Google, turn on light'),
+          _buildExampleCommand('OK Google, brighten my light'),
+          _buildExampleCommand('OK Google, change kitchen lamp to blue'),
+          _buildExampleCommand('OK Google, set my light to 50%'),
+          const SizedBox(height: 8),
           // View more ways to link
           TextButton(
             onPressed: () {},
@@ -377,7 +421,7 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
               'View more ways to link',
               style: TextStyle(
                 fontSize: 15,
-                color: Colors.cyan.shade600,
+                color: Colors.blue.shade600,
                 fontWeight: FontWeight.w400,
               ),
             ),
@@ -410,13 +454,13 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
             ),
           ),
           const SizedBox(height: 20),
-          // Unlink instructions
+          // Note about unlinking
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Text(
-              'Disable Osprey skill on the Amazon Alexa app or tap '
-              'Me > the Setting button in the top right corner > '
-              'Account and Security to unauthorize it.',
+              'Disable Osprey skill on the Google Home app '
+              'or tap Me > the Setting button in the top right corner '
+              '> Account and Security to unauthorize it.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13,
@@ -427,6 +471,17 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
           ),
           const SizedBox(height: 32),
         ],
+      ),
+    );
+  }
+
+  Widget _buildExampleCommand(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: TextStyle(fontSize: 15, color: Colors.grey.shade500),
       ),
     );
   }

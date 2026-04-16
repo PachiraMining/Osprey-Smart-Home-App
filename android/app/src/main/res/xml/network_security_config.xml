@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Allow cleartext only for the scheduler API (local network) -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">42.118.11.87</domain>
+    </domain-config>
+    <!-- Block cleartext for everything else -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

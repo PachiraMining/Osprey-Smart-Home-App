@@ -76,7 +76,7 @@ class _DeviceManagementPageState extends State<DeviceManagementPage> {
                           onPressed: () {
                             context.read<DeviceBloc>().add(LoadDevicesEvent());
                           },
-                          child: const Text('Thử lại'),
+                          child: const Text('Try Again'),
                         ),
                       ],
                     ),
@@ -246,7 +246,7 @@ class _DeviceManagementPageState extends State<DeviceManagementPage> {
                 children: [
                   Icon(Icons.settings_remote_outlined, size: 20),
                   SizedBox(width: 12),
-                  Text('Điều khiển'),
+                  Text('Control'),
                 ],
               ),
             ),
@@ -256,7 +256,7 @@ class _DeviceManagementPageState extends State<DeviceManagementPage> {
                 children: [
                   Icon(Icons.info_outline, size: 20),
                   SizedBox(width: 12),
-                  Text('Chi tiết'),
+                  Text('Details'),
                 ],
               ),
             ),
@@ -266,7 +266,7 @@ class _DeviceManagementPageState extends State<DeviceManagementPage> {
                 children: [
                   Icon(Icons.edit_outlined, size: 20),
                   SizedBox(width: 12),
-                  Text('Đổi tên'),
+                  Text('Rename'),
                 ],
               ),
             ),
@@ -276,7 +276,7 @@ class _DeviceManagementPageState extends State<DeviceManagementPage> {
                 children: [
                   Icon(Icons.delete_outline, size: 20, color: Colors.red),
                   SizedBox(width: 12),
-                  Text('Xóa', style: TextStyle(color: Colors.red)),
+                  Text('Delete', style: TextStyle(color: Colors.red)),
                 ],
               ),
             ),
@@ -338,12 +338,12 @@ class _DeviceManagementPageState extends State<DeviceManagementPage> {
           Icon(Icons.devices_other_outlined, size: 80, color: Colors.grey[400]),
           const SizedBox(height: 16),
           Text(
-            'Không có thiết bị nào',
+            'No devices found',
             style: TextStyle(fontSize: 16, color: Colors.grey[600]),
           ),
           const SizedBox(height: 8),
           Text(
-            'Thêm thiết bị mới để bắt đầu',
+            'Add a new device to get started',
             style: TextStyle(fontSize: 14, color: Colors.grey[500]),
           ),
         ],
@@ -355,12 +355,12 @@ class _DeviceManagementPageState extends State<DeviceManagementPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Xóa thiết bị?'),
-        content: Text('Bạn có chắc muốn xóa "${device.name}"?'),
+        title: const Text('Delete Device?'),
+        content: Text('Are you sure you want to delete "${device.name}"?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Hủy'),
+            child: const Text('Cancel'),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
@@ -369,12 +369,12 @@ class _DeviceManagementPageState extends State<DeviceManagementPage> {
               context.read<DeviceBloc>().add(DeleteDeviceEvent(device.id));
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('Đã xóa ${device.name}'),
+                  content: Text('Deleted ${device.name}'),
                   backgroundColor: Colors.green,
                 ),
               );
             },
-            child: const Text('Xóa'),
+            child: const Text('Delete'),
           ),
         ],
       ),
@@ -387,18 +387,18 @@ class _DeviceManagementPageState extends State<DeviceManagementPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Đổi tên thiết bị'),
+        title: const Text('Rename Device'),
         content: TextField(
           controller: controller,
           decoration: const InputDecoration(
-            labelText: 'Tên mới',
+            labelText: 'New name',
             border: OutlineInputBorder(),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Hủy'),
+            child: const Text('Cancel'),
           ),
           ElevatedButton(
             onPressed: () {
@@ -406,12 +406,12 @@ class _DeviceManagementPageState extends State<DeviceManagementPage> {
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('Đã đổi tên thiết bị'),
+                  content: Text('Device renamed'),
                   backgroundColor: Colors.green,
                 ),
               );
             },
-            child: const Text('Lưu'),
+            child: const Text('Save'),
           ),
         ],
       ),
@@ -454,7 +454,7 @@ class _DeviceManagementPageState extends State<DeviceManagementPage> {
                   ),
                 );
               },
-              child: const Text('Điều khiển thiết bị'),
+              child: const Text('Control Device'),
             ),
           ],
         ),

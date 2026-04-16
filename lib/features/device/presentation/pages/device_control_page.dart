@@ -54,24 +54,19 @@ class _DeviceControlPageState extends State<DeviceControlPage>
     _pulseController.repeat(reverse: true);
 
     try {
-      print('📤 Sending $command to device ${widget.device.id}');
-
       // GỌI API THẬT
       final result = await _sendDeviceCommand(widget.device.id, command);
 
       result.fold(
         (failure) {
           // Lỗi từ API
-          print('❌ API Error: ${failure.message}');
-          _showSnackBar('Lỗi: ${failure.message}', Colors.red);
+          _showSnackBar('Error: ${failure.message}', Colors.red);
           _pulseController.stop();
           _pulseController.reset();
           setState(() => _isRunning = false);
         },
         (_) {
           // Thành công → Chạy animation
-          print('✅ Command sent successfully');
-
           if (command == 'OPEN') {
             _controller.animateTo(0.0, curve: Curves.easeInOut);
             _addAutoStopListener(); // ✨ Thêm listener tự động STOP
@@ -89,8 +84,7 @@ class _DeviceControlPageState extends State<DeviceControlPage>
         },
       );
     } catch (e) {
-      print('❌ Exception: $e');
-      _showSnackBar('Lỗi kết nối', Colors.red);
+      _showSnackBar('Connection error', Colors.red);
       _pulseController.stop();
       _pulseController.reset();
       setState(() => _isRunning = false);
@@ -103,15 +97,7 @@ class _DeviceControlPageState extends State<DeviceControlPage>
       if (status == AnimationStatus.completed ||
           status == AnimationStatus.dismissed) {
         // Gửi lệnh STOP đến thiết bị
-        print(
-          '📤 Auto sending STOP (reached ${status == AnimationStatus.completed ? "100%" : "0%"})',
-        );
-        _sendDeviceCommand(widget.device.id, 'STOP').then((result) {
-          result.fold(
-            (failure) => print('❌ Auto STOP failed: ${failure.message}'),
-            (_) => print('✅ Auto STOP sent successfully'),
-          );
-        });
+        _sendDeviceCommand(widget.device.id, 'STOP');
 
         // Dọn dẹp UI
         _pulseController.stop();
@@ -241,10 +227,10 @@ class _DeviceControlPageState extends State<DeviceControlPage>
           const SizedBox(height: 8),
           Text(
             _position == 0
-                ? 'Mở hoàn toàn'
+                ? 'Fully Open'
                 : _position == 1
-                ? 'Đóng hoàn toàn'
-                : 'Đang di chuyển',
+                ? 'Fully Closed'
+                : 'Moving',
             style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
           ),
 

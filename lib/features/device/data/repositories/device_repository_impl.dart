@@ -25,7 +25,7 @@ class DeviceRepositoryImpl implements DeviceRepository {
       return Left(
         NetworkFailure(
           'Unexpected error: $e',
-          message: 'Không có kết nối internet',
+          message: 'No internet connection',
         ),
       );
     } catch (e) {
@@ -44,7 +44,7 @@ class DeviceRepositoryImpl implements DeviceRepository {
       return Left(
         NetworkFailure(
           'Unexpected error: $e',
-          message: 'Không có kết nối internet',
+          message: 'No internet connection',
         ),
       );
     } catch (e) {

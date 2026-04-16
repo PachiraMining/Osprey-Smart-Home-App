@@ -66,6 +66,16 @@
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Osprey needs Bluetooth to discover and configure smart home devices.</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>Osprey needs Bluetooth to communicate with smart home devices.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Osprey needs location access to scan for nearby Bluetooth devices.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Osprey needs local network access to communicate with smart home devices.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Osprey needs camera access to scan QR codes for device setup.</string>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>

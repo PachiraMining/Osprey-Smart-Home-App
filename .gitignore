@@ -44,5 +44,17 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+# Android signing
+android/key.properties
+*.jks
+*.keystore
+
+# Environment / Secrets
+.env
+.env.*
+
+# MCP config
+.mcp.json
+
 # FVM Version Cache
 .fvm/

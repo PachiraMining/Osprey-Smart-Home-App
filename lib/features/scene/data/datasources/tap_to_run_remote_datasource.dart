@@ -103,7 +103,6 @@ class TapToRunRemoteDataSourceImpl implements TapToRunRemoteDataSource {
       final response = await apiClient.post('/api/smarthome/scenes/$sceneId/execute');
       return response.data as Map<String, dynamic>;
     } on DioException catch (e) {
-      print('🎬 Execute DioException type: ${e.type}, status: ${e.response?.statusCode}, message: ${e.message}');
       if (e.response?.statusCode == 401) {
         throw UnauthorizedException();
       }

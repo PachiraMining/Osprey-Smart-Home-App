@@ -21,19 +21,11 @@ class DeviceBloc extends Bloc<DeviceEvent, DeviceState> {
   ) async {
     emit(DeviceLoading());
 
-    // DEBUG
-    print('🔍 DeviceBloc: Loading devices...');
     final result = await getCustomerDevices();
 
     result.fold(
-      (failure) {
-        print('❌ Device loading failed: ${failure.message}');
-        emit(DeviceError(failure.message));
-      },
-      (devices) {
-        print('✅ Devices loaded: ${devices.length}');
-        emit(DeviceLoaded(devices));
-      },
+      (failure) => emit(DeviceError(failure.message)),
+      (devices) => emit(DeviceLoaded(devices)),
     );
   }
 

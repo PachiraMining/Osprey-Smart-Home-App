@@ -4,6 +4,7 @@ import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:smart_curtain_app/features/auth/presentation/bloc/auth_state.dart';
+import '../../core/config/app_config.dart';
 import '../../core/network/api_client.dart';
 import '../../core/auth/token_manager.dart';
 
@@ -84,7 +85,7 @@ Future<void> setupInjector() async {
 
   // API Client
   sl.registerLazySingleton(
-    () => ApiClient(baseUrl: 'https://performentmarketing.ddnsgeek.com'),
+    () => ApiClient(baseUrl: AppConfig.thingsboardBaseUrl),
   );
 
   // HTTP Client
@@ -116,7 +117,7 @@ Future<void> setupInjector() async {
   sl.registerLazySingleton<DeviceRemoteDataSource>(
     () => DeviceRemoteDataSourceImpl(
       client: sl<http.Client>(),
-      baseUrl: 'https://performentmarketing.ddnsgeek.com',
+      baseUrl: AppConfig.thingsboardBaseUrl,
       getToken: () {
         // Lấy token từ TokenManager (cached in memory)
         final token = sl<TokenManager>().getTokenSync();
@@ -143,7 +144,6 @@ Future<void> setupInjector() async {
           return customerId;
         }
 
-        print('⚠️ CustomerId not found in cache');
         return '';
       },
     ),
@@ -167,7 +167,7 @@ Future<void> setupInjector() async {
   sl.registerLazySingleton<DeviceControlDataSource>(
     () => DeviceControlDataSourceImpl(
       client: sl<http.Client>(),
-      baseUrl: 'https://performentmarketing.ddnsgeek.com',
+      baseUrl: AppConfig.thingsboardBaseUrl,
       getToken: () {
         final token = sl<TokenManager>().getTokenSync();
         if (token != null && token.isNotEmpty) {
@@ -180,7 +180,7 @@ Future<void> setupInjector() async {
           if (state is AuthSuccess) {
             return state.token;
           }
-        } catch (e) {}
+        } catch (_) {}
 
         return '';
       },
@@ -199,8 +199,8 @@ Future<void> setupInjector() async {
   sl.registerLazySingleton<SceneRemoteDataSource>(
     () => SceneRemoteDataSourceImpl(
       client: sl<http.Client>(),
-      schedulerBaseUrl: 'http://42.118.11.87:8000',
-      thingsboardBaseUrl: 'https://performentmarketing.ddnsgeek.com',
+      schedulerBaseUrl: AppConfig.schedulerBaseUrl,
+      thingsboardBaseUrl: AppConfig.thingsboardBaseUrl,
       getToken: () {
         final token = sl<TokenManager>().getTokenSync();
         if (token != null && token.isNotEmpty) {
@@ -212,7 +212,7 @@ Future<void> setupInjector() async {
           if (state is AuthSuccess) {
             return state.token;
           }
-        } catch (e) {}
+        } catch (_) {}
         return '';
       },
       getCustomerId: () {

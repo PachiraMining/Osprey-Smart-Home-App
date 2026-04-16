@@ -1,6 +1,5 @@
-import 'package:smart_curtain_app/features/auth/data/datasources/auth_remote_datasource.dart';
+import 'package:dio/dio.dart';
 import 'package:dartz/dartz.dart';
-import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_remote_datasource.dart';
 import '../../../../core/error/failure.dart';
@@ -16,17 +15,24 @@ class AuthRepositoryImpl implements AuthRepository {
     LoginRequestModel request,
   ) async {
     try {
-      // Gọi datasource
       final response = await remoteDataSource.login(
         request.email,
         request.password,
       );
 
-      // Chuyển UserModel thành LoginResponseModel
-
       return Right(response);
+    } on DioException catch (e) {
+      final data = e.response?.data;
+      final msg = data is Map ? (data['message'] as String?) : null;
+      return Left(ServerFailure(
+        e.toString(),
+        message: msg ?? 'Server error. Please try again.',
+      ));
     } catch (e) {
-      return Left(ServerFailure(e.toString(), message: ''));
+      return Left(ServerFailure(
+        e.toString(),
+        message: 'An error occurred. Please try again.',
+      ));
     }
   }
 }

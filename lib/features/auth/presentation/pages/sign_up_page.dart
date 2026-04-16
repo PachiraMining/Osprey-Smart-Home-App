@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import '../../../../core/config/app_config.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -144,7 +147,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                 style: TextStyle(fontSize: 14, color: Colors.black87),
                               ),
                               GestureDetector(
-                                onTap: () {},
+                                onTap: () => launchUrl(Uri.parse(AppConfig.privacyPolicyUrl)),
                                 child: const Text(
                                   'Privacy Policy',
                                   style: TextStyle(
@@ -158,7 +161,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                 style: TextStyle(fontSize: 14, color: Colors.black87),
                               ),
                               GestureDetector(
-                                onTap: () {},
+                                onTap: () => launchUrl(Uri.parse(AppConfig.userAgreementUrl)),
                                 child: const Text(
                                   'User Agreement',
                                   style: TextStyle(

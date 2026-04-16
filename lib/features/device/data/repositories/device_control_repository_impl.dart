@@ -25,7 +25,7 @@ class DeviceControlRepositoryImpl implements DeviceControlRepository {
       return Left(
         NetworkFailure(
           'Unexpected error: $e',
-          message: 'Không có kết nối internet',
+          message: 'No internet connection',
         ),
       );
     } catch (e) {

@@ -148,10 +148,4 @@ class TokenManager {
     _cachedCustomerId = customerId;
   }
 
-  // Thêm method debug
-  void debugPrint() {
-    print('🔍 TokenManager Debug:');
-    print('  - Token cached: ${_cachedToken?.substring(0, 20) ?? "NULL"}...');
-    print('  - CustomerId cached: ${_cachedCustomerId ?? "NULL"}');
-  }
 }

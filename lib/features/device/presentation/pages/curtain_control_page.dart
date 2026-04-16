@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:get_it/get_it.dart';
 import '../../../../core/auth/token_manager.dart';
+import '../../../../core/config/app_config.dart';
 import '../../domain/entities/device_entity.dart';
 
 class CurtainControlPage extends StatefulWidget {
@@ -16,7 +17,7 @@ class CurtainControlPage extends StatefulWidget {
 
 class _CurtainControlPageState extends State<CurtainControlPage>
     with TickerProviderStateMixin {
-  static const _baseUrl = 'https://performentmarketing.ddnsgeek.com';
+  static const _baseUrl = AppConfig.thingsboardBaseUrl;
 
   final _tokenManager = GetIt.instance<TokenManager>();
   final _client = GetIt.instance<http.Client>();
@@ -57,14 +58,12 @@ class _CurtainControlPageState extends State<CurtainControlPage>
     try {
       final url = '$_baseUrl/api/smarthome/devices/${widget.device.id}/commands';
       final body = jsonEncode({'dpId': dpId, 'value': value});
-      print('📤 POST $url  Body: $body');
 
       final response = await _client.post(
         Uri.parse(url),
         headers: _headers,
         body: body,
       );
-      print('📡 Response ${response.statusCode}: ${response.body}');
 
       if (response.statusCode == 200) {
         _showSnackBar('Command sent', Colors.green);
@@ -72,7 +71,6 @@ class _CurtainControlPageState extends State<CurtainControlPage>
         _showSnackBar('Error: ${response.statusCode}', Colors.red);
       }
     } catch (e) {
-      print('❌ Error: $e');
       _showSnackBar('Connection error', Colors.red);
     } finally {
       setState(() => _isLoading = false);

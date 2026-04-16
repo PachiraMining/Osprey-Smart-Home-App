@@ -49,7 +49,7 @@ class _ScheduleTriggerPageState extends State<ScheduleTriggerPage> {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          "Hẹn giờ",
+          "Schedule",
           style: TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,

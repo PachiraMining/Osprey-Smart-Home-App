@@ -28,8 +28,6 @@ class DeviceControlDataSourceImpl implements DeviceControlDataSource {
   @override
   Future<void> sendCommand(String deviceId, String command) async {
     try {
-      print('📤 Sending command: $command to device: $deviceId');
-
       // Convert command to params
       int params;
       if (command == 'OPEN') {
@@ -45,9 +43,6 @@ class DeviceControlDataSourceImpl implements DeviceControlDataSource {
       // Body theo format API của bạn
       final body = jsonEncode({'method': 'setRelayState', 'params': params});
 
-      print('📦 Request body: $body');
-      print('🔑 Token: ${getToken().substring(0, 20)}...');
-
       // Gọi API
       final response = await client.post(
         Uri.parse('$baseUrl/api/rpc/oneway/$deviceId'),
@@ -55,11 +50,7 @@ class DeviceControlDataSourceImpl implements DeviceControlDataSource {
         body: body,
       );
 
-      print('📡 Response: ${response.statusCode}');
-      print('📦 Response body: ${response.body}');
-
       if (response.statusCode == 200) {
-        print('✅ Command sent successfully');
         return;
       } else if (response.statusCode == 401) {
         throw UnauthorizedException();
@@ -69,7 +60,6 @@ class DeviceControlDataSourceImpl implements DeviceControlDataSource {
         );
       }
     } catch (e) {
-      print('❌ Error sending command: $e');
       if (e is ServerException) rethrow;
       if (e is UnauthorizedException) rethrow;
       throw NetworkException();
