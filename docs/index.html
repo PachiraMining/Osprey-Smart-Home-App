@@ -1,36 +1,78 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Osprey Smart Home</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Osprey Smart Home</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+        }
+        .container {
+            text-align: center;
+            padding: 40px 24px;
+            max-width: 600px;
+        }
+        .logo {
+            font-size: 4rem;
+            margin-bottom: 16px;
+        }
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .tagline {
+            font-size: 1.2rem;
+            color: #a0c4ff;
+            margin-bottom: 40px;
+        }
+        .links {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: center;
+        }
+        .links a {
+            display: inline-block;
+            padding: 12px 32px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            color: #fff;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: background 0.2s;
+            width: 250px;
+        }
+        .links a:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        footer {
+            margin-top: 48px;
+            color: rgba(255,255,255,0.4);
+            font-size: 0.85rem;
+        }
+    </style>
 </head>
 <body>
-  <header>
     <div class="container">
-      <h1>Osprey Smart Home</h1>
-      <p class="tagline">Control your home, effortlessly.</p>
+        <div class="logo">🏠</div>
+        <h1>Osprey Smart Home</h1>
+        <p class="tagline">Your home, intelligently connected</p>
+        <div class="links">
+            <a href="privacy-policy.html">Privacy Policy</a>
+            <a href="support.html">Support</a>
+            <a href="delete-account.html">Delete Account</a>
+        </div>
+        <footer>&copy; 2026 Osprey Technology</footer>
     </div>
-  </header>
-  <main>
-    <div class="container">
-      <section class="links">
-        <a href="privacy-policy/">Privacy Policy</a>
-        <a href="terms/">Terms of Use</a>
-      </section>
-      <section class="about">
-        <h2>About</h2>
-        <p>Osprey Smart Home is a mobile application that lets you manage and automate your smart home devices including curtains, lights, and more. Connect with Amazon Alexa and Google Assistant for voice control.</p>
-        <p>Available on iOS and Android.</p>
-      </section>
-    </div>
-  </main>
-  <footer>
-    <div class="container">
-      <p>&copy; 2026 Osprey Smart Home. All rights reserved.</p>
-      <p>Contact: <a href="mailto:support@osprey-smarthome.com">support@osprey-smarthome.com</a></p>
-    </div>
-  </footer>
 </body>
 </html>
