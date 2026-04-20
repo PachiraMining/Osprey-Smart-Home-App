@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
+import 'account_security_page.dart';
 import 'personal_info_page.dart';
 import 'dark_mode_page.dart';
 
@@ -47,7 +48,12 @@ class _SettingsPageState extends State<SettingsPage> {
                 MaterialPageRoute(builder: (_) => const PersonalInfoPage()),
               );
             }),
-            _buildNavItem('Account and Security', onTap: () {}),
+            _buildNavItem('Account and Security', onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AccountSecurityPage()),
+              );
+            }),
             _buildNavItem('Device Update', onTap: () {}),
           ]),
 

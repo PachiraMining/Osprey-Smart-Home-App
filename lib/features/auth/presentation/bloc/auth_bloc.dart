@@ -3,6 +3,7 @@ import 'package:smart_curtain_app/features/auth/domain/usecases/login_usecase.da
 import 'package:smart_curtain_app/features/auth/data/models/login_request_model.dart';
 import 'package:smart_curtain_app/features/auth/data/datasources/auth_remote_datasource.dart';
 import '../../../../core/auth/token_manager.dart';
+import '../../../../core/auth/social_login_service.dart';
 import '../../../../core/di/injector.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
@@ -11,12 +12,19 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final LoginUseCase loginUseCase;
   final TokenManager? tokenManager;
   final AuthRemoteDataSource? authDataSource;
+  final SocialLoginService? socialLoginService;
 
-  AuthBloc({required this.loginUseCase, this.tokenManager, this.authDataSource})
-    : super(AuthInitial()) {
+  AuthBloc({
+    required this.loginUseCase,
+    this.tokenManager,
+    this.authDataSource,
+    this.socialLoginService,
+  }) : super(AuthInitial()) {
     on<LoginRequested>(_onLoginRequested);
     on<LogoutEvent>(_onLogout);
     on<CheckAuthStatusEvent>(_onCheckAuthStatus);
+    on<DeleteAccountEvent>(_onDeleteAccount);
+    on<SocialLoginRequested>(_onSocialLoginRequested);
   }
 
   Future<void> _onLoginRequested(
@@ -119,6 +127,62 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       }
     } catch (e) {
       emit(AuthInitial());
+    }
+  }
+
+  Future<void> _onDeleteAccount(
+    DeleteAccountEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+    try {
+      final tokenMgr = tokenManager ?? sl<TokenManager>();
+      final dataSource = authDataSource ?? sl<AuthRemoteDataSource>();
+      final userResponse = await dataSource.getCurrentUser();
+      await dataSource.deleteAccount(userResponse.userId);
+      await tokenMgr.clearTokens();
+      emit(AccountDeleted());
+    } catch (e) {
+      emit(AuthFailure('Failed to delete account: ${e.toString()}'));
+    }
+  }
+
+  Future<void> _onSocialLoginRequested(
+    SocialLoginRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+    try {
+      final service = socialLoginService ?? sl<SocialLoginService>();
+      final result = await service.loginWithProvider(event.providerUrl);
+
+      final tokenMgr = tokenManager ?? sl<TokenManager>();
+      await tokenMgr.saveTokens(
+        token: result.token,
+        refreshToken: result.refreshToken,
+      );
+      tokenMgr.setCachedToken(result.token);
+
+      // Fetch user profile (customerId, email, name) using the new token.
+      try {
+        final dataSource = authDataSource ?? sl<AuthRemoteDataSource>();
+        final userResponse = await dataSource.getCurrentUser();
+        await tokenMgr.saveCustomerId(userResponse.customerId);
+        tokenMgr.setCachedCustomerId(userResponse.customerId);
+        await tokenMgr.saveUserInfo(
+          email: userResponse.email,
+          firstName: userResponse.firstName,
+          lastName: userResponse.lastName,
+        );
+      } catch (e) {
+        // Profile fetch failure is non-fatal; tokens are already saved.
+      }
+
+      emit(AuthSuccess(token: result.token, refreshToken: result.refreshToken));
+    } on SocialLoginException catch (e) {
+      emit(AuthFailure(e.message));
+    } catch (e) {
+      emit(AuthFailure('Social login error: ${e.toString()}'));
     }
   }
 }

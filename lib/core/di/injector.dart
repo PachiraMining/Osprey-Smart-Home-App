@@ -7,6 +7,7 @@ import 'package:smart_curtain_app/features/auth/presentation/bloc/auth_state.dar
 import '../../core/config/app_config.dart';
 import '../../core/network/api_client.dart';
 import '../../core/auth/token_manager.dart';
+import '../../core/auth/social_login_service.dart';
 
 // Auth
 import '../../features/auth/data/datasources/auth_remote_datasource.dart';
@@ -91,6 +92,9 @@ Future<void> setupInjector() async {
   // HTTP Client
   sl.registerLazySingleton(() => http.Client());
 
+  // Social Login Service
+  sl.registerLazySingleton(() => SocialLoginService(httpClient: sl()));
+
   // ========== Auth Feature ==========
   // Data sources
   sl.registerLazySingleton(() => AuthRemoteDataSource(apiClient: sl()));
@@ -107,8 +111,9 @@ Future<void> setupInjector() async {
   sl.registerFactory(
     () => AuthBloc(
       loginUseCase: sl(),
-      tokenManager: sl(), // Inject TokenManager
+      tokenManager: sl(),
       authDataSource: sl(),
+      socialLoginService: sl(),
     ),
   );
 

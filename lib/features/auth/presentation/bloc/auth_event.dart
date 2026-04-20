@@ -11,3 +11,14 @@ class LoginRequested extends AuthEvent {
 class LogoutEvent extends AuthEvent {}
 
 class CheckAuthStatusEvent extends AuthEvent {}
+
+class DeleteAccountEvent extends AuthEvent {}
+
+/// Dispatched when the user taps a social login button (e.g. Google).
+///
+/// [providerUrl] is the authorization URL returned by the server's
+/// /api/noauth/mobile endpoint for the chosen provider.
+class SocialLoginRequested extends AuthEvent {
+  final String providerUrl;
+  SocialLoginRequested(this.providerUrl);
+}

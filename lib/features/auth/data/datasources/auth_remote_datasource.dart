@@ -21,4 +21,8 @@ class AuthRemoteDataSource {
     final response = await apiClient.get('/api/auth/user');
     return UserResponseModel.fromJson(response.data);
   }
+
+  Future<void> deleteAccount(String userId) async {
+    await apiClient.delete('/api/user/$userId');
+  }
 }

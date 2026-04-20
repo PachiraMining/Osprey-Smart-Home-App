@@ -3,7 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quickalert/quickalert.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../core/auth/social_login_service.dart';
 import '../../../../core/config/app_config.dart';
+import '../../../../core/di/injector.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
@@ -21,8 +23,36 @@ class _LoginPageState extends State<LoginPage> {
   String selectedCountry = 'Vietnam';
   bool _isLoadingDialogShowing = false;
 
+  String? _googleProviderUrl;
+  String? _appleProviderUrl;
+
   final usernameController = TextEditingController();
   final passwordController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProviders();
+  }
+
+  Future<void> _loadProviders() async {
+    try {
+      final providers = await sl<SocialLoginService>().fetchAvailableProviders();
+      if (!mounted) return;
+      final google = providers
+          .where((p) => p.name.toLowerCase().contains('google'))
+          .firstOrNull;
+      final apple = providers
+          .where((p) => p.name.toLowerCase().contains('apple'))
+          .firstOrNull;
+      setState(() {
+        _googleProviderUrl = google?.authorizationUrl;
+        _appleProviderUrl = apple?.authorizationUrl;
+      });
+    } catch (_) {
+      // Providers not available — social buttons still show but will show error on tap.
+    }
+  }
 
   @override
   void dispose() {
@@ -257,20 +287,27 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
 
+                        // Social login icons
+                        const SizedBox(height: 8),
+                        const _OrDivider(),
                         const SizedBox(height: 16),
-
-                        // Social login buttons
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            _buildSocialButton(
-                              icon: Icons.facebook,
-                              color: const Color(0xFF1877F2),
-                              bgColor: const Color(0xFF1877F2),
-                              iconColor: Colors.white,
+                            _SocialIconButton(
+                              child: Image.asset('assets/icons/google_logo.png', width: 26, height: 26),
+                              onTap: agreePolicy
+                                  ? () => _onSocialTap(context, _googleProviderUrl, 'Google')
+                                  : null,
                             ),
                             const SizedBox(width: 28),
-                            _buildSocialButtonImage('assets/icons/google_logo.png'),
+                            _SocialIconButton(
+                              bgColor: Colors.black,
+                              child: const Icon(Icons.apple, color: Colors.white, size: 28),
+                              onTap: agreePolicy
+                                  ? () => _onSocialTap(context, _appleProviderUrl, 'Apple')
+                                  : null,
+                            ),
                           ],
                         ),
 
@@ -285,6 +322,20 @@ class _LoginPageState extends State<LoginPage> {
         );
       },
     );
+  }
+
+  void _onSocialTap(BuildContext context, String? providerUrl, String name) {
+    if (providerUrl != null) {
+      context.read<AuthBloc>().add(SocialLoginRequested(providerUrl));
+    } else {
+      QuickAlert.show(
+        context: context,
+        type: QuickAlertType.error,
+        title: 'Unavailable',
+        text: '$name sign-in is not configured on the server.',
+        confirmBtnColor: const Color(0xFF2196F3),
+      );
+    }
   }
 
   Widget _buildInputField({
@@ -320,40 +371,61 @@ class _LoginPageState extends State<LoginPage> {
       ),
     );
   }
+}
 
-  Widget _buildSocialButton({
-    required IconData icon,
-    required Color color,
-    required Color bgColor,
-    required Color iconColor,
-  }) {
-    return GestureDetector(
-      onTap: () {},
-      child: Container(
-        width: 52,
-        height: 52,
-        decoration: BoxDecoration(
-          color: bgColor,
-          shape: BoxShape.circle,
+// ---------------------------------------------------------------------------
+// Private widgets
+// ---------------------------------------------------------------------------
+
+class _OrDivider extends StatelessWidget {
+  const _OrDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(child: Divider(color: Colors.grey.shade300, thickness: 1)),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Text(
+            'Or',
+            style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
+          ),
         ),
-        child: Icon(icon, color: iconColor, size: 28),
-      ),
+        Expanded(child: Divider(color: Colors.grey.shade300, thickness: 1)),
+      ],
     );
   }
+}
 
-  Widget _buildSocialButtonImage(String assetPath) {
+class _SocialIconButton extends StatelessWidget {
+  final Widget child;
+  final Color bgColor;
+  final VoidCallback? onTap;
+
+  const _SocialIconButton({
+    required this.child,
+    this.bgColor = Colors.white,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {},
-      child: Container(
-        width: 52,
-        height: 52,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.grey.shade300, width: 1),
-        ),
-        child: Center(
-          child: Image.asset(assetPath, width: 26, height: 26),
+      onTap: onTap,
+      child: Opacity(
+        opacity: onTap != null ? 1.0 : 0.4,
+        child: Container(
+          width: 52,
+          height: 52,
+          decoration: BoxDecoration(
+            color: bgColor,
+            shape: BoxShape.circle,
+            border: bgColor == Colors.white
+                ? Border.all(color: Colors.grey.shade300, width: 1)
+                : null,
+          ),
+          child: Center(child: child),
         ),
       ),
     );

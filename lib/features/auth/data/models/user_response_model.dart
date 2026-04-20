@@ -1,6 +1,7 @@
 // lib/features/auth/data/models/user_response_model.dart
 
 class UserResponseModel {
+  final String userId;
   final String customerId;
   final String email;
   final String? firstName;
@@ -8,6 +9,7 @@ class UserResponseModel {
   final String? phone;
 
   UserResponseModel({
+    required this.userId,
     required this.customerId,
     required this.email,
     this.firstName,
@@ -17,6 +19,7 @@ class UserResponseModel {
 
   factory UserResponseModel.fromJson(Map<String, dynamic> json) {
     return UserResponseModel(
+      userId: json['id']?['id'] ?? '',
       customerId: json['customerId']?['id'] ?? json['id']?['id'] ?? '',
       email: json['email'] ?? '',
       firstName: json['firstName'],

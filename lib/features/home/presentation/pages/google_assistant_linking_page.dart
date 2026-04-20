@@ -359,9 +359,9 @@ class _GoogleAssistantLinkingPageState
             onPressed: () {},
             child: Text(
               'View more ways to link',
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 15,
-                color: Colors.blue.shade600,
+                color: Colors.black87,
                 fontWeight: FontWeight.w400,
               ),
             ),
@@ -398,12 +398,12 @@ class _GoogleAssistantLinkingPageState
           ),
           const SizedBox(height: 16),
           // Subtitle
-          Text(
+          const Text(
             'You can now use Google Home voicebox to\ncontrol Google Assistant devices, like',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 15,
-              color: Colors.grey.shade700,
+              color: Colors.black87,
               height: 1.5,
             ),
           ),
@@ -419,9 +419,9 @@ class _GoogleAssistantLinkingPageState
             onPressed: () {},
             child: Text(
               'View more ways to link',
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 15,
-                color: Colors.blue.shade600,
+                color: Colors.black87,
                 fontWeight: FontWeight.w400,
               ),
             ),
@@ -455,8 +455,8 @@ class _GoogleAssistantLinkingPageState
           ),
           const SizedBox(height: 20),
           // Note about unlinking
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 24),
             child: Text(
               'Disable Osprey skill on the Google Home app '
               'or tap Me > the Setting button in the top right corner '
@@ -464,7 +464,7 @@ class _GoogleAssistantLinkingPageState
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13,
-                color: Colors.grey.shade500,
+                color: Colors.black87,
                 height: 1.5,
               ),
             ),
@@ -481,7 +481,7 @@ class _GoogleAssistantLinkingPageState
       child: Text(
         text,
         textAlign: TextAlign.center,
-        style: TextStyle(fontSize: 15, color: Colors.grey.shade500),
+        style: const TextStyle(fontSize: 15, color: Colors.black87),
       ),
     );
   }
@@ -498,7 +498,7 @@ class _GoogleAssistantLinkingPageState
             Text(
               _error ?? 'Something went wrong',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 15, color: Colors.grey.shade600),
+              style: const TextStyle(fontSize: 15, color: Colors.black87),
             ),
             const SizedBox(height: 24),
             TextButton(

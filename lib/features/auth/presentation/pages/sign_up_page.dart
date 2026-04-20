@@ -208,68 +208,11 @@ class _SignUpPageState extends State<SignUpPage> {
               ),
             ),
 
-            // Social login buttons fixed at bottom
-            Padding(
-              padding: const EdgeInsets.only(bottom: 36, top: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _buildSocialButton(
-                    icon: Icons.facebook,
-                    bgColor: const Color(0xFF1877F2),
-                    iconColor: Colors.white,
-                  ),
-                  const SizedBox(width: 28),
-                  _buildSocialButtonImage('assets/icons/google_logo.png'),
-                  const SizedBox(width: 28),
-                  _buildSocialButton(
-                    icon: Icons.apple,
-                    bgColor: Colors.black,
-                    iconColor: Colors.white,
-                  ),
-                ],
-              ),
-            ),
+            const SizedBox(height: 36),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSocialButton({
-    required IconData icon,
-    required Color bgColor,
-    required Color iconColor,
-  }) {
-    return GestureDetector(
-      onTap: () {},
-      child: Container(
-        width: 52,
-        height: 52,
-        decoration: BoxDecoration(
-          color: bgColor,
-          shape: BoxShape.circle,
-        ),
-        child: Icon(icon, color: iconColor, size: 28),
-      ),
-    );
-  }
-
-  Widget _buildSocialButtonImage(String assetPath) {
-    return GestureDetector(
-      onTap: () {},
-      child: Container(
-        width: 52,
-        height: 52,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.grey.shade300, width: 1),
-        ),
-        child: Center(
-          child: Image.asset(assetPath, width: 26, height: 26),
-        ),
-      ),
-    );
-  }
 }
