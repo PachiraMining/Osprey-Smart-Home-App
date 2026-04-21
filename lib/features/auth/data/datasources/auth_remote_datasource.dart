@@ -22,7 +22,20 @@ class AuthRemoteDataSource {
     return UserResponseModel.fromJson(response.data);
   }
 
-  Future<void> deleteAccount(String userId) async {
-    await apiClient.delete('/api/user/$userId');
+  Future<Map<String, dynamic>> requestAccountDeletion({String? reason}) async {
+    final response = await apiClient.post(
+      '/api/smarthome/auth/account/delete',
+      data: {if (reason != null) 'reason': reason},
+    );
+    return response.data as Map<String, dynamic>;
+  }
+
+  Future<void> cancelAccountDeletion() async {
+    await apiClient.post('/api/smarthome/auth/account/delete/cancel');
+  }
+
+  Future<Map<String, dynamic>> getAccountDeletionStatus() async {
+    final response = await apiClient.get('/api/smarthome/auth/account/delete/status');
+    return response.data as Map<String, dynamic>;
   }
 }

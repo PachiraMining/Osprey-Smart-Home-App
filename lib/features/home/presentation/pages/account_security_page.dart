@@ -52,22 +52,18 @@ class AccountSecurityPage extends StatelessWidget {
         ),
         body: ListView(
           children: [
-            // Email section
             _buildSection([
               _buildInfoItem('Email Address', email),
             ]),
 
-            // Third-Party Voice Services
             _buildSection([
               _buildNavItem(context, 'Third-Party Voice Services', onTap: () {}),
             ]),
 
-            // Security section
             _buildSection([
               _buildNavItem(context, 'Change Login Password', onTap: () {}),
             ]),
 
-            // Delete Account
             _buildSection([
               _buildNavItem(
                 context,
@@ -149,13 +145,35 @@ class AccountSecurityPage extends StatelessWidget {
   }
 
   void _showDeleteAccountDialog(BuildContext context) {
+    final reasonController = TextEditingController();
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Delete Account'),
-        content: const Text(
-          'Are you sure you want to permanently delete your account? '
-          'This action cannot be undone and all your data will be removed.',
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'After deletion:\n'
+              '\u2022 Your account will be deleted after 30 days\n'
+              '\u2022 All your devices and scenes will be removed\n'
+              '\u2022 You can cancel by logging in again within 30 days',
+              style: TextStyle(color: Colors.red, fontSize: 14, height: 1.5),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: reasonController,
+              decoration: InputDecoration(
+                labelText: 'Reason (optional)',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              maxLines: 2,
+            ),
+          ],
         ),
         actions: [
           TextButton(
@@ -165,7 +183,12 @@ class AccountSecurityPage extends StatelessWidget {
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);
-              context.read<AuthBloc>().add(DeleteAccountEvent());
+              final reason = reasonController.text.trim();
+              context.read<AuthBloc>().add(
+                DeleteAccountEvent(
+                  reason: reason.isEmpty ? null : reason,
+                ),
+              );
             },
             child: const Text(
               'Delete',

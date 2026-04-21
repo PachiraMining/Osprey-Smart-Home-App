@@ -12,7 +12,10 @@ class LogoutEvent extends AuthEvent {}
 
 class CheckAuthStatusEvent extends AuthEvent {}
 
-class DeleteAccountEvent extends AuthEvent {}
+class DeleteAccountEvent extends AuthEvent {
+  final String? reason;
+  DeleteAccountEvent({this.reason});
+}
 
 /// Dispatched when the user taps a social login button (e.g. Google).
 ///

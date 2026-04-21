@@ -138,8 +138,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       final tokenMgr = tokenManager ?? sl<TokenManager>();
       final dataSource = authDataSource ?? sl<AuthRemoteDataSource>();
-      final userResponse = await dataSource.getCurrentUser();
-      await dataSource.deleteAccount(userResponse.userId);
+      await dataSource.requestAccountDeletion(reason: event.reason);
       await tokenMgr.clearTokens();
       emit(AccountDeleted());
     } catch (e) {
