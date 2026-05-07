@@ -23,7 +23,7 @@ class ManageHomePage extends StatefulWidget {
 class _ManageHomePageState extends State<ManageHomePage> {
   late final TextEditingController _nameController;
 
-  static const _blue = Color(0xFF2196F3);
+  static const _blue = Color(0xFF1B4332);
 
   @override
   void initState() {

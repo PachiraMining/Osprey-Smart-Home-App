@@ -36,7 +36,7 @@ class _QrScannerPageState extends State<QrScannerPage> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Row(
           children: [
-            Icon(Icons.qr_code, color: Color(0xFF2196F3)),
+            Icon(Icons.qr_code, color: Color(0xFF1B4332)),
             SizedBox(width: 10),
             Text('QR Code Result'),
           ],
@@ -55,7 +55,7 @@ class _QrScannerPageState extends State<QrScannerPage> {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF2196F3),
+              backgroundColor: const Color(0xFF1B4332),
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -147,7 +147,7 @@ class _QrScannerPageState extends State<QrScannerPage> {
     const frameSize = 260.0;
     const cornerLength = 30.0;
     const cornerWidth = 4.0;
-    const cornerColor = Color(0xFF2196F3);
+    const cornerColor = Color(0xFF1B4332);
 
     return LayoutBuilder(
       builder: (context, constraints) {

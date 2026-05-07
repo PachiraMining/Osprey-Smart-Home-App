@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_typography.dart';
 import '../bloc/home_management_bloc.dart';
 import '../bloc/home_management_event.dart';
 import '../bloc/home_management_state.dart';
@@ -10,7 +13,7 @@ import 'manage_home_page.dart';
 import 'package:smart_curtain_app/features/device/domain/entities/device_entity.dart';
 import 'package:smart_curtain_app/features/device/presentation/pages/curtain_control_page.dart';
 
-/// New HomeTab backed by HomeManagementBloc with room filtering and home switching.
+/// HomeTab backed by HomeManagementBloc with room filtering and home switching.
 class HomeTab extends StatefulWidget {
   const HomeTab({super.key});
 
@@ -81,46 +84,68 @@ class _HomeTabState extends State<HomeTab> {
   Widget build(BuildContext context) {
     return BlocBuilder<HomeManagementBloc, HomeManagementState>(
       builder: (context, state) {
+        final hour = DateTime.now().hour;
+        final greeting = hour < 12
+            ? 'Good morning'
+            : hour < 18
+                ? 'Good afternoon'
+                : 'Good evening';
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 16),
 
-            // Header row: home name + dropdown arrow
+            // Greeting + home selector
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: GestureDetector(
-                onTap: state.homes.isNotEmpty ? _openHomeSelector : null,
-                child: Row(
-                  children: [
-                    Text(
-                      state.selectedHome?.name ?? 'My Home',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    greeting,
+                    style: AppTypography.bodyMedium.copyWith(
+                      color: AppColors.textSecondary,
+                      letterSpacing: 0.2,
                     ),
-                    const SizedBox(width: 6),
-                    Icon(
-                      Icons.keyboard_arrow_down,
-                      color: Colors.grey.shade600,
-                      size: 24,
+                  ),
+                  const SizedBox(height: 4),
+                  GestureDetector(
+                    onTap: state.homes.isNotEmpty ? _openHomeSelector : null,
+                    child: Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            state.selectedHome?.name ?? 'My Home',
+                            style: AppTypography.headlineLarge.copyWith(
+                              color: AppColors.textPrimary,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Icon(
+                          Icons.unfold_more_rounded,
+                          color: AppColors.textMuted,
+                          size: 22,
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
 
-            const SizedBox(height: 12),
+            const SizedBox(height: 18),
 
             // Room filter chips
             if (state.rooms.isNotEmpty)
               SizedBox(
-                height: 40,
+                height: 38,
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Row(
                     children: [
                       _RoomChip(
@@ -145,7 +170,7 @@ class _HomeTabState extends State<HomeTab> {
                 ),
               ),
 
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
 
             // Device list
             Expanded(child: _buildDeviceContent(state)),
@@ -168,11 +193,13 @@ class _HomeTabState extends State<HomeTab> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.error_outline, size: 64, color: Colors.grey.shade300),
+              Icon(Icons.cloud_off_outlined,
+                  size: 56, color: AppColors.textDisabled),
               const SizedBox(height: 16),
               Text(
                 state.errorMessage ?? 'An error occurred',
-                style: TextStyle(fontSize: 15, color: Colors.grey.shade500),
+                style: AppTypography.bodyMedium
+                    .copyWith(color: AppColors.textSecondary),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
@@ -180,14 +207,7 @@ class _HomeTabState extends State<HomeTab> {
                 onPressed: () => context
                     .read<HomeManagementBloc>()
                     .add(const LoadHomesEvent()),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2196F3),
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: const Text('Retry'),
+                child: const Text('Try again'),
               ),
             ],
           ),
@@ -197,33 +217,24 @@ class _HomeTabState extends State<HomeTab> {
 
     final devices = state.filteredDevices;
     if (devices.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.only(bottom: 120),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.devices_other, size: 64, color: Colors.grey.shade300),
-              const SizedBox(height: 16),
-              Text(
-                'No devices',
-                style: TextStyle(fontSize: 16, color: Colors.grey.shade500),
-              ),
-            ],
-          ),
-        ),
+      return _OspreyEmptyState(
+        icon: Icons.cottage_outlined,
+        title: 'No devices yet',
+        message:
+            'Tap the + button to add your first Osprey device to this home.',
       );
     }
 
     return RefreshIndicator(
+      color: AppColors.primary,
       onRefresh: _onRefresh,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: ListView.builder(
-          itemCount: devices.length + 1, // +1 for bottom spacing
+          itemCount: devices.length + 1,
           itemBuilder: (context, index) {
             if (index == devices.length) {
-              return const SizedBox(height: 100);
+              return const SizedBox(height: 120);
             }
             final device = devices[index];
             return Padding(
@@ -240,7 +251,56 @@ class _HomeTabState extends State<HomeTab> {
   }
 }
 
-/// Room filter chip widget.
+/// Branded empty state used across tabs — generous spacing, soft serif vibe.
+class _OspreyEmptyState extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String message;
+
+  const _OspreyEmptyState({
+    required this.icon,
+    required this.title,
+    required this.message,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(40, 0, 40, 120),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 88,
+              height: 88,
+              decoration: BoxDecoration(
+                color: AppColors.primarySubtle,
+                borderRadius: BorderRadius.circular(AppRadius.xl),
+              ),
+              child: Icon(icon, size: 38, color: AppColors.primary),
+            ),
+            const SizedBox(height: 22),
+            Text(
+              title,
+              style: AppTypography.headlineSmall
+                  .copyWith(color: AppColors.textPrimary),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: AppTypography.bodyMedium
+                  .copyWith(color: AppColors.textSecondary, height: 1.5),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Pill-shaped room filter chip with selected/unselected states.
 class _RoomChip extends StatelessWidget {
   final String label;
   final bool isSelected;
@@ -254,20 +314,38 @@ class _RoomChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF2196F3) : Colors.white.withAlpha(200),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-            color: isSelected ? Colors.white : Colors.black87,
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(AppRadius.pill),
+          onTap: onTap,
+          child: Container(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? AppColors.primary
+                  : AppColors.surface,
+              borderRadius: BorderRadius.circular(AppRadius.pill),
+              border: Border.all(
+                color: isSelected
+                    ? AppColors.primary
+                    : AppColors.borderSubtle,
+                width: 1,
+              ),
+            ),
+            child: Text(
+              label,
+              style: AppTypography.labelMedium.copyWith(
+                color: isSelected
+                    ? AppColors.textInverse
+                    : AppColors.textSecondary,
+                fontWeight:
+                    isSelected ? FontWeight.w700 : FontWeight.w500,
+              ),
+            ),
           ),
         ),
       ),
@@ -275,7 +353,8 @@ class _RoomChip extends StatelessWidget {
   }
 }
 
-/// Simple device card with icon, name, and online indicator.
+/// Device card — outlined surface with status pill, distinct from typical
+/// shadowed Material cards.
 class _DeviceCard extends StatelessWidget {
   final HomeDeviceEntity device;
   final VoidCallback onTap;
@@ -286,66 +365,99 @@ class _DeviceCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isOnline = device.isOnline ?? false;
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
-        decoration: BoxDecoration(
-          color: Colors.white.withAlpha(200),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(
-          children: [
-            // Device icon
-            Container(
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: const Icon(
-                Icons.curtains_outlined,
-                size: 30,
-                color: Color(0xFF78909C),
-              ),
-            ),
-            const SizedBox(width: 16),
-
-            // Device name
-            Expanded(
-              child: Text(
-                device.displayName,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black87,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            border: Border.all(color: AppColors.borderSubtle),
+          ),
+          child: Row(
+            children: [
+              // Device icon
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: AppColors.primarySubtle,
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+                child: Icon(
+                  Icons.curtains_outlined,
+                  size: 28,
+                  color: AppColors.primary,
+                ),
               ),
-            ),
-            const SizedBox(width: 12),
+              const SizedBox(width: 14),
 
-            // Power button indicator
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: isOnline
-                    ? const Color(0xFF4CAF50).withAlpha(20)
-                    : Colors.grey.withAlpha(20),
+              // Name + status row
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      device.displayName,
+                      style: AppTypography.titleMedium.copyWith(
+                        color: AppColors.textPrimary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Container(
+                          width: 6,
+                          height: 6,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: isOnline
+                                ? AppColors.statusOnline
+                                : AppColors.statusOffline,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          isOnline ? 'Online' : 'Offline',
+                          style: AppTypography.caption.copyWith(
+                            color: isOnline
+                                ? AppColors.statusOnline
+                                : AppColors.textMuted,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-              child: Icon(
-                Icons.power_settings_new,
-                size: 26,
-                color: isOnline
-                    ? const Color(0xFF4CAF50)
-                    : Colors.grey.shade400,
+              const SizedBox(width: 12),
+
+              // Power indicator
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: isOnline
+                      ? AppColors.primarySubtle
+                      : AppColors.surfaceMuted,
+                ),
+                child: Icon(
+                  Icons.power_settings_new_rounded,
+                  size: 22,
+                  color: isOnline
+                      ? AppColors.primary
+                      : AppColors.textMuted,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

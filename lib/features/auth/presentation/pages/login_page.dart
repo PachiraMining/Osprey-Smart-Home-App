@@ -6,6 +6,9 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/auth/social_login_service.dart';
 import '../../../../core/config/app_config.dart';
 import '../../../../core/di/injector.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_typography.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
@@ -37,7 +40,8 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _loadProviders() async {
     try {
-      final providers = await sl<SocialLoginService>().fetchAvailableProviders();
+      final providers =
+          await sl<SocialLoginService>().fetchAvailableProviders();
       if (!mounted) return;
       final google = providers
           .where((p) => p.name.toLowerCase().contains('google'))
@@ -49,9 +53,7 @@ class _LoginPageState extends State<LoginPage> {
         _googleProviderUrl = google?.authorizationUrl;
         _appleProviderUrl = apple?.authorizationUrl;
       });
-    } catch (_) {
-      // Providers not available — social buttons still show but will show error on tap.
-    }
+    } catch (_) {}
   }
 
   @override
@@ -88,235 +90,258 @@ class _LoginPageState extends State<LoginPage> {
           QuickAlert.show(
             context: context,
             type: QuickAlertType.error,
-            title: 'Login Failed',
+            title: 'Sign-in failed',
             text: state.message,
-            confirmBtnText: 'Try Again',
-            confirmBtnColor: const Color(0xFF2196F3),
+            confirmBtnText: 'Try again',
+            confirmBtnColor: AppColors.primary,
           );
         }
       },
       builder: (context, state) {
         return Scaffold(
-          backgroundColor: const Color(0xFFF7F8FA),
+          backgroundColor: AppColors.background,
           resizeToAvoidBottomInset: true,
           body: SafeArea(
-            child: Column(
-              children: [
-                // Scrollable content
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 8),
-                        // Back button
-                        IconButton(
-                          icon: const Icon(Icons.arrow_back_ios, size: 22),
-                          padding: EdgeInsets.zero,
-                          alignment: Alignment.centerLeft,
-                          color: Colors.black87,
-                          onPressed: () => Navigator.pop(context),
-                        ),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 8),
 
-                        const SizedBox(height: 24),
-
-                        // Title
-                        const Text(
-                          'Log In',
-                          style: TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                          ),
-                        ),
-
-                        const SizedBox(height: 28),
-
-                        // Country dropdown
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: Colors.grey.shade300),
-                          ),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<String>(
-                              value: selectedCountry,
-                              isExpanded: true,
-                              icon: Icon(Icons.keyboard_arrow_down, color: Colors.grey.shade400),
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: Colors.black87,
-                              ),
-                              items: const [
-                                DropdownMenuItem(value: 'Vietnam', child: Text('Vietnam')),
-                                DropdownMenuItem(value: 'Singapore', child: Text('Singapore')),
-                                DropdownMenuItem(value: 'United States', child: Text('United States')),
-                              ],
-                              onChanged: (v) => setState(() => selectedCountry = v!),
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        // Username field
-                        _buildInputField(
-                          controller: usernameController,
-                          hintText: 'Please enter your account',
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        // Password field
-                        _buildInputField(
-                          controller: passwordController,
-                          hintText: 'Password',
-                          obscureText: obscurePassword,
-                        ),
-
-                        const SizedBox(height: 28),
-
-                        // Agreement
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SizedBox(
-                              width: 22,
-                              height: 22,
-                              child: Checkbox(
-                                value: agreePolicy,
-                                onChanged: (v) => setState(() => agreePolicy = v!),
-                                activeColor: const Color(0xFF2196F3),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                side: BorderSide(color: Colors.grey.shade400, width: 1.5),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Wrap(
-                                children: [
-                                  const Text(
-                                    'I agree to the ',
-                                    style: TextStyle(fontSize: 14, color: Colors.black87),
-                                  ),
-                                  GestureDetector(
-                                    onTap: () => launchUrl(Uri.parse(AppConfig.privacyPolicyUrl)),
-                                    child: const Text(
-                                      'Privacy Policy',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Color(0xFF2196F3),
-                                      ),
-                                    ),
-                                  ),
-                                  const Text(
-                                    ' and ',
-                                    style: TextStyle(fontSize: 14, color: Colors.black87),
-                                  ),
-                                  GestureDetector(
-                                    onTap: () => launchUrl(Uri.parse(AppConfig.userAgreementUrl)),
-                                    child: const Text(
-                                      'User Agreement',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Color(0xFF2196F3),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 24),
-
-                        // Login button
-                        SizedBox(
-                          width: double.infinity,
-                          height: 52,
-                          child: ElevatedButton(
-                            onPressed: agreePolicy
-                                ? () {
-                                    context.read<AuthBloc>().add(
-                                      LoginRequested(
-                                        usernameController.text.trim(),
-                                        passwordController.text.trim(),
-                                      ),
-                                    );
-                                  }
-                                : null,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFD5E3EC),
-                              disabledBackgroundColor: const Color(0xFFD5E3EC),
-                              foregroundColor: Colors.white,
-                              disabledForegroundColor: Colors.white70,
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                            ),
-                            child: const Text(
-                              'Log In',
-                              style: TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        // Forgot password
-                        Center(
-                          child: TextButton(
-                            onPressed: () {},
-                            child: const Text(
-                              'Forgot Password',
-                              style: TextStyle(
-                                color: Color(0xFF2196F3),
-                                fontSize: 15,
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        // Social login icons
-                        const SizedBox(height: 8),
-                        const _OrDivider(),
-                        const SizedBox(height: 16),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            _SocialIconButton(
-                              child: Image.asset('assets/icons/google_logo.png', width: 26, height: 26),
-                              onTap: agreePolicy
-                                  ? () => _onSocialTap(context, _googleProviderUrl, 'Google')
-                                  : null,
-                            ),
-                            const SizedBox(width: 28),
-                            _SocialIconButton(
-                              bgColor: Colors.black,
-                              child: const Icon(Icons.apple, color: Colors.white, size: 28),
-                              onTap: agreePolicy
-                                  ? () => _onSocialTap(context, _appleProviderUrl, 'Apple')
-                                  : null,
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 36),
-                      ],
+                  // Back
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                      border: Border.all(color: AppColors.borderSubtle),
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.arrow_back, size: 20),
+                      padding: EdgeInsets.zero,
+                      color: AppColors.textPrimary,
+                      onPressed: () => Navigator.pop(context),
                     ),
                   ),
-                ),
-              ],
+
+                  const SizedBox(height: 36),
+
+                  Text(
+                    'Welcome back',
+                    style: AppTypography.displayMedium.copyWith(
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Sign in to manage your Osprey home.',
+                    style: AppTypography.bodyMedium.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  // Region selector — stylised pill
+                  _RegionSelector(
+                    value: selectedCountry,
+                    onChanged: (v) => setState(() => selectedCountry = v),
+                  ),
+
+                  const SizedBox(height: 18),
+
+                  _LabelledField(
+                    label: 'Email or username',
+                    controller: usernameController,
+                    hintText: 'you@osprey.io',
+                    keyboardType: TextInputType.emailAddress,
+                    prefix: const Icon(
+                      Icons.alternate_email_rounded,
+                      color: AppColors.textMuted,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  _LabelledField(
+                    label: 'Password',
+                    controller: passwordController,
+                    hintText: 'Enter your password',
+                    obscureText: obscurePassword,
+                    prefix: const Icon(
+                      Icons.lock_outline_rounded,
+                      color: AppColors.textMuted,
+                      size: 20,
+                    ),
+                    suffix: IconButton(
+                      icon: Icon(
+                        obscurePassword
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
+                        color: AppColors.textMuted,
+                        size: 20,
+                      ),
+                      onPressed: () => setState(() {
+                        obscurePassword = !obscurePassword;
+                      }),
+                    ),
+                  ),
+
+                  const SizedBox(height: 22),
+
+                  // Agreement
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: Checkbox(
+                          value: agreePolicy,
+                          onChanged: (v) =>
+                              setState(() => agreePolicy = v ?? false),
+                          activeColor: AppColors.primary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          side: const BorderSide(
+                              color: AppColors.border, width: 1.4),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Wrap(
+                          children: [
+                            Text(
+                              'I agree to the ',
+                              style: AppTypography.bodySmall
+                                  .copyWith(color: AppColors.textSecondary),
+                            ),
+                            GestureDetector(
+                              onTap: () => launchUrl(
+                                  Uri.parse(AppConfig.privacyPolicyUrl)),
+                              child: Text(
+                                'Privacy Policy',
+                                style: AppTypography.bodySmall.copyWith(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              ' and ',
+                              style: AppTypography.bodySmall
+                                  .copyWith(color: AppColors.textSecondary),
+                            ),
+                            GestureDetector(
+                              onTap: () => launchUrl(
+                                  Uri.parse(AppConfig.userAgreementUrl)),
+                              child: Text(
+                                'User Agreement',
+                                style: AppTypography.bodySmall.copyWith(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              '.',
+                              style: AppTypography.bodySmall
+                                  .copyWith(color: AppColors.textSecondary),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 22),
+
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: agreePolicy
+                          ? () {
+                              context.read<AuthBloc>().add(
+                                    LoginRequested(
+                                      usernameController.text.trim(),
+                                      passwordController.text.trim(),
+                                    ),
+                                  );
+                            }
+                          : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        disabledBackgroundColor: AppColors.surfaceMuted,
+                        foregroundColor: AppColors.textInverse,
+                        disabledForegroundColor: AppColors.textMuted,
+                        minimumSize: const Size(0, 56),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppRadius.lg),
+                        ),
+                      ),
+                      child: Text(
+                        'Sign in',
+                        style: AppTypography.labelLarge.copyWith(
+                          fontSize: 15,
+                          color: agreePolicy
+                              ? AppColors.textInverse
+                              : AppColors.textMuted,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 14),
+                  Center(
+                    child: TextButton(
+                      onPressed: () {},
+                      child: Text(
+                        'Forgot password?',
+                        style: AppTypography.labelMedium.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 18),
+                  const _OrDivider(),
+                  const SizedBox(height: 18),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _SocialIconButton(
+                        child: Image.asset(
+                          'assets/icons/google_logo.png',
+                          width: 24,
+                          height: 24,
+                        ),
+                        onTap: agreePolicy
+                            ? () => _onSocialTap(
+                                context, _googleProviderUrl, 'Google')
+                            : null,
+                      ),
+                      const SizedBox(width: 18),
+                      _SocialIconButton(
+                        bgColor: AppColors.textPrimary,
+                        child: const Icon(Icons.apple,
+                            color: Colors.white, size: 26),
+                        onTap: agreePolicy
+                            ? () => _onSocialTap(
+                                context, _appleProviderUrl, 'Apple')
+                            : null,
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 32),
+                ],
+              ),
             ),
           ),
         );
@@ -324,7 +349,8 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  void _onSocialTap(BuildContext context, String? providerUrl, String name) {
+  void _onSocialTap(
+      BuildContext context, String? providerUrl, String name) {
     if (providerUrl != null) {
       context.read<AuthBloc>().add(SocialLoginRequested(providerUrl));
     } else {
@@ -333,49 +359,172 @@ class _LoginPageState extends State<LoginPage> {
         type: QuickAlertType.error,
         title: 'Unavailable',
         text: '$name sign-in is not configured on the server.',
-        confirmBtnColor: const Color(0xFF2196F3),
+        confirmBtnColor: AppColors.primary,
       );
     }
-  }
-
-  Widget _buildInputField({
-    required TextEditingController controller,
-    required String hintText,
-    bool obscureText = false,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFFF0F1F5),
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: TextField(
-        controller: controller,
-        obscureText: obscureText,
-        style: const TextStyle(fontSize: 16, color: Colors.black87),
-        decoration: InputDecoration(
-          hintText: hintText,
-          hintStyle: TextStyle(
-            color: Colors.grey.shade400,
-            fontSize: 15,
-          ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: BorderSide.none,
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: const BorderSide(color: Color(0xFF2196F3), width: 1.2),
-          ),
-        ),
-      ),
-    );
   }
 }
 
 // ---------------------------------------------------------------------------
 // Private widgets
 // ---------------------------------------------------------------------------
+
+class _LabelledField extends StatefulWidget {
+  final String label;
+  final TextEditingController controller;
+  final String hintText;
+  final bool obscureText;
+  final Widget? suffix;
+  final Widget? prefix;
+  final TextInputType? keyboardType;
+
+  const _LabelledField({
+    required this.label,
+    required this.controller,
+    required this.hintText,
+    this.obscureText = false,
+    this.suffix,
+    this.prefix,
+    this.keyboardType,
+  });
+
+  @override
+  State<_LabelledField> createState() => _LabelledFieldState();
+}
+
+class _LabelledFieldState extends State<_LabelledField> {
+  final FocusNode _focusNode = FocusNode();
+  bool _focused = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode.addListener(() {
+      setState(() => _focused = _focusNode.hasFocus);
+    });
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text(
+            widget.label,
+            style: AppTypography.labelMedium.copyWith(
+              color: _focused
+                  ? AppColors.primary
+                  : AppColors.textSecondary,
+            ),
+          ),
+        ),
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOut,
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(AppRadius.field),
+            border: Border.all(
+              color: _focused ? AppColors.primary : AppColors.border,
+              width: _focused ? 1.8 : 1.2,
+            ),
+            boxShadow: _focused
+                ? [
+                    BoxShadow(
+                      color: AppColors.shadowFocus,
+                      blurRadius: 0,
+                      spreadRadius: 4,
+                    ),
+                  ]
+                : null,
+          ),
+          child: TextField(
+            controller: widget.controller,
+            focusNode: _focusNode,
+            obscureText: widget.obscureText,
+            keyboardType: widget.keyboardType,
+            cursorColor: AppColors.primary,
+            cursorWidth: 1.6,
+            style: AppTypography.bodyLarge.copyWith(
+              color: AppColors.textPrimary,
+            ),
+            decoration: InputDecoration(
+              hintText: widget.hintText,
+              hintStyle: AppTypography.bodyLarge.copyWith(
+                color: AppColors.textMuted,
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 18, vertical: 18),
+              border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              prefixIcon: widget.prefix,
+              suffixIcon: widget.suffix,
+              filled: false,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _RegionSelector extends StatelessWidget {
+  final String value;
+  final ValueChanged<String> onChanged;
+
+  const _RegionSelector({required this.value, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColors.primarySubtle,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.public, size: 18, color: AppColors.primary),
+          const SizedBox(width: 10),
+          Expanded(
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: value,
+                isExpanded: true,
+                isDense: true,
+                icon: Icon(Icons.expand_more, color: AppColors.primary),
+                style: AppTypography.bodyMedium.copyWith(
+                  color: AppColors.primaryDark,
+                  fontWeight: FontWeight.w600,
+                ),
+                dropdownColor: AppColors.surface,
+                items: const [
+                  DropdownMenuItem(value: 'Vietnam', child: Text('Vietnam')),
+                  DropdownMenuItem(
+                      value: 'Singapore', child: Text('Singapore')),
+                  DropdownMenuItem(
+                      value: 'United States', child: Text('United States')),
+                ],
+                onChanged: (v) {
+                  if (v != null) onChanged(v);
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 class _OrDivider extends StatelessWidget {
   const _OrDivider();
@@ -384,15 +533,15 @@ class _OrDivider extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Expanded(child: Divider(color: Colors.grey.shade300, thickness: 1)),
+        Expanded(child: Divider(color: AppColors.divider)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Text(
-            'Or',
-            style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
+            'or continue with',
+            style: AppTypography.caption,
           ),
         ),
-        Expanded(child: Divider(color: Colors.grey.shade300, thickness: 1)),
+        Expanded(child: Divider(color: AppColors.divider)),
       ],
     );
   }
@@ -405,7 +554,7 @@ class _SocialIconButton extends StatelessWidget {
 
   const _SocialIconButton({
     required this.child,
-    this.bgColor = Colors.white,
+    this.bgColor = AppColors.surface,
     this.onTap,
   });
 
@@ -416,13 +565,13 @@ class _SocialIconButton extends StatelessWidget {
       child: Opacity(
         opacity: onTap != null ? 1.0 : 0.4,
         child: Container(
-          width: 52,
-          height: 52,
+          width: 56,
+          height: 56,
           decoration: BoxDecoration(
             color: bgColor,
-            shape: BoxShape.circle,
-            border: bgColor == Colors.white
-                ? Border.all(color: Colors.grey.shade300, width: 1)
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            border: bgColor == AppColors.surface
+                ? Border.all(color: AppColors.border)
                 : null,
           ),
           child: Center(child: child),

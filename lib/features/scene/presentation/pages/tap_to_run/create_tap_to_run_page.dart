@@ -28,7 +28,7 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
 
   static const _sceneColors = [
     Color(0xFFE85D5D), Color(0xFFF5A623), Color(0xFF7ED321), Color(0xFF2EAD4B),
-    Color(0xFF1FBCB5), Color(0xFF2196F3), Color(0xFF2D7DD2), Color(0xFF5B4FCF),
+    Color(0xFF1FBCB5), Color(0xFF1B4332), Color(0xFF2D7DD2), Color(0xFF5B4FCF),
     Color(0xFF8B47BF), Color(0xFFD14B8F), Color(0xFFC78B6D), Color(0xFF5A7A84),
   ];
 
@@ -43,7 +43,7 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
   IconData _selectedIcon = Icons.play_arrow_rounded;
 
   static const _bgColor = Color(0xFFF5F6FA);
-  static const _blueAccent = Color(0xFF2196F3);
+  static const _blueAccent = Color(0xFF1B4332);
 
   @override
   void initState() {
@@ -240,7 +240,7 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
               // Delay the action
               _buildTaskRow(
                 icon: Icons.hourglass_bottom,
-                iconColor: const Color(0xFF2196F3),
+                iconColor: const Color(0xFF1B4332),
                 label: 'Delay the action',
                 onTap: () { Navigator.pop(ctx); _addDelayAction(); },
               ),
@@ -411,7 +411,7 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
                         const Spacer(),
                         TextButton(
                           onPressed: () => Navigator.pop(ctx),
-                          child: const Text('Done', style: TextStyle(color: Color(0xFF2196F3), fontSize: 16, fontWeight: FontWeight.w600)),
+                          child: const Text('Done', style: TextStyle(color: Color(0xFF1B4332), fontSize: 16, fontWeight: FontWeight.w600)),
                         ),
                       ],
                     ),
@@ -842,7 +842,7 @@ class _ThenCard extends StatelessWidget {
                     height: 28,
                     decoration: const BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Color(0xFF2196F3),
+                      color: Color(0xFF1B4332),
                     ),
                     child: const Icon(Icons.add, size: 18, color: Colors.white),
                   ),

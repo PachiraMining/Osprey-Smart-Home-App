@@ -58,3 +58,4 @@ android/key.properties
 
 # FVM Version Cache
 .fvm/
+owasp_m*_scan.json

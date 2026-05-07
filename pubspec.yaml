@@ -37,9 +37,9 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   dartz: ^0.10.1
-  permission_handler:
+  permission_handler: ^11.3.1
   flutter_blue_plus: ^1.14.0
-  get:
+  get: ^4.6.6
   equatable: ^2.0.5
   # HTTP
   http: ^1.1.0
@@ -55,10 +55,21 @@ dependencies:
   dart_jsonwebtoken: ^2.12.0
   quickalert: ^1.1.0
 
+  # Crash reporting & performance monitoring
+  sentry_flutter: ^8.9.0
+
+  # MQTT for real-time IoT device telemetry/state
+  mqtt_client: ^10.5.1
+
+  # Custom typography (Plus Jakarta Sans)
+  google_fonts: ^6.2.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  bloc_test: ^9.1.7
+  mocktail: ^1.0.4
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

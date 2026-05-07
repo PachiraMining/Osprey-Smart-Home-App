@@ -121,7 +121,7 @@ class _HomeRow extends StatelessWidget {
               child: isSelected
                   ? const Icon(
                       Icons.check,
-                      color: Color(0xFF2196F3),
+                      color: Color(0xFF1B4332),
                       size: 20,
                     )
                   : null,
@@ -137,7 +137,7 @@ class _HomeRow extends StatelessWidget {
                   fontWeight:
                       isSelected ? FontWeight.w600 : FontWeight.w400,
                   color: isSelected
-                      ? const Color(0xFF2196F3)
+                      ? const Color(0xFF1B4332)
                       : Colors.black87,
                 ),
               ),

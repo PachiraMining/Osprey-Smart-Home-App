@@ -13,22 +13,44 @@ class AppConfig {
   /// Package name used as the OAuth2 app identifier sent to ThingsBoard.
   static const String pkgName = 'com.osprey.smarthome';
 
-  // TODO: Move these secrets out of source code.
-  // Use --dart-define=APP_SECRET_ANDROID=<value> at build time, or read from
-  // a .env file via flutter_dotenv, so the raw secrets are never committed.
-  //
-  // Example build command:
-  //   flutter run \
-  //     --dart-define=APP_SECRET_ANDROID=r5OOkrimqZVVR60H/+pcwUKg5bF1CDZ7Z3kdNGytsfc= \
-  //     --dart-define=APP_SECRET_IOS=EFK220ARUmZaFNFMaxEGa1y1/HYJApKc2xy4IXofdnI=
-
   /// Base64-encoded HMAC-SHA256 secret for Android OAuth2 app tokens.
+  /// MUST be passed via --dart-define=APP_SECRET_ANDROID=<value> at build time.
+  /// See build instructions in docs/BUILD.md.
   static const String appSecretAndroid =
-      String.fromEnvironment('APP_SECRET_ANDROID',
-          defaultValue: 'r5OOkrimqZVVR60H/+pcwUKg5bF1CDZ7Z3kdNGytsfc=');
+      String.fromEnvironment('APP_SECRET_ANDROID');
 
   /// Base64-encoded HMAC-SHA256 secret for iOS OAuth2 app tokens.
+  /// MUST be passed via --dart-define=APP_SECRET_IOS=<value> at build time.
   static const String appSecretIos =
-      String.fromEnvironment('APP_SECRET_IOS',
-          defaultValue: 'EFK220ARUmZaFNFMaxEGa1y1/HYJApKc2xy4IXofdnI=');
+      String.fromEnvironment('APP_SECRET_IOS');
+
+  /// Sentry DSN for crash reporting.
+  /// Pass via --dart-define=SENTRY_DSN=<value> at build time. Empty disables Sentry.
+  static const String sentryDsn = String.fromEnvironment('SENTRY_DSN');
+
+  /// MQTT broker host for ThingsBoard real-time telemetry.
+  /// Pass via --dart-define=MQTT_HOST=<host> (default: same host as ThingsBoard REST).
+  static const String mqttHost = String.fromEnvironment(
+    'MQTT_HOST',
+    defaultValue: 'performentmarketing.ddnsgeek.com',
+  );
+
+  /// MQTT broker port. Default 1883 (plain), use 8883 for TLS.
+  static const int mqttPort =
+      int.fromEnvironment('MQTT_PORT', defaultValue: 1883);
+
+  /// Build environment: dev | staging | prod. Used for Sentry and analytics tagging.
+  static const String environment =
+      String.fromEnvironment('APP_ENV', defaultValue: 'dev');
+
+  /// Throws StateError if any required secret is missing at runtime.
+  /// Call from main.dart before runApp to fail-fast on misconfigured builds.
+  static void assertSecretsConfigured() {
+    if (appSecretAndroid.isEmpty || appSecretIos.isEmpty) {
+      throw StateError(
+        'Missing OAuth secrets. Build with --dart-define=APP_SECRET_ANDROID=... '
+        'and --dart-define=APP_SECRET_IOS=...',
+      );
+    }
+  }
 }

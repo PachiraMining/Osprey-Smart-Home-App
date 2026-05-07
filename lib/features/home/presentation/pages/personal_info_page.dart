@@ -12,7 +12,7 @@ class PersonalInfoPage extends StatelessWidget {
     final firstLetter = displayName.isNotEmpty ? displayName[0].toUpperCase() : 'U';
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FA),
+      backgroundColor: const Color(0xFFF8F5F0),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,

@@ -145,6 +145,14 @@ class SocialLoginService {
         ? AppConfig.appSecretIos
         : AppConfig.appSecretAndroid;
 
+    if (secret.isEmpty) {
+      throw StateError(
+        'OAuth app secret is not configured. Build with '
+        '--dart-define=APP_SECRET_${Platform.isIOS ? "IOS" : "ANDROID"}=<value>. '
+        'See docs/BUILD.md.',
+      );
+    }
+
     // Decode base64 secret to raw bytes for HMAC-SHA256.
     final Uint8List secretBytes = base64.decode(secret);
 

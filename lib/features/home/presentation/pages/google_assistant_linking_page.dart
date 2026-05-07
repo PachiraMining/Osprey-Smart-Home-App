@@ -325,9 +325,9 @@ class _GoogleAssistantLinkingPageState
               child: ElevatedButton(
                 onPressed: _isLinking ? null : _startLinking,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2196F3),
+                  backgroundColor: const Color(0xFF1B4332),
                   disabledBackgroundColor:
-                      const Color(0xFF2196F3).withAlpha(150),
+                      const Color(0xFF1B4332).withAlpha(150),
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),

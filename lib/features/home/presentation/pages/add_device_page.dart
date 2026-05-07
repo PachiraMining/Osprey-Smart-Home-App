@@ -119,7 +119,7 @@ class _AddDevicePageState extends State<AddDevicePage>
     return ChangeNotifierProvider.value(
       value: _bluetoothController,
       child: Scaffold(
-        backgroundColor: const Color(0xFFF7F8FA),
+        backgroundColor: const Color(0xFFF8F5F0),
         appBar: AppBar(
           backgroundColor: Colors.white,
           elevation: 0,
@@ -181,11 +181,11 @@ class _AddDevicePageState extends State<AddDevicePage>
                             height: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2.5,
-                              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF2196F3)),
+                              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1B4332)),
                             ),
                           )
                         else
-                          const Icon(Icons.bluetooth_searching, color: Color(0xFF2196F3), size: 22),
+                          const Icon(Icons.bluetooth_searching, color: Color(0xFF1B4332), size: 22),
                         const SizedBox(width: 12),
                         Expanded(
                           child: RichText(
@@ -202,7 +202,7 @@ class _AddDevicePageState extends State<AddDevicePage>
                                 TextSpan(
                                   text: 'pairing mode',
                                   style: const TextStyle(
-                                    color: Color(0xFF2196F3),
+                                    color: Color(0xFF1B4332),
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -352,7 +352,7 @@ class _AddDevicePageState extends State<AddDevicePage>
                     : Icon(
                         isConnected ? Icons.bluetooth_connected : Icons.sensors,
                         size: 24,
-                        color: isConnected ? Colors.green : const Color(0xFF2196F3),
+                        color: isConnected ? Colors.green : const Color(0xFF1B4332),
                       ),
               ),
               title: Text(
@@ -414,7 +414,7 @@ class RadarPainter extends CustomPainter {
 
     // Draw concentric circles
     final circlePaint = Paint()
-      ..color = const Color(0xFF2196F3).withOpacity(0.12)
+      ..color = const Color(0xFF1B4332).withOpacity(0.12)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.2;
 
@@ -425,7 +425,7 @@ class RadarPainter extends CustomPainter {
 
     // Draw cross lines (axes)
     final axisPaint = Paint()
-      ..color = const Color(0xFF2196F3).withOpacity(0.08)
+      ..color = const Color(0xFF1B4332).withOpacity(0.08)
       ..strokeWidth = 0.8;
 
     canvas.drawLine(
@@ -446,8 +446,8 @@ class RadarPainter extends CustomPainter {
         startAngle: sweepAngle - 0.8,
         endAngle: sweepAngle,
         colors: [
-          const Color(0xFF2196F3).withOpacity(0.0),
-          const Color(0xFF2196F3).withOpacity(0.25),
+          const Color(0xFF1B4332).withOpacity(0.0),
+          const Color(0xFF1B4332).withOpacity(0.25),
         ],
         transform: GradientRotation(0),
       ).createShader(sweepRect)
@@ -464,7 +464,7 @@ class RadarPainter extends CustomPainter {
 
     // Draw the sweep line
     final linePaint = Paint()
-      ..color = const Color(0xFF2196F3).withOpacity(0.6)
+      ..color = const Color(0xFF1B4332).withOpacity(0.6)
       ..strokeWidth = 2.0
       ..style = PaintingStyle.stroke;
 
@@ -476,20 +476,20 @@ class RadarPainter extends CustomPainter {
 
     // Draw center dot
     final centerDotPaint = Paint()
-      ..color = const Color(0xFF2196F3)
+      ..color = const Color(0xFF1B4332)
       ..style = PaintingStyle.fill;
     canvas.drawCircle(center, 5, centerDotPaint);
 
     // Draw outer glow on center
     final glowPaint = Paint()
-      ..color = const Color(0xFF2196F3).withOpacity(0.2)
+      ..color = const Color(0xFF1B4332).withOpacity(0.2)
       ..style = PaintingStyle.fill;
     canvas.drawCircle(center, 8, glowPaint);
 
     // Draw pulsing ring
     final pulseRadius = maxRadius * 0.3 + (maxRadius * 0.7 * pulseValue);
     final pulsePaint = Paint()
-      ..color = const Color(0xFF2196F3).withOpacity(0.15 * (1 - pulseValue))
+      ..color = const Color(0xFF1B4332).withOpacity(0.15 * (1 - pulseValue))
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0 * (1 - pulseValue);
     canvas.drawCircle(center, pulseRadius, pulsePaint);
@@ -497,7 +497,7 @@ class RadarPainter extends CustomPainter {
     // Draw small dots for "found devices" along the circles
     if (foundDevices > 0) {
       final dotPaint = Paint()
-        ..color = const Color(0xFF2196F3)
+        ..color = const Color(0xFF1B4332)
         ..style = PaintingStyle.fill;
 
       final positions = [
@@ -511,7 +511,7 @@ class RadarPainter extends CustomPainter {
         canvas.drawCircle(
           positions[i],
           6,
-          Paint()..color = const Color(0xFF2196F3).withOpacity(0.2),
+          Paint()..color = const Color(0xFF1B4332).withOpacity(0.2),
         );
         canvas.drawCircle(positions[i], 3.5, dotPaint);
       }

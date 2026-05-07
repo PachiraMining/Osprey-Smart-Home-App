@@ -173,7 +173,7 @@ class _DeviceTile extends StatelessWidget {
     required this.onToggle,
   });
 
-  static const _blue = Color(0xFF2196F3);
+  static const _blue = Color(0xFF1B4332);
 
   @override
   Widget build(BuildContext context) {
@@ -183,7 +183,7 @@ class _DeviceTile extends StatelessWidget {
       leading: CircleAvatar(
         backgroundColor: isOnline
             ? const Color(0xFFE3F2FD)
-            : const Color(0xFFF5F5F5),
+            : const Color(0xFFF8F5F0),
         child: Icon(
           Icons.devices_other_outlined,
           color: isOnline ? _blue : Colors.black38,
@@ -216,7 +216,7 @@ class _AddButton extends StatelessWidget {
     required this.onPressed,
   });
 
-  static const _blue = Color(0xFF2196F3);
+  static const _blue = Color(0xFF1B4332);
 
   @override
   Widget build(BuildContext context) {

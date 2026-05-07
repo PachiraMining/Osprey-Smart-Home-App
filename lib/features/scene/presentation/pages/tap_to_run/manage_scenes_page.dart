@@ -27,7 +27,7 @@ class ManageScenesPage extends StatelessWidget {
             onPressed: () => Navigator.pop(context),
             child: const Text(
               'Finish',
-              style: TextStyle(color: Color(0xFF2196F3), fontSize: 16, fontWeight: FontWeight.w600),
+              style: TextStyle(color: Color(0xFF1B4332), fontSize: 16, fontWeight: FontWeight.w600),
             ),
           ),
         ],

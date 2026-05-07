@@ -1,6 +1,9 @@
 // home_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:smart_curtain_app/core/theme/app_colors.dart';
+import 'package:smart_curtain_app/core/theme/app_radius.dart';
+import 'package:smart_curtain_app/core/theme/app_typography.dart';
 import 'package:smart_curtain_app/features/home/presentation/pages/CreateSceneTriggerPage.dart';
 import 'package:smart_curtain_app/features/home/presentation/pages/create_scene_page.dart';
 import 'package:smart_curtain_app/features/home/presentation/pages/add_device_page.dart';
@@ -33,9 +36,6 @@ class HomePage extends StatefulWidget {
 }
 
 class HomePageState extends State<HomePage> {
-  static const _bgColor = Color(0xFFD5E3EC);
-  static const _accentBlue = Color(0xFF2196F3);
-
   int currentIndex = 0;
   static final GlobalKey<HomePageState> globalKey = GlobalKey<HomePageState>();
   late final List<Widget> _pages;
@@ -104,48 +104,41 @@ class HomePageState extends State<HomePage> {
     return Scaffold(
       key: HomePageState.globalKey,
       extendBody: true,
+      backgroundColor: AppColors.background,
       body: Stack(
         children: [
-          // Background color
-          Container(
-            width: double.infinity,
-            height: double.infinity,
-            color: _bgColor,
+          // Layered radial gradient — distinct visual signature
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  center: const Alignment(-0.5, -0.85),
+                  radius: 1.5,
+                  colors: [
+                    AppColors.primarySubtle,
+                    AppColors.background,
+                  ],
+                  stops: const [0.0, 0.65],
+                ),
+              ),
+            ),
           ),
 
-          // Furniture background image at bottom
+          // Subtle gold orb decoration
           Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: SizedBox(
-              height: screenHeight * 0.4,
-              child: Stack(
-                children: [
-                  Positioned.fill(
-                    child: Image.asset(
-                      'assets/splash_bg.png',
-                      fit: BoxFit.cover,
-                      alignment: Alignment.bottomCenter,
-                    ),
-                  ),
-                  // Top fade gradient
-                  Positioned(
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: 120,
-                    child: Container(
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [_bgColor, Color(0x00D5E3EC)],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+            right: -100,
+            bottom: screenHeight * 0.18,
+            child: Container(
+              width: 280,
+              height: 280,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    AppColors.accentSubtle,
+                    AppColors.background.withAlpha(0),
+                  ],
+                ),
               ),
             ),
           ),
@@ -161,19 +154,26 @@ class HomePageState extends State<HomePage> {
                     padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
                     child: Row(
                       children: [
-                        // Avatar - eagle logo
+                        // Avatar - eagle logo with branded ring
                         Container(
-                          width: 40,
-                          height: 40,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
+                          width: 42,
+                          height: 42,
+                          padding: const EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            color: AppColors.surface,
+                            borderRadius: BorderRadius.circular(AppRadius.sm),
+                            border: Border.all(
+                              color: AppColors.border,
+                              width: 1,
+                            ),
                           ),
-                          child: ClipOval(
+                          child: ClipRRect(
+                            borderRadius:
+                                BorderRadius.circular(AppRadius.xs),
                             child: Image.asset(
                               'assets/eagle_logo.png',
-                              width: 40,
-                              height: 40,
+                              width: 38,
+                              height: 38,
                               fit: BoxFit.cover,
                             ),
                           ),
@@ -197,37 +197,52 @@ class HomePageState extends State<HomePage> {
                                 ),
                               );
                             },
-                            child: const Icon(
+                            child: Icon(
                               Icons.add,
-                              color: Colors.black,
-                              size: 30,
+                              color: AppColors.textPrimary,
+                              size: 26,
                             ),
                           )
                         else
                           PopupMenuButton<String>(
-                            offset: const Offset(0, 45),
+                            offset: const Offset(0, 50),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
+                              borderRadius:
+                                  BorderRadius.circular(AppRadius.lg),
+                              side: const BorderSide(
+                                  color: AppColors.borderSubtle),
                             ),
-                            color: Colors.white,
-                            elevation: 8,
-                            shadowColor: Colors.black.withAlpha(40),
-                            onSelected: (value) => _onMenuSelected(context, value),
+                            color: AppColors.surface,
+                            elevation: 0,
+                            shadowColor: AppColors.shadow,
+                            onSelected: (value) =>
+                                _onMenuSelected(context, value),
                             itemBuilder: (_) => [
-                              _buildPopupItem(Icons.devices_other_outlined, 'Add Device'),
-                              _buildPopupItem(Icons.edit_square, 'Create Scene'),
-                              _buildPopupItem(Icons.qr_code_scanner_outlined, 'Scan'),
+                              _buildPopupItem(
+                                  Icons.devices_other_outlined, 'Add Device'),
+                              _buildPopupItem(
+                                  Icons.edit_square, 'Create Scene'),
+                              _buildPopupItem(
+                                  Icons.qr_code_scanner_outlined, 'Scan'),
                             ],
                             child: Container(
-                              width: 36,
-                              height: 36,
-                              decoration: const BoxDecoration(
-                                color: _accentBlue,
-                                shape: BoxShape.circle,
+                              width: 42,
+                              height: 42,
+                              decoration: BoxDecoration(
+                                color: AppColors.primary,
+                                borderRadius:
+                                    BorderRadius.circular(AppRadius.md),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.primary.withAlpha(50),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
                               ),
                               child: const Icon(
                                 Icons.add,
-                                color: Colors.white,
+                                color: AppColors.textInverse,
                                 size: 22,
                               ),
                             ),
@@ -245,59 +260,103 @@ class HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withAlpha(15),
-              blurRadius: 10,
-              offset: const Offset(0, -2),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          top: false,
-          child: Theme(
-            data: Theme.of(context).copyWith(
-              splashColor: Colors.transparent,
-              highlightColor: Colors.transparent,
-              splashFactory: NoSplash.splashFactory,
-            ),
-            child: BottomNavigationBar(
-            type: BottomNavigationBarType.fixed,
-            currentIndex: currentIndex,
-            selectedItemColor: const Color(0xFF2196F3),
-            unselectedItemColor: Colors.grey,
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            selectedFontSize: 12,
-            unselectedFontSize: 12,
-            enableFeedback: false,
-            onTap: (i) => setState(() => currentIndex = i),
-            items: const [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.home_outlined),
-                activeIcon: Icon(Icons.home),
-                label: 'Home',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.check_box_outlined),
-                activeIcon: Icon(Icons.check_box),
-                label: 'Scene',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.shopping_bag_outlined),
-                activeIcon: Icon(Icons.shopping_bag),
-                label: 'Mall',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.account_circle_outlined),
-                activeIcon: Icon(Icons.account_circle),
-                label: 'Me',
+      bottomNavigationBar: _OspreyBottomNav(
+        currentIndex: currentIndex,
+        onTap: (i) => setState(() => currentIndex = i),
+      ),
+    );
+  }
+}
+
+/// Floating pill bottom navigation — distinct from the typical Material flat bar.
+class _OspreyBottomNav extends StatelessWidget {
+  final int currentIndex;
+  final ValueChanged<int> onTap;
+
+  const _OspreyBottomNav({
+    required this.currentIndex,
+    required this.onTap,
+  });
+
+  static const _items = [
+    (Icons.cottage_outlined, Icons.cottage, 'Home'),
+    (Icons.auto_awesome_outlined, Icons.auto_awesome, 'Scenes'),
+    (Icons.storefront_outlined, Icons.storefront, 'Mall'),
+    (Icons.person_outline_rounded, Icons.person_rounded, 'Me'),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+        child: Container(
+          height: 68,
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(AppRadius.xl),
+            border: Border.all(color: AppColors.borderSubtle),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.shadow,
+                blurRadius: 28,
+                offset: const Offset(0, 12),
               ),
             ],
           ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: List.generate(_items.length, (i) {
+              final selected = currentIndex == i;
+              final (outlined, filled, label) = _items[i];
+              return Expanded(
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
+                  splashColor: AppColors.primary.withAlpha(15),
+                  highlightColor: AppColors.primary.withAlpha(10),
+                  onTap: () => onTap(i),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 220),
+                          curve: Curves.easeOut,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: selected
+                                ? AppColors.primarySubtle
+                                : Colors.transparent,
+                            borderRadius:
+                                BorderRadius.circular(AppRadius.pill),
+                          ),
+                          child: Icon(
+                            selected ? filled : outlined,
+                            size: 22,
+                            color: selected
+                                ? AppColors.primary
+                                : AppColors.textMuted,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          label,
+                          style: AppTypography.labelSmall.copyWith(
+                            color: selected
+                                ? AppColors.primary
+                                : AppColors.textMuted,
+                            fontSize: 10,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }),
           ),
         ),
       ),
@@ -502,7 +561,7 @@ class _SceneTabState extends State<SceneTab> {
           height: 48,
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF2196F3),
+              backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
               elevation: 0,
               shape: RoundedRectangleBorder(
@@ -603,7 +662,7 @@ class _SceneTabState extends State<SceneTab> {
           height: 48,
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF2196F3),
+              backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
               elevation: 0,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
@@ -833,8 +892,8 @@ class _SceneTabState extends State<SceneTab> {
                 children: [
                   CircleAvatar(
                     radius: 20,
-                    backgroundColor: const Color(0xFF2196F3).withAlpha(30),
-                    child: const Icon(Icons.access_time, color: Color(0xFF2196F3)),
+                    backgroundColor: AppColors.primary.withAlpha(30),
+                    child: const Icon(Icons.access_time, color: AppColors.primary),
                   ),
                   const SizedBox(width: 14),
                   Expanded(
@@ -866,7 +925,8 @@ class _SceneTabState extends State<SceneTab> {
                         ToggleSceneEvent(scene.id, v),
                       );
                     },
-                    activeColor: Colors.green,
+                    activeThumbColor: AppColors.surface,
+                    activeTrackColor: AppColors.primary,
                   ),
                 ],
               ),

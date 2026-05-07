@@ -70,7 +70,7 @@ class _DelayConfigPageState extends State<DelayConfigPage> {
             child: const Text(
               'Next',
               style: TextStyle(
-                color: Color(0xFF2196F3),
+                color: Color(0xFF1B4332),
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),

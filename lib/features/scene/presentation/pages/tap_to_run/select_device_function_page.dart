@@ -102,7 +102,7 @@ class _SelectDeviceFunctionPageState extends State<SelectDeviceFunctionPage> {
               'Next',
               style: TextStyle(
                 color: _selectedValues.isNotEmpty
-                    ? const Color(0xFF2196F3)
+                    ? const Color(0xFF1B4332)
                     : Colors.grey,
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -429,7 +429,7 @@ class _SelectDeviceFunctionPageState extends State<SelectDeviceFunctionPage> {
                 shape: BoxShape.circle,
                 border: Border.all(
                   color: groupValue == value
-                      ? const Color(0xFF2196F3)
+                      ? const Color(0xFF1B4332)
                       : Colors.grey.shade300,
                   width: 2,
                 ),
@@ -441,7 +441,7 @@ class _SelectDeviceFunctionPageState extends State<SelectDeviceFunctionPage> {
                         height: 12,
                         decoration: const BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Color(0xFF2196F3),
+                          color: Color(0xFF1B4332),
                         ),
                       ),
                     )

@@ -6,6 +6,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:smart_curtain_app/features/auth/presentation/bloc/auth_state.dart';
 import '../../core/config/app_config.dart';
 import '../../core/network/api_client.dart';
+import '../../core/network/mqtt_service.dart';
 import '../../core/auth/token_manager.dart';
 import '../../core/auth/social_login_service.dart';
 
@@ -94,6 +95,9 @@ Future<void> setupInjector() async {
 
   // Social Login Service
   sl.registerLazySingleton(() => SocialLoginService(httpClient: sl()));
+
+  // MQTT Real-time Service (connect after login by calling .connect(jwtToken: ...))
+  sl.registerLazySingleton(() => MqttService());
 
   // ========== Auth Feature ==========
   // Data sources

@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/config/app_config.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_radius.dart';
+import '../../../../core/theme/app_typography.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -25,194 +28,232 @@ class _SignUpPageState extends State<SignUpPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FA),
+      backgroundColor: AppColors.background,
       resizeToAvoidBottomInset: true,
       body: SafeArea(
-        child: Column(
-          children: [
-            // Scrollable content
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 8),
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                  border: Border.all(color: AppColors.borderSubtle),
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.arrow_back, size: 20),
+                  padding: EdgeInsets.zero,
+                  color: AppColors.textPrimary,
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ),
+
+              const SizedBox(height: 36),
+
+              Text(
+                'Create your account',
+                style: AppTypography.displayMedium.copyWith(
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Join Osprey to control your smart home from anywhere.',
+                style: AppTypography.bodyMedium.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+              ),
+
+              const SizedBox(height: 32),
+
+              // Region selector
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 18, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.primarySubtle,
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
+                ),
+                child: Row(
                   children: [
-                    const SizedBox(height: 8),
-                    // Back button
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back_ios, size: 22),
-                      padding: EdgeInsets.zero,
-                      alignment: Alignment.centerLeft,
-                      color: Colors.black87,
-                      onPressed: () => Navigator.pop(context),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // Title
-                    const Text(
-                      'Register',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                    ),
-
-                    const SizedBox(height: 28),
-
-                    // Country dropdown
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: Colors.grey.shade300),
-                      ),
+                    Icon(Icons.public, size: 18, color: AppColors.primary),
+                    const SizedBox(width: 10),
+                    Expanded(
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
                           value: selectedCountry,
                           isExpanded: true,
-                          icon: Icon(Icons.keyboard_arrow_down, color: Colors.grey.shade400),
-                          style: const TextStyle(
-                            fontSize: 16,
-                            color: Colors.black87,
-                          ),
-                          items: const [
-                            DropdownMenuItem(value: 'Vietnam', child: Text('Vietnam')),
-                            DropdownMenuItem(value: 'Singapore', child: Text('Singapore')),
-                            DropdownMenuItem(value: 'United States', child: Text('United States')),
-                          ],
-                          onChanged: (v) => setState(() => selectedCountry = v!),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // Email field
-                    Container(
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF0F1F5),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: TextField(
-                        controller: emailController,
-                        keyboardType: TextInputType.emailAddress,
-                        style: const TextStyle(fontSize: 16, color: Colors.black87),
-                        decoration: InputDecoration(
-                          hintText: 'Email Address',
-                          hintStyle: TextStyle(
-                            color: Colors.grey.shade400,
-                            fontSize: 15,
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
-                            borderSide: BorderSide.none,
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
-                            borderSide: const BorderSide(color: Color(0xFF2196F3), width: 1.2),
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 28),
-
-                    // Agreement
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: Checkbox(
-                            value: agreePolicy,
-                            onChanged: (v) => setState(() => agreePolicy = v!),
-                            activeColor: const Color(0xFF2196F3),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            side: BorderSide(color: Colors.grey.shade400, width: 1.5),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Wrap(
-                            children: [
-                              const Text(
-                                'I agree to the ',
-                                style: TextStyle(fontSize: 14, color: Colors.black87),
-                              ),
-                              GestureDetector(
-                                onTap: () => launchUrl(Uri.parse(AppConfig.privacyPolicyUrl)),
-                                child: const Text(
-                                  'Privacy Policy',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Color(0xFF2196F3),
-                                  ),
-                                ),
-                              ),
-                              const Text(
-                                ' and ',
-                                style: TextStyle(fontSize: 14, color: Colors.black87),
-                              ),
-                              GestureDetector(
-                                onTap: () => launchUrl(Uri.parse(AppConfig.userAgreementUrl)),
-                                child: const Text(
-                                  'User Agreement',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Color(0xFF2196F3),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // Get Verification Code button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 52,
-                      child: ElevatedButton(
-                        onPressed: agreePolicy ? () {} : null,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFD5E3EC),
-                          disabledBackgroundColor: const Color(0xFFD5E3EC),
-                          foregroundColor: Colors.white,
-                          disabledForegroundColor: Colors.white70,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                        ),
-                        child: const Text(
-                          'Get Verification Code',
-                          style: TextStyle(
-                            fontSize: 17,
+                          isDense: true,
+                          icon: Icon(Icons.expand_more,
+                              color: AppColors.primary),
+                          style: AppTypography.bodyMedium.copyWith(
+                            color: AppColors.primaryDark,
                             fontWeight: FontWeight.w600,
                           ),
+                          dropdownColor: AppColors.surface,
+                          items: const [
+                            DropdownMenuItem(
+                                value: 'Vietnam', child: Text('Vietnam')),
+                            DropdownMenuItem(
+                                value: 'Singapore', child: Text('Singapore')),
+                            DropdownMenuItem(
+                                value: 'United States',
+                                child: Text('United States')),
+                          ],
+                          onChanged: (v) =>
+                              setState(() => selectedCountry = v!),
                         ),
                       ),
                     ),
                   ],
                 ),
               ),
-            ),
 
-            const SizedBox(height: 36),
-          ],
+              const SizedBox(height: 18),
+
+              // Email field
+              Padding(
+                padding: const EdgeInsets.only(left: 4, bottom: 8),
+                child: Text(
+                  'Email address',
+                  style: AppTypography.labelMedium.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: TextField(
+                  controller: emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  style: AppTypography.bodyLarge.copyWith(
+                    color: AppColors.textPrimary,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'you@osprey.io',
+                    hintStyle: AppTypography.bodyLarge.copyWith(
+                      color: AppColors.textMuted,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 18, vertical: 18),
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 22),
+
+              // Agreement
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: Checkbox(
+                      value: agreePolicy,
+                      onChanged: (v) =>
+                          setState(() => agreePolicy = v ?? false),
+                      activeColor: AppColors.primary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      side: const BorderSide(
+                          color: AppColors.border, width: 1.4),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Wrap(
+                      children: [
+                        Text(
+                          'I agree to the ',
+                          style: AppTypography.bodySmall.copyWith(
+                              color: AppColors.textSecondary),
+                        ),
+                        GestureDetector(
+                          onTap: () => launchUrl(
+                              Uri.parse(AppConfig.privacyPolicyUrl)),
+                          child: Text(
+                            'Privacy Policy',
+                            style: AppTypography.bodySmall.copyWith(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          ' and ',
+                          style: AppTypography.bodySmall.copyWith(
+                              color: AppColors.textSecondary),
+                        ),
+                        GestureDetector(
+                          onTap: () => launchUrl(
+                              Uri.parse(AppConfig.userAgreementUrl)),
+                          child: Text(
+                            'User Agreement',
+                            style: AppTypography.bodySmall.copyWith(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          '.',
+                          style: AppTypography.bodySmall.copyWith(
+                              color: AppColors.textSecondary),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 22),
+
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: agreePolicy ? () {} : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    disabledBackgroundColor: AppColors.surfaceMuted,
+                    foregroundColor: AppColors.textInverse,
+                    disabledForegroundColor: AppColors.textMuted,
+                    minimumSize: const Size(0, 56),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.lg),
+                    ),
+                  ),
+                  child: Text(
+                    'Send verification code',
+                    style: AppTypography.labelLarge.copyWith(
+                      fontSize: 15,
+                      color: agreePolicy
+                          ? AppColors.textInverse
+                          : AppColors.textMuted,
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 32),
+            ],
+          ),
         ),
       ),
     );
   }
-
 }

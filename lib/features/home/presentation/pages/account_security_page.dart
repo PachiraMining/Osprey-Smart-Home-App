@@ -27,12 +27,12 @@ class AccountSecurityPage extends StatelessWidget {
             type: QuickAlertType.error,
             title: 'Error',
             text: state.message,
-            confirmBtnColor: const Color(0xFF2196F3),
+            confirmBtnColor: const Color(0xFF1B4332),
           );
         }
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFF5F5F5),
+        backgroundColor: const Color(0xFFF8F5F0),
         appBar: AppBar(
           backgroundColor: Colors.white,
           elevation: 0.5,

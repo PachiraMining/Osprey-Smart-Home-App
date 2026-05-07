@@ -10,7 +10,7 @@ class ManageRoomsPage extends StatelessWidget {
 
   const ManageRoomsPage({super.key, required this.homeId});
 
-  static const _blue = Color(0xFF2196F3);
+  static const _blue = Color(0xFF1B4332);
 
   @override
   Widget build(BuildContext context) {

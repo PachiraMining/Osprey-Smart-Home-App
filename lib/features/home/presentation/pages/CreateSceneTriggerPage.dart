@@ -8,7 +8,7 @@ class CreateSceneTriggerPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FA),
+      backgroundColor: const Color(0xFFF8F5F0),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,

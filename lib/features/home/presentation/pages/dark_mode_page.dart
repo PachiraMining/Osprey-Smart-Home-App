@@ -17,7 +17,7 @@ class _DarkModePageState extends State<DarkModePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: const Color(0xFFF8F5F0),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0.5,
@@ -132,9 +132,9 @@ class _DarkModePageState extends State<DarkModePage> {
               height: 24,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: isSelected ? const Color(0xFF2196F3) : Colors.transparent,
+                color: isSelected ? const Color(0xFF1B4332) : Colors.transparent,
                 border: Border.all(
-                  color: isSelected ? const Color(0xFF2196F3) : Colors.grey.shade400,
+                  color: isSelected ? const Color(0xFF1B4332) : Colors.grey.shade400,
                   width: 2,
                 ),
               ),
