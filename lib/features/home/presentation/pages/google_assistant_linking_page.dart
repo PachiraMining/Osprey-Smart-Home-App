@@ -458,7 +458,7 @@ class _GoogleAssistantLinkingPageState
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 24),
             child: Text(
-              'Disable Osprey skill on the Google Home app '
+              'Disable Osprey Life skill on the Google Home app '
               'or tap Me > the Setting button in the top right corner '
               '> Account and Security to unauthorize it.',
               textAlign: TextAlign.center,

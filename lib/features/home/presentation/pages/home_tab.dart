@@ -12,6 +12,15 @@ import 'home_selector_sheet.dart';
 import 'manage_home_page.dart';
 import 'package:smart_curtain_app/features/device/domain/entities/device_entity.dart';
 import 'package:smart_curtain_app/features/device/presentation/pages/curtain_control_page.dart';
+import '../../../ai/domain/entities/voice_intent.dart';
+import '../../../ai/presentation/bloc/ai_suggestion_bloc.dart';
+import '../../../ai/presentation/bloc/voice_command_bloc.dart';
+import '../../../ai/presentation/bloc/weather_ai_bloc.dart';
+import '../../../ai/presentation/widgets/ai_suggestion_card.dart';
+import '../../../ai/presentation/widgets/voice_command_button.dart';
+import '../../../ai/presentation/widgets/weather_ai_banner.dart';
+import '../../../device/domain/usecases/send_device_command.dart';
+import 'package:get_it/get_it.dart';
 
 /// HomeTab backed by HomeManagementBloc with room filtering and home switching.
 class HomeTab extends StatefulWidget {
@@ -29,6 +38,42 @@ class _HomeTabState extends State<HomeTab> {
     if (bloc.state.status == HomeStatus.initial) {
       bloc.add(const LoadHomesEvent());
     }
+    // Kick off AI features so cards/banners can populate as soon as data arrives.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<AiSuggestionBloc>().add(const LoadSuggestions());
+      context.read<WeatherAiBloc>().add(const RefreshWeather());
+    });
+  }
+
+  void _onVoiceIntent(VoiceCommandReady state) {
+    final intent = state.intent;
+    final devices = context.read<HomeManagementBloc>().state.filteredDevices;
+    if (devices.isEmpty) return;
+
+    // Fuzzy match: prefer device whose display name contains the hint.
+    final target = intent.deviceHint.isNotEmpty
+        ? devices.firstWhere(
+            (d) => d.displayName.toLowerCase().contains(intent.deviceHint.toLowerCase()),
+            orElse: () => devices.first,
+          )
+        : devices.first;
+
+    final sendCommand = GetIt.instance<SendDeviceCommand>();
+    final command = switch (intent.action) {
+      VoiceAction.open => 'open',
+      VoiceAction.close => 'close',
+      VoiceAction.stop => 'stop',
+      VoiceAction.setPosition => '${intent.position ?? 50}',
+      VoiceAction.unknown => null,
+    };
+    if (command == null) return;
+    sendCommand(target.deviceId, command);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Voice: ${intent.transcript}  →  ${target.displayName}'),
+      ),
+    );
   }
 
   void _openHomeSelector() {
@@ -170,10 +215,29 @@ class _HomeTabState extends State<HomeTab> {
                 ),
               ),
 
+            // AI: weather banner (visible only when WeatherLoaded state)
+            const WeatherAiBanner(),
+
+            // AI: pattern suggestion card (visible only when suggestions loaded)
+            const AiSuggestionCard(),
+
             const SizedBox(height: 12),
 
             // Device list
-            Expanded(child: _buildDeviceContent(state)),
+            Expanded(
+              child: Stack(
+                children: [
+                  _buildDeviceContent(state),
+                  Positioned(
+                    right: 20,
+                    // Bottom nav is a floating pill: SafeArea + 12 pad + 68 height
+                    // ≈ 114px on iPhone with home indicator. Add 40 breathing room.
+                    bottom: MediaQuery.of(context).viewPadding.bottom + 130,
+                    child: VoiceCommandButton(onIntentReady: _onVoiceIntent),
+                  ),
+                ],
+              ),
+            ),
           ],
         );
       },
@@ -217,11 +281,11 @@ class _HomeTabState extends State<HomeTab> {
 
     final devices = state.filteredDevices;
     if (devices.isEmpty) {
-      return _OspreyEmptyState(
+      return _BrandEmptyState(
         icon: Icons.cottage_outlined,
         title: 'No devices yet',
         message:
-            'Tap the + button to add your first Osprey device to this home.',
+            'Tap the + button to add your first curtain to this home.',
       );
     }
 
@@ -252,12 +316,12 @@ class _HomeTabState extends State<HomeTab> {
 }
 
 /// Branded empty state used across tabs — generous spacing, soft serif vibe.
-class _OspreyEmptyState extends StatelessWidget {
+class _BrandEmptyState extends StatelessWidget {
   final IconData icon;
   final String title;
   final String message;
 
-  const _OspreyEmptyState({
+  const _BrandEmptyState({
     required this.icon,
     required this.title,
     required this.message,

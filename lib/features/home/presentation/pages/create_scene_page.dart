@@ -289,13 +289,6 @@ class _CreateScenePageState extends State<CreateScenePage> {
               },
             ),
             const SizedBox(height: 20),
-            _buildOptionRow(
-              title: "Precondition",
-              value: "Ca ngay",
-              onTap: () {},
-            ),
-            const SizedBox(height: 12),
-            _buildOptionRow(title: "Display Area", onTap: () {}),
             const Spacer(),
             SizedBox(
               width: double.infinity,

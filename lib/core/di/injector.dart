@@ -71,6 +71,27 @@ import '../../features/home/domain/usecases/update_room.dart';
 import '../../features/home/domain/usecases/delete_room.dart';
 import '../../features/home/presentation/bloc/home_management_bloc.dart';
 
+// AI Feature
+import '../../features/ai/data/datasources/foundation_models_datasource.dart';
+import '../../features/ai/data/datasources/speech_to_text_datasource.dart';
+import '../../features/ai/data/datasources/usage_pattern_local_datasource.dart';
+import '../../features/ai/data/datasources/weather_remote_datasource.dart';
+import '../../features/ai/data/repositories/foundation_model_repository_impl.dart';
+import '../../features/ai/data/repositories/usage_pattern_repository_impl.dart';
+import '../../features/ai/data/repositories/weather_repository_impl.dart';
+import '../../features/ai/domain/repositories/foundation_model_repository.dart';
+import '../../features/ai/domain/repositories/usage_pattern_repository.dart';
+import '../../features/ai/domain/repositories/weather_repository.dart';
+import '../../features/ai/domain/usecases/analyze_usage_patterns.dart';
+import '../../features/ai/domain/usecases/get_weather_recommendation.dart';
+import '../../features/ai/domain/usecases/log_device_action.dart';
+import '../../features/ai/domain/usecases/parse_voice_intent.dart';
+import '../../features/ai/domain/usecases/send_chat_message.dart';
+import '../../features/ai/presentation/bloc/ai_chat_bloc.dart';
+import '../../features/ai/presentation/bloc/ai_suggestion_bloc.dart';
+import '../../features/ai/presentation/bloc/voice_command_bloc.dart';
+import '../../features/ai/presentation/bloc/weather_ai_bloc.dart';
+
 final sl = GetIt.instance;
 
 Future<void> setupInjector() async {
@@ -338,4 +359,37 @@ Future<void> setupInjector() async {
       homeRemoteDataSource: sl(),
     ),
   );
+
+  // ========== AI Feature ==========
+  // Data sources
+  sl.registerLazySingleton(() => FoundationModelsDataSource());
+  sl.registerLazySingleton(() => SpeechToTextDataSource());
+  sl.registerLazySingleton(() => UsagePatternLocalDataSource());
+  sl.registerLazySingleton(() => WeatherRemoteDataSource(sl<http.Client>()));
+
+  // Repositories
+  sl.registerLazySingleton<FoundationModelRepository>(
+    () => FoundationModelRepositoryImpl(sl()),
+  );
+  sl.registerLazySingleton<UsagePatternRepository>(
+    () => UsagePatternRepositoryImpl(sl()),
+  );
+  sl.registerLazySingleton<WeatherRepository>(
+    () => WeatherRepositoryImpl(sl()),
+  );
+
+  // Use cases
+  sl.registerLazySingleton(() => ParseVoiceIntent(sl()));
+  sl.registerLazySingleton(() => LogDeviceAction(sl()));
+  sl.registerLazySingleton(() => AnalyzeUsagePatterns(sl()));
+  sl.registerLazySingleton(() => GetWeatherRecommendation(sl()));
+  sl.registerLazySingleton(() => SendChatMessage(sl()));
+
+  // BLoCs (Factory — fresh state each provider)
+  sl.registerFactory(
+    () => VoiceCommandBloc(stt: sl(), parse: sl()),
+  );
+  sl.registerFactory(() => AiSuggestionBloc(sl()));
+  sl.registerFactory(() => WeatherAiBloc(sl()));
+  sl.registerFactory(() => AiChatBloc(sl(), sl(), sl()));
 }

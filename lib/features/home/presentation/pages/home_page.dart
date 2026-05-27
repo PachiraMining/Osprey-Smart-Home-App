@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_curtain_app/core/theme/app_colors.dart';
 import 'package:smart_curtain_app/core/theme/app_radius.dart';
+import 'package:smart_curtain_app/core/theme/liquid_glass.dart';
+import 'package:smart_curtain_app/core/theme/aurora_glow.dart';
+import 'package:smart_curtain_app/features/ai/presentation/bloc/voice_command_bloc.dart';
 import 'package:smart_curtain_app/core/theme/app_typography.dart';
 import 'package:smart_curtain_app/features/home/presentation/pages/CreateSceneTriggerPage.dart';
 import 'package:smart_curtain_app/features/home/presentation/pages/create_scene_page.dart';
@@ -14,7 +17,6 @@ import 'package:smart_curtain_app/features/scene/domain/entities/scene_entity.da
 import 'package:get_it/get_it.dart';
 import 'package:smart_curtain_app/core/auth/token_manager.dart';
 import 'package:smart_curtain_app/features/home/presentation/pages/personal_info_page.dart';
-import 'package:smart_curtain_app/features/home/presentation/pages/qr_scanner_page.dart';
 import 'package:smart_curtain_app/features/home/presentation/pages/settings_page.dart';
 import 'package:smart_curtain_app/features/home/presentation/pages/alexa_linking_page.dart';
 import 'package:smart_curtain_app/features/home/presentation/pages/google_assistant_linking_page.dart';
@@ -46,7 +48,6 @@ class HomePageState extends State<HomePage> {
     _pages = [
       const home_tab.HomeTab(),
       const SceneTab(),
-      const MallTab(),
       const ProfileTab(),
     ];
   }
@@ -88,11 +89,6 @@ class HomePageState extends State<HomePage> {
           MaterialPageRoute(
             builder: (_) => CreateScenePage(scheduleData: triggerData),
           ),
-        );
-      case 'Scan':
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const QrScannerPage()),
         );
     }
   }
@@ -148,8 +144,8 @@ class HomePageState extends State<HomePage> {
             bottom: false,
             child: Column(
               children: [
-                // Top bar - hidden on Mall tab
-                if (currentIndex != 2 && currentIndex != 3)
+                // Top bar - hidden on Me tab
+                if (currentIndex != 2)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
                     child: Row(
@@ -222,8 +218,6 @@ class HomePageState extends State<HomePage> {
                                   Icons.devices_other_outlined, 'Add Device'),
                               _buildPopupItem(
                                   Icons.edit_square, 'Create Scene'),
-                              _buildPopupItem(
-                                  Icons.qr_code_scanner_outlined, 'Scan'),
                             ],
                             child: Container(
                               width: 42,
@@ -258,9 +252,27 @@ class HomePageState extends State<HomePage> {
               ],
             ),
           ),
+
+          // Aurora rim glow — covers the entire screen including safe areas.
+          // Renders on top of all content; ignores touches.
+          BlocBuilder<VoiceCommandBloc, VoiceCommandState>(
+            builder: (context, vState) {
+              final glowing = vState is VoiceListening || vState is VoiceParsing;
+              return Positioned.fill(
+                child: IgnorePointer(
+                  child: AuroraGlow(
+                    style: vState is VoiceParsing
+                        ? AuroraGlowStyle.intense
+                        : AuroraGlowStyle.standard,
+                    active: glowing,
+                  ),
+                ),
+              );
+            },
+          ),
         ],
       ),
-      bottomNavigationBar: _OspreyBottomNav(
+      bottomNavigationBar: _BrandBottomNav(
         currentIndex: currentIndex,
         onTap: (i) => setState(() => currentIndex = i),
       ),
@@ -269,11 +281,11 @@ class HomePageState extends State<HomePage> {
 }
 
 /// Floating pill bottom navigation — distinct from the typical Material flat bar.
-class _OspreyBottomNav extends StatelessWidget {
+class _BrandBottomNav extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
 
-  const _OspreyBottomNav({
+  const _BrandBottomNav({
     required this.currentIndex,
     required this.onTap,
   });
@@ -281,7 +293,6 @@ class _OspreyBottomNav extends StatelessWidget {
   static const _items = [
     (Icons.cottage_outlined, Icons.cottage, 'Home'),
     (Icons.auto_awesome_outlined, Icons.auto_awesome, 'Scenes'),
-    (Icons.storefront_outlined, Icons.storefront, 'Mall'),
     (Icons.person_outline_rounded, Icons.person_rounded, 'Me'),
   ];
 
@@ -291,20 +302,11 @@ class _OspreyBottomNav extends StatelessWidget {
       top: false,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-        child: Container(
+        child: LiquidGlass(
+          radius: AppRadius.xl,
+          fillColor: AppColors.glassFillStrong,
+          child: SizedBox(
           height: 68,
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(AppRadius.xl),
-            border: Border.all(color: AppColors.borderSubtle),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.shadow,
-                blurRadius: 28,
-                offset: const Offset(0, 12),
-              ),
-            ],
-          ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: List.generate(_items.length, (i) {
@@ -357,6 +359,7 @@ class _OspreyBottomNav extends StatelessWidget {
                 ),
               );
             }),
+          ),
           ),
         ),
       ),
@@ -1123,16 +1126,6 @@ class ProfileTab extends StatelessWidget {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const QrScannerPage()),
-                  );
-                },
-                child: Icon(Icons.qr_code_scanner, size: 24, color: Colors.grey.shade700),
-              ),
-              const SizedBox(width: 20),
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
                     MaterialPageRoute(builder: (_) => const SettingsPage()),
                   );
                 },
@@ -1278,25 +1271,6 @@ class ProfileTab extends StatelessWidget {
 
           const SizedBox(height: 16),
 
-          // Menu items card
-          Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: Colors.white.withAlpha(180),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              children: [
-                _buildMenuRow(Icons.home_outlined, 'Home Management'),
-                _divider(),
-                _buildMenuRow(Icons.chat_bubble_outline, 'Message Center', hasNotification: true),
-                _divider(),
-                _buildMenuRow(Icons.help_outline, 'FAQ & Feedback'),
-                _divider(),
-                _buildMenuRow(Icons.shopping_bag_outlined, 'App Mall'),
-              ],
-            ),
-          ),
 
           const SizedBox(height: 40),
         ],

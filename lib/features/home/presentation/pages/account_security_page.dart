@@ -57,14 +57,6 @@ class AccountSecurityPage extends StatelessWidget {
             ]),
 
             _buildSection([
-              _buildNavItem(context, 'Third-Party Voice Services', onTap: () {}),
-            ]),
-
-            _buildSection([
-              _buildNavItem(context, 'Change Login Password', onTap: () {}),
-            ]),
-
-            _buildSection([
               _buildNavItem(
                 context,
                 'Delete Account',

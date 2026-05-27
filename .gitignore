@@ -59,3 +59,12 @@ android/key.properties
 # FVM Version Cache
 .fvm/
 owasp_m*_scan.json
+
+# Claude Code worktrees
+.claude/worktrees/
+
+# GitNexus
+.gitnexus/
+
+# Android build artifacts
+android/build/

@@ -63,7 +63,7 @@ class _SignUpPageState extends State<SignUpPage> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Join Osprey to control your smart home from anywhere.',
+                'Sign up for AI curtain control from anywhere.',
                 style: AppTypography.bodyMedium.copyWith(
                   color: AppColors.textSecondary,
                 ),
@@ -139,7 +139,7 @@ class _SignUpPageState extends State<SignUpPage> {
                     color: AppColors.textPrimary,
                   ),
                   decoration: InputDecoration(
-                    hintText: 'you@osprey.io',
+                    hintText: 'you@example.com',
                     hintStyle: AppTypography.bodyLarge.copyWith(
                       color: AppColors.textMuted,
                     ),

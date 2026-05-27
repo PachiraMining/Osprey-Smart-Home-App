@@ -12,11 +12,15 @@ import 'features/device/presentation/bloc/device_bloc.dart';
 import 'features/scene/presentation/bloc/scene_bloc.dart';
 import 'features/scene/presentation/bloc/scene_event.dart';
 import 'smart_splash.dart';
-import 'features/home/presentation/pages/home_page.dart';
+import 'features/home/presentation/pages/chat_home_page.dart';
 import 'features/device/presentation/bloc/device_event.dart';
 import 'features/scene/presentation/bloc/tap_to_run/tap_to_run_bloc.dart';
 import 'features/home/presentation/bloc/home_management_bloc.dart';
 import 'features/home/presentation/bloc/home_management_event.dart';
+import 'features/ai/presentation/bloc/ai_chat_bloc.dart';
+import 'features/ai/presentation/bloc/ai_suggestion_bloc.dart';
+import 'features/ai/presentation/bloc/voice_command_bloc.dart';
+import 'features/ai/presentation/bloc/weather_ai_bloc.dart';
 
 Future<void> _bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -52,25 +56,6 @@ void main() async {
   );
 }
 
-// class SmartApp extends StatelessWidget {
-//   const SmartApp({super.key});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return BlocProvider(
-//       // ✅ Bọc toàn bộ app trong BlocProvider<AuthBloc>
-//       create: (_) => GetIt.instance<AuthBloc>(),
-//       child: MaterialApp(
-//         title: 'Osprey',
-//         debugShowCheckedModeBanner: false,
-//         theme: ThemeData(primarySwatch: Colors.teal),
-//         home: const SmartSplashScreen(),
-//         routes: {'/home': (_) => const HomePage()},
-//       ),
-//     );
-//   }
-// }
-
 class SmartApp extends StatelessWidget {
   const SmartApp({super.key});
 
@@ -93,13 +78,17 @@ class SmartApp extends StatelessWidget {
             ..add(LoadScenesEvent()),
         ),
         BlocProvider(create: (_) => GetIt.instance<TapToRunBloc>()),
+        BlocProvider(create: (_) => GetIt.instance<VoiceCommandBloc>()),
+        BlocProvider(create: (_) => GetIt.instance<AiSuggestionBloc>()),
+        BlocProvider(create: (_) => GetIt.instance<WeatherAiBloc>()),
+        BlocProvider(create: (_) => GetIt.instance<AiChatBloc>()),
       ],
       child: MaterialApp(
-        title: 'Osprey',
+        title: 'Osprey Life',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light,
         home: const SmartSplashScreen(),
-        routes: {'/home': (_) => const HomePage()},
+        routes: {'/home': (_) => const ChatHomePage()},
       ),
     );
   }

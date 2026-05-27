@@ -6,8 +6,8 @@ import 'app_colors.dart';
 import 'app_radius.dart';
 import 'app_typography.dart';
 
-/// Light theme for the Osprey app. Distinct from typical smart-home Material
-/// defaults: warm cream background, deep forest primary, gold accent, larger
+/// Light theme for the Osprey Life app. Distinct from typical smart-home Material
+/// defaults: sand/cream background, terracotta primary, warm accent, larger
 /// corner radii, custom Plus Jakarta Sans typography.
 class AppTheme {
   AppTheme._();

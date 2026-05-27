@@ -66,7 +66,7 @@ void main() {
   const tToken = 'jwt-token';
   const tRefreshToken = 'refresh-token';
   const tCustomerId = 'customer-uuid';
-  const tEmail = 'user@osprey.io';
+  const tEmail = 'user@example.com';
 
   final tLoginResponse = LoginResponseModel(
     token: tToken,

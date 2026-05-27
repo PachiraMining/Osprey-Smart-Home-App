@@ -11,7 +11,7 @@ class AppConfig {
       'https://pachiramining.github.io/Osprey-Smart-Home-App/terms/';
 
   /// Package name used as the OAuth2 app identifier sent to ThingsBoard.
-  static const String pkgName = 'com.osprey.smarthome';
+  static const String pkgName = 'io.dracaena.curtainai';
 
   /// Base64-encoded HMAC-SHA256 secret for Android OAuth2 app tokens.
   /// MUST be passed via --dart-define=APP_SECRET_ANDROID=<value> at build time.

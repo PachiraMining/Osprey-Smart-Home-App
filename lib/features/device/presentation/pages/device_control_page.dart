@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../domain/entities/device_entity.dart';
 import '../../domain/usecases/send_device_command.dart';
 import '../../../../core/di/injector.dart';
+import '../../../ai/domain/usecases/log_device_action.dart';
 
 class DeviceControlPage extends StatefulWidget {
   final DeviceEntity device;
@@ -19,6 +20,7 @@ class _DeviceControlPageState extends State<DeviceControlPage>
   late final AnimationController _controller;
   late final AnimationController _pulseController;
   late final SendDeviceCommand _sendDeviceCommand;
+  late final LogDeviceAction _logDeviceAction;
 
   @override
   void initState() {
@@ -34,6 +36,7 @@ class _DeviceControlPageState extends State<DeviceControlPage>
 
     // INJECT USE CASE
     _sendDeviceCommand = sl<SendDeviceCommand>();
+    _logDeviceAction = sl<LogDeviceAction>();
 
     _controller.addListener(() {
       setState(() => _position = _controller.value);
@@ -66,6 +69,9 @@ class _DeviceControlPageState extends State<DeviceControlPage>
           setState(() => _isRunning = false);
         },
         (_) {
+          // Pattern learning: log every successful command for AI suggestion engine.
+          _logDeviceAction(deviceId: widget.device.id, command: command);
+
           // Thành công → Chạy animation
           if (command == 'OPEN') {
             _controller.animateTo(0.0, curve: Curves.easeInOut);

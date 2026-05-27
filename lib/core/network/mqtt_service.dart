@@ -55,7 +55,7 @@ class MqttService {
   final Map<String, MqttQos> _activeSubscriptions = {};
 
   MqttService({
-    String clientIdPrefix = 'osprey-app',
+    String clientIdPrefix = 'osprey-life-app',
     String host = AppConfig.mqttHost,
     int port = AppConfig.mqttPort,
     int keepAliveSeconds = 60,

@@ -5,7 +5,7 @@ import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
 import 'account_security_page.dart';
 import 'personal_info_page.dart';
-import 'dark_mode_page.dart';
+import '../../../ai/presentation/pages/ai_chat_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -54,7 +54,6 @@ class _SettingsPageState extends State<SettingsPage> {
                 MaterialPageRoute(builder: (_) => const AccountSecurityPage()),
               );
             }),
-            _buildNavItem('Device Update', onTap: () {}),
           ]),
 
           // Section 2: App Settings
@@ -64,44 +63,15 @@ class _SettingsPageState extends State<SettingsPage> {
               value: _touchTone,
               onChanged: (v) => setState(() => _touchTone = v),
             ),
-            _buildNavItem('App Notification', onTap: () {}),
             _buildNavItem(
-              'Dark Mode',
-              trailing: 'Off',
+              'AI Assistant',
+              trailing: '✨',
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const DarkModePage()),
+                  MaterialPageRoute(builder: (_) => const AiChatPage()),
                 );
               },
-            ),
-            _buildNavItem(
-              'Temperature Unit',
-              trailing: '°C',
-              onTap: () {},
-            ),
-            _buildNavItem(
-              'Language',
-              trailing: 'Same as the system language',
-              onTap: () {},
-            ),
-            _buildNavItem('More Features', onTap: () {}),
-          ]),
-
-          // Section 3: Info
-          _buildSection([
-            _buildNavItem('About', onTap: () {}),
-            _buildNavItem('Privacy Settings', onTap: () {}),
-            _buildNavItem('Privacy Policy Management', onTap: () {}),
-          ]),
-
-          // Section 4: Diagnostics
-          _buildSection([
-            _buildNavItem('Network Diagnosis', onTap: () {}),
-            _buildNavItem(
-              'Clear Cache',
-              trailing: '10.46M',
-              onTap: () {},
             ),
           ]),
 

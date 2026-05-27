@@ -12,6 +12,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
+import 'sign_up_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -23,7 +24,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   bool agreePolicy = false;
   bool obscurePassword = true;
-  String selectedCountry = 'Vietnam';
+  bool _isSignUpMode = false;
   bool _isLoadingDialogShowing = false;
 
   String? _googleProviderUrl;
@@ -107,7 +108,7 @@ class _LoginPageState extends State<LoginPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 16),
 
                   // Back
                   Container(
@@ -129,33 +130,27 @@ class _LoginPageState extends State<LoginPage> {
                   const SizedBox(height: 36),
 
                   Text(
-                    'Welcome back',
+                    _isSignUpMode ? 'Create your account' : 'Welcome',
                     style: AppTypography.displayMedium.copyWith(
                       color: AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Sign in to manage your Osprey home.',
+                    _isSignUpMode
+                        ? 'Sign up to control your AI curtains.'
+                        : 'Sign in to control your AI curtains.',
                     style: AppTypography.bodyMedium.copyWith(
                       color: AppColors.textSecondary,
                     ),
                   ),
 
-                  const SizedBox(height: 32),
-
-                  // Region selector — stylised pill
-                  _RegionSelector(
-                    value: selectedCountry,
-                    onChanged: (v) => setState(() => selectedCountry = v),
-                  ),
-
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 28),
 
                   _LabelledField(
                     label: 'Email or username',
                     controller: usernameController,
-                    hintText: 'you@osprey.io',
+                    hintText: 'you@example.com',
                     keyboardType: TextInputType.emailAddress,
                     prefix: const Icon(
                       Icons.alternate_email_rounded,
@@ -262,21 +257,52 @@ class _LoginPageState extends State<LoginPage> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: agreePolicy
-                          ? () {
-                              context.read<AuthBloc>().add(
-                                    LoginRequested(
-                                      usernameController.text.trim(),
-                                      passwordController.text.trim(),
-                                    ),
-                                  );
-                            }
-                          : null,
+                      onPressed: () {
+                        if (!agreePolicy) {
+                          QuickAlert.show(
+                            context: context,
+                            type: QuickAlertType.warning,
+                            title: 'Agreement required',
+                            text:
+                                'Please tick the Privacy Policy and User Agreement checkbox to continue.',
+                            confirmBtnText: 'Got it',
+                            confirmBtnColor: AppColors.primary,
+                          );
+                          return;
+                        }
+                        final email = usernameController.text.trim();
+                        final password = passwordController.text.trim();
+                        if (email.isEmpty || password.isEmpty) {
+                          QuickAlert.show(
+                            context: context,
+                            type: QuickAlertType.info,
+                            title: 'Missing credentials',
+                            text: _isSignUpMode
+                                ? 'Please enter an email and password to create your account.'
+                                : 'Please enter your email and password to sign in.',
+                            confirmBtnText: 'OK',
+                            confirmBtnColor: AppColors.primary,
+                          );
+                          return;
+                        }
+                        if (_isSignUpMode) {
+                          // Existing server flow lives in SignUpPage; jump there
+                          // pre-filled with the typed email.
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const SignUpPage(),
+                            ),
+                          );
+                        } else {
+                          context.read<AuthBloc>().add(
+                                LoginRequested(email, password),
+                              );
+                        }
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
-                        disabledBackgroundColor: AppColors.surfaceMuted,
                         foregroundColor: AppColors.textInverse,
-                        disabledForegroundColor: AppColors.textMuted,
                         minimumSize: const Size(0, 56),
                         elevation: 0,
                         shape: RoundedRectangleBorder(
@@ -284,60 +310,62 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                       child: Text(
-                        'Sign in',
+                        _isSignUpMode ? 'Create account' : 'Sign in',
                         style: AppTypography.labelLarge.copyWith(
                           fontSize: 15,
-                          color: agreePolicy
-                              ? AppColors.textInverse
-                              : AppColors.textMuted,
+                          color: AppColors.textInverse,
                         ),
                       ),
                     ),
                   ),
 
                   const SizedBox(height: 14),
+
+                  // Mode toggle — sign-in <-> sign-up inline on the same page.
                   Center(
                     child: TextButton(
-                      onPressed: () {},
-                      child: Text(
-                        'Forgot password?',
-                        style: AppTypography.labelMedium.copyWith(
-                          color: AppColors.textSecondary,
+                      onPressed: () =>
+                          setState(() => _isSignUpMode = !_isSignUpMode),
+                      child: Text.rich(
+                        TextSpan(
+                          children: [
+                            TextSpan(
+                              text: _isSignUpMode
+                                  ? 'Already have an account? '
+                                  : "New to Osprey Life? ",
+                              style: AppTypography.labelMedium.copyWith(
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                            TextSpan(
+                              text: _isSignUpMode
+                                  ? 'Sign in'
+                                  : 'Create one',
+                              style: AppTypography.labelMedium.copyWith(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
                   ),
 
-                  const SizedBox(height: 18),
-                  const _OrDivider(),
-                  const SizedBox(height: 18),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _SocialIconButton(
-                        child: Image.asset(
-                          'assets/icons/google_logo.png',
-                          width: 24,
-                          height: 24,
+                  if (!_isSignUpMode) ...[
+                    const SizedBox(height: 4),
+                    Center(
+                      child: TextButton(
+                        onPressed: () {},
+                        child: Text(
+                          'Forgot password?',
+                          style: AppTypography.labelMedium.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
                         ),
-                        onTap: agreePolicy
-                            ? () => _onSocialTap(
-                                context, _googleProviderUrl, 'Google')
-                            : null,
                       ),
-                      const SizedBox(width: 18),
-                      _SocialIconButton(
-                        bgColor: AppColors.textPrimary,
-                        child: const Icon(Icons.apple,
-                            color: Colors.white, size: 26),
-                        onTap: agreePolicy
-                            ? () => _onSocialTap(
-                                context, _appleProviderUrl, 'Apple')
-                            : null,
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
 
                   const SizedBox(height: 32),
                 ],

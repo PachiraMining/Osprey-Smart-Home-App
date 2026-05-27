@@ -8,7 +8,6 @@ import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/auth/presentation/bloc/auth_event.dart';
 import 'features/auth/presentation/bloc/auth_state.dart';
 import 'features/auth/presentation/pages/login_page.dart';
-import 'features/auth/presentation/pages/sign_up_page.dart';
 
 class SmartSplashScreen extends StatefulWidget {
   const SmartSplashScreen({super.key});
@@ -131,17 +130,20 @@ class _SmartSplashScreenState extends State<SmartSplashScreen>
                 children: [
                   SizedBox(height: screenHeight * 0.16),
 
-                  // Brand mark
+                  // Brand mark — full Osprey Life wordmark in a rounded card
                   Center(
                     child: FadeTransition(
                       opacity: _logoFade,
                       child: ScaleTransition(
                         scale: _logoScale,
                         child: Container(
-                          padding: const EdgeInsets.all(20),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 28,
+                            vertical: 24,
+                          ),
                           decoration: BoxDecoration(
                             color: AppColors.surface,
-                            shape: BoxShape.circle,
+                            borderRadius: BorderRadius.circular(36),
                             boxShadow: [
                               BoxShadow(
                                 color: AppColors.shadow,
@@ -151,9 +153,8 @@ class _SmartSplashScreenState extends State<SmartSplashScreen>
                             ],
                           ),
                           child: Image.asset(
-                            'assets/eagle_logo.png',
-                            width: 100,
-                            height: 100,
+                            'assets/osprey_life_logo.png',
+                            width: 260,
                             fit: BoxFit.contain,
                           ),
                         ),
@@ -161,28 +162,16 @@ class _SmartSplashScreenState extends State<SmartSplashScreen>
                     ),
                   ),
 
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 24),
 
                   FadeTransition(
                     opacity: _logoFade,
-                    child: Column(
-                      children: [
-                        Text(
-                          'Osprey',
-                          style: AppTypography.displayMedium.copyWith(
-                            color: AppColors.primary,
-                            letterSpacing: -0.6,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          'Smart living, refined.',
-                          style: AppTypography.bodyMedium.copyWith(
-                            color: AppColors.textSecondary,
-                            letterSpacing: 0.3,
-                          ),
-                        ),
-                      ],
+                    child: Text(
+                      'AI curtain assistant.',
+                      style: AppTypography.bodyMedium.copyWith(
+                        color: AppColors.textSecondary,
+                        letterSpacing: 0.3,
+                      ),
                     ),
                   ),
 
@@ -195,86 +184,37 @@ class _SmartSplashScreenState extends State<SmartSplashScreen>
                         opacity: _ctaFade,
                         child: Padding(
                           padding: const EdgeInsets.fromLTRB(28, 0, 28, 40),
-                          child: Column(
-                            children: [
-                              SizedBox(
-                                width: double.infinity,
-                                child: ElevatedButton(
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => BlocProvider.value(
-                                          value: context.read<AuthBloc>(),
-                                          child: const LoginPage(),
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.primary,
-                                    foregroundColor: AppColors.textInverse,
-                                    minimumSize: const Size(0, 56),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(
-                                          AppRadius.lg),
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => BlocProvider.value(
+                                      value: context.read<AuthBloc>(),
+                                      child: const LoginPage(),
                                     ),
                                   ),
-                                  child: Text(
-                                    'Sign in',
-                                    style: AppTypography.labelLarge.copyWith(
-                                      color: AppColors.textInverse,
-                                      fontSize: 15,
-                                    ),
-                                  ),
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                foregroundColor: AppColors.textInverse,
+                                minimumSize: const Size(0, 56),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(
+                                      AppRadius.lg),
                                 ),
                               ),
-                              const SizedBox(height: 12),
-                              SizedBox(
-                                width: double.infinity,
-                                child: OutlinedButton(
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => const SignUpPage(),
-                                      ),
-                                    );
-                                  },
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: AppColors.primary,
-                                    minimumSize: const Size(0, 56),
-                                    side: const BorderSide(
-                                      color: AppColors.border,
-                                      width: 1.4,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(
-                                          AppRadius.lg),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    'Create account',
-                                    style: AppTypography.labelLarge.copyWith(
-                                      color: AppColors.primary,
-                                      fontSize: 15,
-                                    ),
-                                  ),
+                              child: Text(
+                                'Get started',
+                                style: AppTypography.labelLarge.copyWith(
+                                  color: AppColors.textInverse,
+                                  fontSize: 15,
                                 ),
                               ),
-                              const SizedBox(height: 18),
-                              GestureDetector(
-                                onTap: () {},
-                                child: Text(
-                                  'Continue as guest',
-                                  style: AppTypography.bodyMedium.copyWith(
-                                    color: AppColors.textSecondary,
-                                    decoration: TextDecoration.underline,
-                                    decorationColor: AppColors.textMuted,
-                                  ),
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
                         ),
                       ),

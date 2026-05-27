@@ -57,15 +57,6 @@ class CreateSceneTriggerPage extends StatelessWidget {
                 children: [
                   _buildTriggerRow(
                     context,
-                    icon: Icons.wb_sunny_outlined,
-                    iconColor: const Color(0xFFFFA726),
-                    title: 'When weather changes',
-                    example: 'Example: when local temperature is greater than 28°C.',
-                    onTap: () {},
-                  ),
-                  Divider(height: 1, indent: 72, endIndent: 20, color: Colors.grey.shade200),
-                  _buildTriggerRow(
-                    context,
                     icon: Icons.access_time,
                     iconColor: const Color(0xFF42A5F5),
                     title: 'Schedule',
@@ -78,15 +69,6 @@ class CreateSceneTriggerPage extends StatelessWidget {
                         ),
                       );
                     },
-                  ),
-                  Divider(height: 1, indent: 72, endIndent: 20, color: Colors.grey.shade200),
-                  _buildTriggerRow(
-                    context,
-                    icon: Icons.sensors_outlined,
-                    iconColor: const Color(0xFF26A69A),
-                    title: 'When device status changes',
-                    example: 'Example: when an unusual activity is detected.',
-                    onTap: () {},
                   ),
                 ],
               ),

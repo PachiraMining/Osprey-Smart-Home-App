@@ -9,7 +9,7 @@ plugins {
 }
 
 android {
-    namespace = "com.osprey.smarthome"
+    namespace = "io.dracaena.curtainai"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -23,7 +23,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.osprey.smarthome"
+        applicationId = "io.dracaena.curtainai"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
