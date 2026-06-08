@@ -1,5 +1,6 @@
-package com.example.smart_curtain_app
+package io.dracaena.curtainai
 
 import io.flutter.embedding.android.FlutterActivity
 
 class MainActivity : FlutterActivity()
+

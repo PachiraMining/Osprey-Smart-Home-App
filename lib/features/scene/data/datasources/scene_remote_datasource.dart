@@ -1,156 +1,73 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
+import '../../../../core/network/api_client.dart';
 import '../../../../core/error/exceptions.dart';
 import '../models/scene_model.dart';
 
 abstract class SceneRemoteDataSource {
-  Future<List<SceneModel>> getScenes(String userId);
-  Future<SceneModel> createScene(Map<String, dynamic> data);
-  Future<void> deleteScene(int sceneId);
-  Future<void> toggleScene(int sceneId, bool enabled);
-  Future<String> getDeviceToken(String deviceId);
+  Future<List<SceneModel>> getScenes(String homeId);
+  Future<SceneModel> createScene(String homeId, Map<String, dynamic> data);
+  Future<void> deleteScene(String sceneId);
+  Future<void> toggleScene(String sceneId, bool enabled);
 }
 
 class SceneRemoteDataSourceImpl implements SceneRemoteDataSource {
-  final http.Client client;
-  final String schedulerBaseUrl;
-  final String thingsboardBaseUrl;
-  final String Function() getToken;
-  final String Function() getCustomerId;
+  final ApiClient apiClient;
 
-  SceneRemoteDataSourceImpl({
-    required this.client,
-    required this.schedulerBaseUrl,
-    required this.thingsboardBaseUrl,
-    required this.getToken,
-    required this.getCustomerId,
-  });
-
-  Map<String, String> get _thingsboardHeaders => {
-    'Content-Type': 'application/json',
-    'accept': 'application/json',
-    'X-Authorization': 'Bearer ${getToken()}',
-  };
-
-  Map<String, String> get _schedulerHeaders => {
-    'Content-Type': 'application/json',
-    'accept': 'application/json',
-  };
+  SceneRemoteDataSourceImpl({required this.apiClient});
 
   @override
-  Future<List<SceneModel>> getScenes(String userId) async {
+  Future<List<SceneModel>> getScenes(String homeId) async {
     try {
-      final url = '$schedulerBaseUrl/scenes/?user_id=$userId';
-
-      final response = await client.get(
-        Uri.parse(url),
-        headers: _schedulerHeaders,
+      final response = await apiClient.get(
+        '/api/smarthome/homes/$homeId/scenes',
+        queryParameters: {'sceneType': 'AUTOMATION'},
       );
+      final List<dynamic> data = response.data is List ? response.data : [];
+      return data
+          .map((json) => SceneModel.fromJson(json as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401) throw UnauthorizedException();
+      throw ServerException(message: 'Failed to get scenes: ${e.message}');
+    }
+  }
 
-      if (response.statusCode == 200) {
-        final List<dynamic> jsonList = jsonDecode(response.body);
-        return jsonList.map((json) => SceneModel.fromJson(json)).toList();
+  @override
+  Future<SceneModel> createScene(String homeId, Map<String, dynamic> data) async {
+    try {
+      final response = await apiClient.post(
+        '/api/smarthome/homes/$homeId/scenes',
+        data: data,
+      );
+      return SceneModel.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401) throw UnauthorizedException();
+      throw ServerException(
+          message: 'Failed to create scene: ${e.response?.data ?? e.message}');
+    }
+  }
+
+  @override
+  Future<void> deleteScene(String sceneId) async {
+    try {
+      await apiClient.delete('/api/smarthome/scenes/$sceneId');
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401) throw UnauthorizedException();
+      throw ServerException(message: 'Failed to delete scene: ${e.message}');
+    }
+  }
+
+  @override
+  Future<void> toggleScene(String sceneId, bool enabled) async {
+    try {
+      if (enabled) {
+        await apiClient.put('/api/smarthome/scenes/$sceneId/enable');
       } else {
-        throw ServerException(
-          message: 'Failed to load scenes: ${response.statusCode}',
-        );
+        await apiClient.put('/api/smarthome/scenes/$sceneId/disable');
       }
-    } catch (e) {
-      if (e is ServerException) rethrow;
-      throw NetworkException();
-    }
-  }
-
-  @override
-  Future<SceneModel> createScene(Map<String, dynamic> data) async {
-    try {
-      final url = '$schedulerBaseUrl/scenes/';
-
-      final response = await client.post(
-        Uri.parse(url),
-        headers: _schedulerHeaders,
-        body: jsonEncode(data),
-      );
-
-      if (response.statusCode == 200) {
-        return SceneModel.fromJson(jsonDecode(response.body));
-      } else {
-        throw ServerException(
-          message: 'Failed to create scene: ${response.statusCode} - ${response.body}',
-        );
-      }
-    } catch (e) {
-      if (e is ServerException) rethrow;
-      throw NetworkException();
-    }
-  }
-
-  @override
-  Future<void> deleteScene(int sceneId) async {
-    try {
-      final url = '$schedulerBaseUrl/scenes/$sceneId';
-
-      final response = await client.delete(
-        Uri.parse(url),
-        headers: _schedulerHeaders,
-      );
-
-      if (response.statusCode != 200) {
-        throw ServerException(
-          message: 'Failed to delete scene: ${response.statusCode}',
-        );
-      }
-    } catch (e) {
-      if (e is ServerException) rethrow;
-      throw NetworkException();
-    }
-  }
-
-  @override
-  Future<void> toggleScene(int sceneId, bool enabled) async {
-    try {
-      final url = '$schedulerBaseUrl/scenes/$sceneId/toggle?enabled=$enabled';
-
-      final response = await client.post(
-        Uri.parse(url),
-        headers: _schedulerHeaders,
-      );
-
-      if (response.statusCode != 200) {
-        throw ServerException(
-          message: 'Failed to toggle scene: ${response.statusCode}',
-        );
-      }
-    } catch (e) {
-      if (e is ServerException) rethrow;
-      throw NetworkException();
-    }
-  }
-
-  @override
-  Future<String> getDeviceToken(String deviceId) async {
-    try {
-      final url = '$thingsboardBaseUrl/api/device/$deviceId/credentials';
-
-      final response = await client.get(
-        Uri.parse(url),
-        headers: _thingsboardHeaders,
-      );
-
-      if (response.statusCode == 200) {
-        final json = jsonDecode(response.body);
-        final credentialsId = json['credentialsId'] as String;
-        return credentialsId;
-      } else if (response.statusCode == 401) {
-        throw UnauthorizedException();
-      } else {
-        throw ServerException(
-          message: 'Failed to get device credentials: ${response.statusCode}',
-        );
-      }
-    } catch (e) {
-      if (e is ServerException || e is UnauthorizedException) rethrow;
-      throw NetworkException();
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401) throw UnauthorizedException();
+      throw ServerException(message: 'Failed to toggle scene: ${e.message}');
     }
   }
 }

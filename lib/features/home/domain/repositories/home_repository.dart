@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import '../../../../core/error/failure.dart';
 import '../entities/home_entity.dart';
 import '../entities/home_device_entity.dart';
+import '../entities/factory_reset_result.dart';
 import '../entities/room_entity.dart';
 
 abstract class HomeRepository {
@@ -16,6 +17,7 @@ abstract class HomeRepository {
   Future<Either<Failure, void>> addDeviceToHome({required String homeId, required String deviceId});
   Future<Either<Failure, void>> updateHomeDevice({required String homeId, required String deviceId, String? roomId, String? deviceName, int? sortOrder});
   Future<Either<Failure, void>> removeDeviceFromHome({required String homeId, required String deviceId});
+  Future<Either<Failure, FactoryResetResult>> factoryResetDevice({required String homeId, required String deviceId});
 
   // Rooms
   Future<Either<Failure, List<RoomEntity>>> getRooms(String homeId);

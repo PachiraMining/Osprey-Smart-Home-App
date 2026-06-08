@@ -84,7 +84,7 @@ class SmartApp extends StatelessWidget {
         BlocProvider(create: (_) => GetIt.instance<AiChatBloc>()),
       ],
       child: MaterialApp(
-        title: 'Osprey Life',
+        title: 'osprey.life',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light,
         home: const SmartSplashScreen(),

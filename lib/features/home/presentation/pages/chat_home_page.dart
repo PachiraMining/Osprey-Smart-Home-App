@@ -8,7 +8,7 @@ import '../../../ai/presentation/widgets/voice_command_button.dart';
 import '../../../device/domain/entities/device_entity.dart';
 import '../widgets/chat_drawer.dart';
 
-/// Primary screen for Osprey Life.
+/// Primary screen for osprey.life.
 ///
 /// Replaces the legacy 4-tab `HomePage` as the default surface after sign-in.
 /// The first impression is an AI conversation, not a device grid — this is the
@@ -228,7 +228,7 @@ class _ChatHomePageState extends State<ChatHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Osprey Life'),
+        title: const Text('osprey.life'),
         centerTitle: false,
       ),
       drawer: const ChatDrawer(),
@@ -311,7 +311,7 @@ class _EmptyHint extends StatelessWidget {
       '/devices',
       '/help',
     ];
-    return Center(
+    return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -320,7 +320,7 @@ class _EmptyHint extends StatelessWidget {
             const Icon(Icons.auto_awesome, size: 48),
             const SizedBox(height: 12),
             const Text(
-              'Osprey Life Assistant',
+              'osprey.life Assistant',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 6),

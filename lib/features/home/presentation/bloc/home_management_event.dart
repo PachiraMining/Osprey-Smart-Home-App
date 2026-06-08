@@ -87,27 +87,46 @@ class AddDeviceToHomeEvent extends HomeManagementEvent {
 }
 
 /// Update a device within a home (rename, assign room, etc.)
+///
+/// LƯU Ý: PUT backend là full-replace — caller PHẢI truyền cả roomId và
+/// sortOrder hiện tại khi chỉ muốn rename, nếu không backend sẽ reset
+/// 2 field đó (văng device khỏi room).
 class UpdateHomeDeviceEvent extends HomeManagementEvent {
   final String homeId;
   final String deviceId;
   final String? roomId;
   final String? deviceName;
+  final int? sortOrder;
   const UpdateHomeDeviceEvent({
     required this.homeId,
     required this.deviceId,
     this.roomId,
     this.deviceName,
+    this.sortOrder,
   });
 
   @override
-  List<Object?> get props => [homeId, deviceId, roomId, deviceName];
+  List<Object?> get props => [homeId, deviceId, roomId, deviceName, sortOrder];
 }
 
-/// Remove a device from a home
+/// Nút "Ngắt kết nối" — DELETE device khỏi home (không gửi RPC factoryReset).
 class RemoveDeviceFromHomeEvent extends HomeManagementEvent {
   final String homeId;
   final String deviceId;
   const RemoveDeviceFromHomeEvent({
+    required this.homeId,
+    required this.deviceId,
+  });
+
+  @override
+  List<Object?> get props => [homeId, deviceId];
+}
+
+/// Nút "Hủy liên kết và xóa dữ liệu" — POST factory-reset (gửi RPC tới chip).
+class FactoryResetDeviceEvent extends HomeManagementEvent {
+  final String homeId;
+  final String deviceId;
+  const FactoryResetDeviceEvent({
     required this.homeId,
     required this.deviceId,
   });

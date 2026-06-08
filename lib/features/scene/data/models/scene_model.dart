@@ -3,45 +3,78 @@ import '../../domain/entities/scene_entity.dart';
 class SceneModel extends SceneEntity {
   const SceneModel({
     required super.id,
-    required super.userId,
     required super.name,
-    required super.deviceToken,
-    required super.action,
-    required super.time,
-    required super.daysOfWeek,
     required super.enabled,
-    required super.repeatMode,
+    super.icon,
+    required super.conditions,
+    required super.actions,
     required super.createdAt,
   });
 
   factory SceneModel.fromJson(Map<String, dynamic> json) {
+    final rawId = json['id'];
+    final id = rawId is Map ? rawId['id']?.toString() ?? '' : rawId?.toString() ?? '';
+
+    final rawConditions = json['conditions'];
+    final List<SceneCondition> conditions;
+    if (rawConditions is List) {
+      conditions = rawConditions
+          .map((c) => _parseCondition(c as Map<String, dynamic>))
+          .toList();
+    } else {
+      conditions = [];
+    }
+
+    final rawActions = json['actions'];
+    final List<SceneAction> actions;
+    if (rawActions is List) {
+      actions = rawActions
+          .map((a) => _parseAction(a as Map<String, dynamic>))
+          .toList();
+    } else {
+      actions = [];
+    }
+
     return SceneModel(
-      id: json['id'] as int,
-      userId: json['user_id'] as String,
-      name: json['name'] as String,
-      deviceToken: json['device_token'] as String,
-      action: json['action'] as String,
-      time: json['time'] as String,
-      daysOfWeek: json['days_of_week'] as String,
-      enabled: json['enabled'] as bool,
-      repeatMode: json['repeat_mode'] as String,
-      createdAt: DateTime.parse(json['created_at'] as String),
+      id: id,
+      name: (json['name'] ?? '') as String,
+      enabled: json['enabled'] as bool? ?? true,
+      icon: json['icon'] as String?,
+      conditions: conditions,
+      actions: actions,
+      createdAt: json['createdTime'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(json['createdTime'] as int)
+          : DateTime.now(),
     );
   }
 
-  Map<String, dynamic> toCreateJson({
-    required String userId,
-    required String deviceToken,
-  }) {
-    return {
-      'user_id': userId,
-      'name': name,
-      'device_token': deviceToken,
-      'action': action,
-      'time': time,
-      'days_of_week': daysOfWeek.split(',').map((e) => int.parse(e.trim())).toList(),
-      'enabled': true,
-      'repeat_mode': repeatMode,
-    };
+  static SceneCondition _parseCondition(Map<String, dynamic> json) {
+    return SceneCondition(
+      conditionType: json['conditionType']?.toString() ?? 'SCHEDULE',
+      date: json['date'] as String?,
+      time: json['time'] as String?,
+      loops: json['loops'] as String?,
+      timeZoneId: json['timeZoneId'] as String?,
+    );
+  }
+
+  static SceneAction _parseAction(Map<String, dynamic> json) {
+    final exec = json['executorProperty'] as Map<String, dynamic>?;
+    final actionType = json['actionType']?.toString() ?? '';
+
+    if (actionType == 'DELAY') {
+      return SceneAction(
+        actionType: actionType,
+        delayMinutes: exec?['minutes'] as int?,
+        delaySeconds: exec?['seconds'] as int?,
+      );
+    }
+
+    return SceneAction(
+      entityId: json['entityId']?.toString(),
+      actionType: actionType,
+      dpId: exec?['dpId'] as int?,
+      dpValue: exec?['dpValue']?.toString(),
+    );
   }
 }

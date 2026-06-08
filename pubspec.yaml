@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.0+4
+version: 1.0.1+5
 
 environment:
   sdk: ^3.9.2
@@ -39,6 +39,15 @@ dependencies:
   dartz: ^0.10.1
   permission_handler: ^11.3.1
   flutter_blue_plus: ^1.14.0
+  # BLE pairing crypto: HMAC-SHA256 + HKDF (Osprey pairing protocol)
+  cryptography: ^2.7.0
+  # AES-128-CCM cho PAIRING_DATA — package:cryptography KHÔNG có CCM
+  # (handoff doc gợi ý AesCcm nhưng class đó không tồn tại trong pkg đó)
+  pointycastle: ^3.9.1
+  # Tự detect SSID WiFi đang kết nối (màn nhập WiFi khi pairing)
+  network_info_plus: ^6.1.4
+  # Product catalog local cache (BLE pairing)
+  shared_preferences: ^2.2.0
   get: ^4.6.6
   equatable: ^2.0.5
   # HTTP

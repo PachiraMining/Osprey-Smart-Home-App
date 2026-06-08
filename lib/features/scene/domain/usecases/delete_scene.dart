@@ -7,7 +7,7 @@ class DeleteScene {
 
   DeleteScene(this.repository);
 
-  Future<Either<Failure, void>> call(int sceneId) async {
+  Future<Either<Failure, void>> call(String sceneId) async {
     return await repository.deleteScene(sceneId);
   }
 }

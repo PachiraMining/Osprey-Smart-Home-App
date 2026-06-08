@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:get_it/get_it.dart';
 import '../../../../core/auth/token_manager.dart';
@@ -22,10 +23,14 @@ class _CurtainControlPageState extends State<CurtainControlPage>
   final _tokenManager = GetIt.instance<TokenManager>();
   final _client = GetIt.instance<http.Client>();
 
-  double _position = 0.5; // 0.0 = fully open, 1.0 = fully closed
+  double _position = 0.0;
   bool _isLoading = false;
+  bool _isDragging = false;
 
   late final AnimationController _animController;
+  final _storage = GetIt.instance<FlutterSecureStorage>();
+
+  String get _storageKey => 'curtain_pos_${widget.device.id}';
 
   @override
   void initState() {
@@ -36,7 +41,23 @@ class _CurtainControlPageState extends State<CurtainControlPage>
     )..addListener(() {
         setState(() => _position = _animController.value);
       });
-    _animController.value = _position;
+    _loadSavedPosition();
+  }
+
+  Future<void> _loadSavedPosition() async {
+    final saved = await _storage.read(key: _storageKey);
+    if (saved != null) {
+      final v = double.tryParse(saved) ?? 0.0;
+      setState(() {
+        _position = v;
+        _animController.value = v;
+      });
+    }
+  }
+
+  Future<void> _savePosition(double pos) async {
+    await _storage.delete(key: _storageKey);
+    await _storage.write(key: _storageKey, value: pos.toStringAsFixed(2));
   }
 
   @override
@@ -80,34 +101,49 @@ class _CurtainControlPageState extends State<CurtainControlPage>
   void _onOpen() {
     _sendDpCommand(dpId: 1, value: 'open');
     _animController.animateTo(0.0, curve: Curves.easeInOut);
+    _savePosition(0.0);
   }
 
   void _onClose() {
     _sendDpCommand(dpId: 1, value: 'close');
     _animController.animateTo(1.0, curve: Curves.easeInOut);
+    _savePosition(1.0);
   }
 
   void _onStop() {
     _sendDpCommand(dpId: 1, value: 'stop');
     _animController.stop();
+    _savePosition(_position);
   }
 
   void _onPercentChanged(double percent) {
     final intPercent = percent.round();
-    _animController.animateTo(intPercent / 100, curve: Curves.easeInOut);
+    final pos = intPercent / 100.0;
+    _animController.animateTo(pos, curve: Curves.easeInOut);
     _sendDpCommand(dpId: 2, value: intPercent);
+    _savePosition(pos);
   }
+
+  OverlayEntry? _toastEntry;
 
   void _showSnackBar(String msg, Color color) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg),
-        backgroundColor: color,
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
+    _toastEntry?.remove();
+
+    final overlay = Overlay.of(context);
+    final isSuccess = color == Colors.green;
+
+    _toastEntry = OverlayEntry(
+      builder: (context) => _CurtainToast(
+        message: msg,
+        isSuccess: isSuccess,
+        onDismiss: () {
+          _toastEntry?.remove();
+          _toastEntry = null;
+        },
       ),
     );
+    overlay.insert(_toastEntry!);
   }
 
   @override
@@ -139,7 +175,7 @@ class _CurtainControlPageState extends State<CurtainControlPage>
       ),
       body: Column(
         children: [
-          // Curtain visualization - takes most of the space
+          // Curtain visualization — draggable motors on track
           Expanded(
             child: Center(
               child: Padding(
@@ -148,12 +184,78 @@ class _CurtainControlPageState extends State<CurtainControlPage>
                   builder: (context, constraints) {
                     final width = constraints.maxWidth;
                     final height = width * 1.15;
+                    final motorRadius = width * 0.06;
+                    final trackY = motorRadius + 4;
+                    final leftEdge = motorRadius + 4;
+                    final rightEdge = width - motorRadius - 4;
+                    final totalWidth = rightEdge - leftEdge;
+                    final halfWidth = totalWidth / 2;
+
+                    final leftMotorX = leftEdge + halfWidth * _position;
+                    final rightMotorX = rightEdge - halfWidth * _position;
+
                     return SizedBox(
                       width: width,
                       height: height,
-                      child: CustomPaint(
-                        painter: _CurtainPainter(position: _position),
-                        size: Size(width, height),
+                      child: Stack(
+                        children: [
+                          CustomPaint(
+                            painter: _CurtainPainter(position: _position),
+                            size: Size(width, height),
+                          ),
+                          // Left motor — draggable
+                          Positioned(
+                            left: leftMotorX - motorRadius - 6,
+                            top: trackY - motorRadius - 6,
+                            child: GestureDetector(
+                              onHorizontalDragStart: (_) => setState(() => _isDragging = true),
+                              onHorizontalDragUpdate: (details) {
+                                final newX = leftMotorX + details.delta.dx;
+                                final clamped = newX.clamp(leftEdge, leftEdge + halfWidth);
+                                final newPos = (clamped - leftEdge) / halfWidth;
+                                setState(() {
+                                  _position = newPos;
+                                  _animController.value = newPos;
+                                });
+                              },
+                              onHorizontalDragEnd: (_) {
+                                _onPercentChanged(_position * 100);
+                                setState(() => _isDragging = false);
+                              },
+                              child: Container(
+                                width: (motorRadius + 6) * 2,
+                                height: (motorRadius + 6) * 2,
+                                color: Colors.transparent,
+                              ),
+                            ),
+                          ),
+                          // Right motor — draggable
+                          Positioned(
+                            left: rightMotorX - motorRadius - 6,
+                            top: trackY - motorRadius - 6,
+                            child: GestureDetector(
+                              onHorizontalDragStart: (_) => setState(() => _isDragging = true),
+                              onHorizontalDragUpdate: (details) {
+                                final newX = rightMotorX + details.delta.dx;
+                                final clamped = newX.clamp(rightEdge - halfWidth, rightEdge);
+                                final newPos = (rightEdge - clamped) / halfWidth;
+                                setState(() {
+                                  _position = newPos;
+                                  _animController.value = newPos;
+                                });
+                              },
+                              onHorizontalDragEnd: (_) {
+                                _onPercentChanged(_position * 100);
+                                setState(() => _isDragging = false);
+                              },
+                              child: Container(
+                                width: (motorRadius + 6) * 2,
+                                height: (motorRadius + 6) * 2,
+                                color: Colors.transparent,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     );
                   },
@@ -162,41 +264,17 @@ class _CurtainControlPageState extends State<CurtainControlPage>
             ),
           ),
 
-          // Percentage slider
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 30),
-            child: Row(
-              children: [
-                Text(
-                  '${(_position * 100).round()}%',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFFB7727D),
-                  ),
-                ),
-                Expanded(
-                  child: SliderTheme(
-                    data: SliderTheme.of(context).copyWith(
-                      activeTrackColor: const Color(0xFFB7727D),
-                      inactiveTrackColor: const Color(0xFFE0E0E0),
-                      thumbColor: const Color(0xFFB7727D),
-                      overlayColor: const Color(0xFFB7727D).withAlpha(40),
-                      trackHeight: 4,
-                      thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
-                    ),
-                    child: Slider(
-                      value: _position * 100,
-                      min: 0,
-                      max: 100,
-                      onChanged: (v) {
-                        _animController.value = v / 100;
-                      },
-                      onChangeEnd: (v) => _onPercentChanged(v),
-                    ),
-                  ),
-                ),
-              ],
+          // Percentage — only visible while dragging
+          AnimatedOpacity(
+            opacity: _isDragging ? 1.0 : 0.0,
+            duration: const Duration(milliseconds: 200),
+            child: Text(
+              '${(_position * 100).round()}%',
+              style: const TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFFB7727D),
+              ),
             ),
           ),
 
@@ -208,7 +286,6 @@ class _CurtainControlPageState extends State<CurtainControlPage>
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                // Open button
                 _ImageControlButton(
                   asset: 'assets/icons/curtain_open.png',
                   size: 60,
@@ -216,7 +293,6 @@ class _CurtainControlPageState extends State<CurtainControlPage>
                   bgColor: const Color(0xFFF0F0F0),
                   onTap: _onOpen,
                 ),
-                // Pause/Stop button (larger, pink accent)
                 _ControlButton(
                   icon: Icons.pause,
                   size: 80,
@@ -225,7 +301,6 @@ class _CurtainControlPageState extends State<CurtainControlPage>
                   iconColor: const Color(0xFFB7727D),
                   onTap: _onStop,
                 ),
-                // Close button
                 _ImageControlButton(
                   asset: 'assets/icons/curtain_close.png',
                   size: 60,
@@ -241,18 +316,13 @@ class _CurtainControlPageState extends State<CurtainControlPage>
 
           // "more >" link
           GestureDetector(
-            onTap: () {
-              // TODO: navigate to more settings
-            },
+            onTap: () {},
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
                   'more',
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: Colors.grey.shade500,
-                  ),
+                  style: TextStyle(fontSize: 15, color: Colors.grey.shade500),
                 ),
                 const SizedBox(width: 4),
                 Icon(Icons.chevron_right, size: 20, color: Colors.grey.shade500),
@@ -575,4 +645,111 @@ class _CurtainPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _CurtainPainter oldDelegate) =>
       oldDelegate.position != position;
+}
+
+class _CurtainToast extends StatefulWidget {
+  final String message;
+  final bool isSuccess;
+  final VoidCallback onDismiss;
+
+  const _CurtainToast({
+    required this.message,
+    required this.isSuccess,
+    required this.onDismiss,
+  });
+
+  @override
+  State<_CurtainToast> createState() => _CurtainToastState();
+}
+
+class _CurtainToastState extends State<_CurtainToast>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _fadeAnim;
+  late Animation<Offset> _slideAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _fadeAnim = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
+    _slideAnim = Tween<Offset>(
+      begin: const Offset(0, -0.3),
+      end: Offset.zero,
+    ).animate(_fadeAnim);
+
+    _controller.forward();
+    Future.delayed(const Duration(milliseconds: 1800), () {
+      if (mounted) {
+        _controller.reverse().then((_) => widget.onDismiss());
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      top: MediaQuery.of(context).padding.top + 60,
+      left: 40,
+      right: 40,
+      child: SlideTransition(
+        position: _slideAnim,
+        child: FadeTransition(
+          opacity: _fadeAnim,
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              decoration: BoxDecoration(
+                color: widget.isSuccess
+                    ? const Color(0xFFFCE4EC)
+                    : const Color(0xFFFFF0F0),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFB7727D).withValues(alpha: 0.15),
+                    blurRadius: 16,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    widget.isSuccess
+                        ? Icons.check_circle_rounded
+                        : Icons.error_outline_rounded,
+                    color: const Color(0xFFB7727D),
+                    size: 22,
+                  ),
+                  const SizedBox(width: 10),
+                  Flexible(
+                    child: Text(
+                      widget.message,
+                      style: const TextStyle(
+                        color: Color(0xFFB7727D),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }

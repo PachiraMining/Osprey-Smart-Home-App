@@ -7,29 +7,29 @@ import '../datasources/scene_remote_datasource.dart';
 
 class SceneRepositoryImpl implements SceneRepository {
   final SceneRemoteDataSource remoteDataSource;
-  final String Function() getCustomerId;
+  final String Function() getHomeId;
 
   SceneRepositoryImpl({
     required this.remoteDataSource,
-    required this.getCustomerId,
+    required this.getHomeId,
   });
 
   @override
   Future<Either<Failure, List<SceneEntity>>> getScenes() async {
     try {
-      final userId = getCustomerId();
-      if (userId.isEmpty) {
+      final homeId = getHomeId();
+      if (homeId.isEmpty) {
         return const Left(
-          ServerFailure('CustomerId not found', message: 'Vui long dang nhap lai'),
+          ServerFailure('HomeId not found', message: 'Vui long chon home truoc'),
         );
       }
-      final scenes = await remoteDataSource.getScenes(userId);
+      final scenes = await remoteDataSource.getScenes(homeId);
       return Right(scenes);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message, message: e.message));
-    } on NetworkException {
+    } on UnauthorizedException {
       return const Left(
-        NetworkFailure('Network error', message: 'Khong co ket noi internet'),
+        UnauthorizedFailure('Unauthorized', message: 'Phien dang nhap het han'),
       );
     } catch (e) {
       return Left(ServerFailure('$e', message: 'Loi khong xac dinh'));
@@ -46,30 +46,40 @@ class SceneRepositoryImpl implements SceneRepository {
     required String repeatMode,
   }) async {
     try {
-      final userId = getCustomerId();
-      if (userId.isEmpty) {
+      final homeId = getHomeId();
+      if (homeId.isEmpty) {
         return const Left(
-          ServerFailure('CustomerId not found', message: 'Vui long dang nhap lai'),
+          ServerFailure('HomeId not found', message: 'Vui long chon home truoc'),
         );
       }
 
-      // Step 1: Get device token from ThingsBoard
-      final deviceToken = await remoteDataSource.getDeviceToken(deviceId);
-
-      // Step 2: Create scene on scheduler backend
-      final daysOfWeekList = daysOfWeek.split(',').map((e) => int.parse(e.trim())).toList();
+      final loops = _buildLoops(daysOfWeek, repeatMode);
       final data = {
-        'user_id': userId,
         'name': name,
-        'device_token': deviceToken,
-        'action': action,
-        'time': time,
-        'days_of_week': daysOfWeekList,
+        'sceneType': 'AUTOMATION',
         'enabled': true,
-        'repeat_mode': repeatMode,
+        'conditions': [
+          {
+            'conditionType': 'SCHEDULE',
+            'time': time,
+            'loops': loops,
+            'timeZoneId': 'Asia/Ho_Chi_Minh',
+          },
+        ],
+        'conditionLogic': 'AND',
+        'actions': [
+          {
+            'entityId': deviceId,
+            'actionType': 'DEVICE_CONTROL',
+            'executorProperty': {
+              'dpId': 1,
+              'dpValue': action,
+            },
+          },
+        ],
       };
 
-      final scene = await remoteDataSource.createScene(data);
+      final scene = await remoteDataSource.createScene(homeId, data);
       return Right(scene);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message, message: e.message));
@@ -77,25 +87,21 @@ class SceneRepositoryImpl implements SceneRepository {
       return const Left(
         UnauthorizedFailure('Unauthorized', message: 'Phien dang nhap het han'),
       );
-    } on NetworkException {
-      return const Left(
-        NetworkFailure('Network error', message: 'Khong co ket noi internet'),
-      );
     } catch (e) {
       return Left(ServerFailure('$e', message: 'Loi khong xac dinh'));
     }
   }
 
   @override
-  Future<Either<Failure, void>> deleteScene(int sceneId) async {
+  Future<Either<Failure, void>> deleteScene(String sceneId) async {
     try {
       await remoteDataSource.deleteScene(sceneId);
       return const Right(null);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message, message: e.message));
-    } on NetworkException {
+    } on UnauthorizedException {
       return const Left(
-        NetworkFailure('Network error', message: 'Khong co ket noi internet'),
+        UnauthorizedFailure('Unauthorized', message: 'Phien dang nhap het han'),
       );
     } catch (e) {
       return Left(ServerFailure('$e', message: 'Loi khong xac dinh'));
@@ -103,18 +109,29 @@ class SceneRepositoryImpl implements SceneRepository {
   }
 
   @override
-  Future<Either<Failure, void>> toggleScene(int sceneId, bool enabled) async {
+  Future<Either<Failure, void>> toggleScene(String sceneId, bool enabled) async {
     try {
       await remoteDataSource.toggleScene(sceneId, enabled);
       return const Right(null);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message, message: e.message));
-    } on NetworkException {
+    } on UnauthorizedException {
       return const Left(
-        NetworkFailure('Network error', message: 'Khong co ket noi internet'),
+        UnauthorizedFailure('Unauthorized', message: 'Phien dang nhap het han'),
       );
     } catch (e) {
       return Left(ServerFailure('$e', message: 'Loi khong xac dinh'));
     }
+  }
+
+  String _buildLoops(String daysOfWeek, String repeatMode) {
+    if (repeatMode == 'daily') return '1111111';
+    if (repeatMode == 'once') return '0000000';
+    final days = daysOfWeek.split(',').map((e) => int.tryParse(e.trim()) ?? 0).toSet();
+    final buf = StringBuffer();
+    for (int i = 1; i <= 7; i++) {
+      buf.write(days.contains(i) ? '1' : '0');
+    }
+    return buf.toString();
   }
 }

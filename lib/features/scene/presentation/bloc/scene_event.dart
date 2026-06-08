@@ -31,7 +31,7 @@ class CreateSceneEvent extends SceneEvent {
 }
 
 class DeleteSceneEvent extends SceneEvent {
-  final int sceneId;
+  final String sceneId;
 
   const DeleteSceneEvent(this.sceneId);
 
@@ -40,7 +40,7 @@ class DeleteSceneEvent extends SceneEvent {
 }
 
 class ToggleSceneEvent extends SceneEvent {
-  final int sceneId;
+  final String sceneId;
   final bool enabled;
 
   const ToggleSceneEvent(this.sceneId, this.enabled);

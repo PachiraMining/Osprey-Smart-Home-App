@@ -138,8 +138,8 @@ class _LoginPageState extends State<LoginPage> {
                   const SizedBox(height: 8),
                   Text(
                     _isSignUpMode
-                        ? 'Sign up to control your AI curtains.'
-                        : 'Sign in to control your AI curtains.',
+                        ? 'Create your osprey.life account.'
+                        : 'Sign in to your osprey.life account.',
                     style: AppTypography.bodyMedium.copyWith(
                       color: AppColors.textSecondary,
                     ),
@@ -332,7 +332,7 @@ class _LoginPageState extends State<LoginPage> {
                             TextSpan(
                               text: _isSignUpMode
                                   ? 'Already have an account? '
-                                  : "New to Osprey Life? ",
+                                  : "New to osprey.life? ",
                               style: AppTypography.labelMedium.copyWith(
                                 color: AppColors.textSecondary,
                               ),
@@ -367,6 +367,56 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ],
 
+                  const SizedBox(height: 24),
+
+                  // Social login — hidden until server configures OAuth providers
+                  // To re-enable: remove the `if` guard below
+                  if (_googleProviderUrl != null || _appleProviderUrl != null) ...[
+                  // Or continue with divider
+                  Row(
+                    children: [
+                      Expanded(child: Divider(color: AppColors.divider)),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Text(
+                          'or continue with',
+                          style: AppTypography.labelSmall.copyWith(
+                            color: AppColors.textMuted,
+                          ),
+                        ),
+                      ),
+                      Expanded(child: Divider(color: AppColors.divider)),
+                    ],
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (_googleProviderUrl != null)
+                      _SocialIconButton(
+                        onTap: () => _onSocialTap(_googleProviderUrl, 'Google'),
+                        child: const Text('G',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF4285F4),
+                            )),
+                      ),
+                      if (_googleProviderUrl != null && _appleProviderUrl != null)
+                      const SizedBox(width: 16),
+                      if (_appleProviderUrl != null)
+                      _SocialIconButton(
+                        bgColor: Colors.black,
+                        onTap: () => _onSocialTap(_appleProviderUrl, 'Apple'),
+                        child: const Icon(Icons.apple,
+                            color: Colors.white, size: 28),
+                      ),
+                    ],
+                  ),
+                  ], // end if providers available
+
                   const SizedBox(height: 32),
                 ],
               ),
@@ -377,17 +427,16 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  void _onSocialTap(
-      BuildContext context, String? providerUrl, String name) {
+  void _onSocialTap(String? providerUrl, String name) {
     if (providerUrl != null) {
       context.read<AuthBloc>().add(SocialLoginRequested(providerUrl));
     } else {
-      QuickAlert.show(
-        context: context,
-        type: QuickAlertType.error,
-        title: 'Unavailable',
-        text: '$name sign-in is not configured on the server.',
-        confirmBtnColor: AppColors.primary,
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('$name sign-in is not available yet.'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: AppColors.primaryDark,
+        ),
       );
     }
   }
@@ -396,6 +445,47 @@ class _LoginPageState extends State<LoginPage> {
 // ---------------------------------------------------------------------------
 // Private widgets
 // ---------------------------------------------------------------------------
+
+class _SocialIconButton extends StatelessWidget {
+  final Widget child;
+  final Color bgColor;
+  final VoidCallback? onTap;
+
+  const _SocialIconButton({
+    required this.child,
+    this.bgColor = AppColors.surface,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Opacity(
+        opacity: onTap != null ? 1.0 : 0.4,
+        child: Container(
+          width: 56,
+          height: 56,
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            border: bgColor == AppColors.surface
+                ? Border.all(color: AppColors.border)
+                : null,
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.shadowSoft,
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Center(child: child),
+        ),
+      ),
+    );
+  }
+}
 
 class _LabelledField extends StatefulWidget {
   final String label;
@@ -505,106 +595,3 @@ class _LabelledFieldState extends State<_LabelledField> {
   }
 }
 
-class _RegionSelector extends StatelessWidget {
-  final String value;
-  final ValueChanged<String> onChanged;
-
-  const _RegionSelector({required this.value, required this.onChanged});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 4),
-      decoration: BoxDecoration(
-        color: AppColors.primarySubtle,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.public, size: 18, color: AppColors.primary),
-          const SizedBox(width: 10),
-          Expanded(
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: value,
-                isExpanded: true,
-                isDense: true,
-                icon: Icon(Icons.expand_more, color: AppColors.primary),
-                style: AppTypography.bodyMedium.copyWith(
-                  color: AppColors.primaryDark,
-                  fontWeight: FontWeight.w600,
-                ),
-                dropdownColor: AppColors.surface,
-                items: const [
-                  DropdownMenuItem(value: 'Vietnam', child: Text('Vietnam')),
-                  DropdownMenuItem(
-                      value: 'Singapore', child: Text('Singapore')),
-                  DropdownMenuItem(
-                      value: 'United States', child: Text('United States')),
-                ],
-                onChanged: (v) {
-                  if (v != null) onChanged(v);
-                },
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _OrDivider extends StatelessWidget {
-  const _OrDivider();
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(child: Divider(color: AppColors.divider)),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Text(
-            'or continue with',
-            style: AppTypography.caption,
-          ),
-        ),
-        Expanded(child: Divider(color: AppColors.divider)),
-      ],
-    );
-  }
-}
-
-class _SocialIconButton extends StatelessWidget {
-  final Widget child;
-  final Color bgColor;
-  final VoidCallback? onTap;
-
-  const _SocialIconButton({
-    required this.child,
-    this.bgColor = AppColors.surface,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Opacity(
-        opacity: onTap != null ? 1.0 : 0.4,
-        child: Container(
-          width: 56,
-          height: 56,
-          decoration: BoxDecoration(
-            color: bgColor,
-            borderRadius: BorderRadius.circular(AppRadius.lg),
-            border: bgColor == AppColors.surface
-                ? Border.all(color: AppColors.border)
-                : null,
-          ),
-          child: Center(child: child),
-        ),
-      ),
-    );
-  }
-}

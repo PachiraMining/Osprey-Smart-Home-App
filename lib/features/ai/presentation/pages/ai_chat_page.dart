@@ -98,7 +98,7 @@ class _EmptyHint extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.all(32),
         child: Text(
-          'Ask the Osprey Life assistant anything about your curtains.\n'
+          'Ask the osprey.life assistant anything about your curtains.\n'
           'Powered by Apple Foundation Models, on-device.',
           textAlign: TextAlign.center,
         ),

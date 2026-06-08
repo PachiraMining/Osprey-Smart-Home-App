@@ -5,7 +5,7 @@ import '../../../../core/auth/token_manager.dart';
 import '../pages/home_page.dart';
 import '../pages/settings_page.dart';
 import '../pages/personal_info_page.dart';
-import '../pages/add_device_page.dart';
+import '../../../pairing/presentation/pages/osprey_add_device_page.dart';
 import '../../../scene/presentation/pages/tap_to_run/manage_scenes_page.dart';
 
 /// Side drawer for [ChatHomePage].
@@ -29,7 +29,7 @@ class ChatDrawer extends StatelessWidget {
                   Icon(Icons.auto_awesome, color: theme.colorScheme.primary),
                   const SizedBox(width: 8),
                   Text(
-                    'Osprey Life',
+                    'osprey.life',
                     style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
@@ -58,7 +58,7 @@ class ChatDrawer extends StatelessWidget {
                   _Item(
                     icon: Icons.add_circle_outline,
                     label: 'Add a curtain',
-                    onTap: () => _push(context, const AddDevicePage()),
+                    onTap: () => _push(context, const OspreyAddDevicePage()),
                   ),
                   const Divider(height: 24),
                   _Item(

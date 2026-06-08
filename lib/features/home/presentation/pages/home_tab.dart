@@ -31,6 +31,10 @@ class HomeTab extends StatefulWidget {
 }
 
 class _HomeTabState extends State<HomeTab> {
+  /// Message hiển thị khi mutation kế tiếp thành công (gỡ/xóa/đổi tên).
+  /// Set ngay trước khi dispatch event, BlocListener consume khi success.
+  String? _pendingSuccessMessage;
+
   @override
   void initState() {
     super.initState();
@@ -125,9 +129,210 @@ class _HomeTabState extends State<HomeTab> {
     }
   }
 
+  /// Long-press card thiết bị → menu hành động (pattern Tuya).
+  void _showDeviceActions(HomeDeviceEntity device) {
+    showModalBottomSheet<void>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetCtx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            ListTile(
+              leading: const Icon(Icons.edit_outlined, color: AppColors.primary),
+              title: const Text('Đổi tên thiết bị'),
+              onTap: () {
+                Navigator.pop(sheetCtx);
+                _showRenameDeviceDialog(device);
+              },
+            ),
+            const Divider(height: 1),
+            // Nút 1 — Ngắt kết nối (DELETE, không wipe ngay, ~1-2 phút)
+            ListTile(
+              leading: const Icon(Icons.link_off, color: AppColors.warning),
+              title: const Text('Ngắt kết nối'),
+              subtitle: const Text(
+                'Gỡ khỏi nhà, thiết bị tự về chế độ ghép nối sau 1-2 phút',
+                style: TextStyle(fontSize: 12),
+              ),
+              onTap: () {
+                Navigator.pop(sheetCtx);
+                _confirmDisconnect(device);
+              },
+            ),
+            // Nút 2 — Hủy liên kết và xóa dữ liệu (POST factory-reset, RPC wipe)
+            ListTile(
+              leading: const Icon(Icons.delete_forever, color: AppColors.error),
+              title: const Text(
+                'Hủy liên kết và xóa dữ liệu',
+                style: TextStyle(color: AppColors.error),
+              ),
+              subtitle: const Text(
+                'Xóa toàn bộ dữ liệu, không thể khôi phục',
+                style: TextStyle(fontSize: 12),
+              ),
+              onTap: () {
+                Navigator.pop(sheetCtx);
+                _confirmFactoryReset(device);
+              },
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Nút 1 — Ngắt kết nối: confirm rồi DELETE.
+  Future<void> _confirmDisconnect(HomeDeviceEntity device) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Ngắt kết nối thiết bị?'),
+        content: Text(
+          '"${device.displayName}" sẽ được gỡ khỏi nhà của bạn và tự động '
+          'chuyển về chế độ ghép nối trong khoảng 1-2 phút.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Hủy'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: AppColors.warning),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Ngắt kết nối'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    final bloc = context.read<HomeManagementBloc>();
+    final homeId = bloc.state.selectedHomeId;
+    if (homeId == null) return;
+    _pendingSuccessMessage =
+        'Đã ngắt thiết bị khỏi nhà. Thiết bị sẽ về chế độ ghép nối '
+        'trong 1-2 phút.';
+    bloc.add(RemoveDeviceFromHomeEvent(
+      homeId: homeId,
+      deviceId: device.deviceId,
+    ));
+  }
+
+  /// Nút 2 — Hủy liên kết và xóa dữ liệu: confirm (cảnh báo mạnh) rồi POST.
+  Future<void> _confirmFactoryReset(HomeDeviceEntity device) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Xóa dữ liệu thiết bị?'),
+        content: Text(
+          'Toàn bộ dữ liệu của "${device.displayName}" sẽ bị xóa và '
+          'KHÔNG THỂ khôi phục. Bạn chắc chắn?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Hủy'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: AppColors.error),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Xóa'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    final bloc = context.read<HomeManagementBloc>();
+    final homeId = bloc.state.selectedHomeId;
+    if (homeId == null) return;
+    _pendingSuccessMessage =
+        'Đã xóa thiết bị. Thiết bị đang trở về chế độ ghép nối.';
+    bloc.add(FactoryResetDeviceEvent(
+      homeId: homeId,
+      deviceId: device.deviceId,
+    ));
+  }
+
+  Future<void> _showRenameDeviceDialog(HomeDeviceEntity device) async {
+    final controller = TextEditingController(text: device.displayName);
+    final newName = await showDialog<String>(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        title: const Text('Đổi tên thiết bị'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          maxLength: 50,
+          decoration: const InputDecoration(
+            labelText: 'Tên thiết bị',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx),
+            child: const Text('Hủy'),
+          ),
+          FilledButton(
+            onPressed: () =>
+                Navigator.pop(dialogCtx, controller.text.trim()),
+            child: const Text('Lưu'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (newName == null || newName.isEmpty || !mounted) return;
+
+    final bloc = context.read<HomeManagementBloc>();
+    final homeId = bloc.state.selectedHomeId;
+    if (homeId == null) return;
+    _pendingSuccessMessage = 'Đã đổi tên thiết bị.';
+    // PUT backend là full-replace — truyền kèm roomId + sortOrder hiện tại
+    // để không bị reset (văng device khỏi room).
+    bloc.add(UpdateHomeDeviceEvent(
+      homeId: homeId,
+      deviceId: device.deviceId,
+      deviceName: newName,
+      roomId: device.roomId,
+      sortOrder: device.sortOrder,
+    ));
+  }
+
+  /// Hiển thị kết quả mutation do home_tab khởi tạo (gỡ/xóa/đổi tên).
+  /// Gate theo [_pendingSuccessMessage] để không bắt nhầm mutation của
+  /// trang khác (add device, create home...).
+  void _onMutationResult(BuildContext context, HomeManagementState state) {
+    final pending = _pendingSuccessMessage;
+    if (pending == null) return;
+    if (state.mutationStatus == MutationStatus.success) {
+      _pendingSuccessMessage = null;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(pending),
+        backgroundColor: AppColors.success,
+      ));
+    } else if (state.mutationStatus == MutationStatus.error) {
+      _pendingSuccessMessage = null;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(state.errorMessage ?? 'Có lỗi xảy ra, vui lòng thử lại'),
+        backgroundColor: AppColors.error,
+      ));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<HomeManagementBloc, HomeManagementState>(
+    return BlocListener<HomeManagementBloc, HomeManagementState>(
+      listenWhen: (prev, curr) =>
+          prev.mutationStatus != curr.mutationStatus,
+      listener: _onMutationResult,
+      child: BlocBuilder<HomeManagementBloc, HomeManagementState>(
       builder: (context, state) {
         final hour = DateTime.now().hour;
         final greeting = hour < 12
@@ -241,6 +446,7 @@ class _HomeTabState extends State<HomeTab> {
           ],
         );
       },
+      ),
     );
   }
 
@@ -306,6 +512,7 @@ class _HomeTabState extends State<HomeTab> {
               child: _DeviceCard(
                 device: device,
                 onTap: () => _navigateToDevice(device),
+                onLongPress: () => _showDeviceActions(device),
               ),
             );
           },
@@ -422,8 +629,13 @@ class _RoomChip extends StatelessWidget {
 class _DeviceCard extends StatelessWidget {
   final HomeDeviceEntity device;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
 
-  const _DeviceCard({required this.device, required this.onTap});
+  const _DeviceCard({
+    required this.device,
+    required this.onTap,
+    this.onLongPress,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -434,6 +646,7 @@ class _DeviceCard extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(AppRadius.lg),
         onTap: onTap,
+        onLongPress: onLongPress,
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(

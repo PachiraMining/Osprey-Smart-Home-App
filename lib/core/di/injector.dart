@@ -3,6 +3,7 @@
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_curtain_app/features/auth/presentation/bloc/auth_state.dart';
 import '../../core/config/app_config.dart';
 import '../../core/network/api_client.dart';
@@ -65,11 +66,25 @@ import '../../features/home/domain/usecases/get_home_devices.dart';
 import '../../features/home/domain/usecases/add_device_to_home.dart';
 import '../../features/home/domain/usecases/update_home_device.dart';
 import '../../features/home/domain/usecases/remove_device_from_home.dart';
+import '../../features/home/domain/usecases/factory_reset_device.dart';
 import '../../features/home/domain/usecases/get_rooms.dart';
 import '../../features/home/domain/usecases/create_room.dart';
 import '../../features/home/domain/usecases/update_room.dart';
 import '../../features/home/domain/usecases/delete_room.dart';
 import '../../features/home/presentation/bloc/home_management_bloc.dart';
+
+// BLE Pairing
+import '../../features/pairing/data/crypto/pairing_crypto.dart';
+import '../../features/pairing/data/datasources/ble_pairing_datasource.dart';
+import '../../features/pairing/data/datasources/pairing_remote_datasource.dart';
+import '../../features/pairing/data/datasources/product_catalog_cache.dart';
+import '../../features/pairing/data/repositories/pairing_repository_impl.dart';
+import '../../features/pairing/domain/repositories/pairing_repository.dart';
+import '../../features/pairing/domain/usecases/get_product_catalog.dart';
+import '../../features/pairing/domain/usecases/pair_osprey_device.dart';
+import '../../features/pairing/domain/usecases/scan_for_osprey_devices.dart';
+import '../../features/pairing/presentation/bloc/osprey_scan_bloc.dart';
+import '../../features/pairing/presentation/bloc/pairing_bloc.dart';
 
 // AI Feature
 import '../../features/ai/data/datasources/foundation_models_datasource.dart';
@@ -227,45 +242,14 @@ Future<void> setupInjector() async {
   // ========== Scene Feature ==========
   // Data sources
   sl.registerLazySingleton<SceneRemoteDataSource>(
-    () => SceneRemoteDataSourceImpl(
-      client: sl<http.Client>(),
-      schedulerBaseUrl: AppConfig.schedulerBaseUrl,
-      thingsboardBaseUrl: AppConfig.thingsboardBaseUrl,
-      getToken: () {
-        final token = sl<TokenManager>().getTokenSync();
-        if (token != null && token.isNotEmpty) {
-          return token;
-        }
-        try {
-          final authBloc = sl<AuthBloc>();
-          final state = authBloc.state;
-          if (state is AuthSuccess) {
-            return state.token;
-          }
-        } catch (_) {}
-        return '';
-      },
-      getCustomerId: () {
-        final customerId = sl<TokenManager>().getCustomerIdSync();
-        if (customerId != null && customerId.isNotEmpty) {
-          return customerId;
-        }
-        return '';
-      },
-    ),
+    () => SceneRemoteDataSourceImpl(apiClient: sl<ApiClient>()),
   );
 
   // Repositories
   sl.registerLazySingleton<SceneRepository>(
     () => SceneRepositoryImpl(
       remoteDataSource: sl(),
-      getCustomerId: () {
-        final customerId = sl<TokenManager>().getCustomerIdSync();
-        if (customerId != null && customerId.isNotEmpty) {
-          return customerId;
-        }
-        return '';
-      },
+      getHomeId: () => sl<TokenManager>().getHomeIdSync() ?? '',
     ),
   );
 
@@ -336,6 +320,7 @@ Future<void> setupInjector() async {
   sl.registerLazySingleton(() => AddDeviceToHome(sl()));
   sl.registerLazySingleton(() => UpdateHomeDevice(sl()));
   sl.registerLazySingleton(() => RemoveDeviceFromHome(sl()));
+  sl.registerLazySingleton(() => FactoryResetDevice(sl()));
   sl.registerLazySingleton(() => GetRooms(sl()));
   sl.registerLazySingleton(() => CreateRoom(sl()));
   sl.registerLazySingleton(() => UpdateRoom(sl()));
@@ -352,6 +337,7 @@ Future<void> setupInjector() async {
       addDeviceToHome: sl(),
       updateHomeDevice: sl(),
       removeDeviceFromHome: sl(),
+      factoryResetDevice: sl(),
       getRooms: sl(),
       createRoom: sl(),
       updateRoom: sl(),
@@ -359,6 +345,43 @@ Future<void> setupInjector() async {
       homeRemoteDataSource: sl(),
     ),
   );
+
+  // ========== BLE Pairing Feature ==========
+  // SharedPreferences (product catalog cache)
+  final prefs = await SharedPreferences.getInstance();
+  sl.registerLazySingleton(() => prefs);
+
+  // Crypto + data sources
+  sl.registerLazySingleton(() => PairingCrypto());
+  sl.registerLazySingleton(() => ProductCatalogCache(prefs: sl()));
+  sl.registerLazySingleton<PairingRemoteDataSource>(
+    () => PairingRemoteDataSourceImpl(apiClient: sl<ApiClient>()),
+  );
+  sl.registerLazySingleton<BlePairingDataSource>(
+    () => BlePairingDataSourceImpl(),
+  );
+
+  // Repository
+  sl.registerLazySingleton<PairingRepository>(
+    () => PairingRepositoryImpl(
+      remoteDataSource: sl(),
+      bleDataSource: sl(),
+      catalogCache: sl(),
+      crypto: sl(),
+      getSmartHomeId: () => sl<TokenManager>().getHomeIdSync() ?? '',
+    ),
+  );
+
+  // Use cases
+  sl.registerLazySingleton(() => GetProductCatalog(sl()));
+  sl.registerLazySingleton(() => ScanForOspreyDevices(sl()));
+  sl.registerLazySingleton(() => PairOspreyDevice(sl()));
+
+  // BLoCs
+  sl.registerFactory(
+    () => OspreyScanBloc(scanForDevices: sl(), getProductCatalog: sl()),
+  );
+  sl.registerFactory(() => PairingBloc(pairDevice: sl()));
 
   // ========== AI Feature ==========
   // Data sources

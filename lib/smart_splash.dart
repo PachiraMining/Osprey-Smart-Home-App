@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -20,6 +22,7 @@ class _SmartSplashScreenState extends State<SmartSplashScreen>
     with TickerProviderStateMixin {
   bool _showUI = false;
   bool _navigated = false;
+
   late AnimationController _logoController;
   late Animation<double> _logoScale;
   late Animation<double> _logoFade;
@@ -27,6 +30,12 @@ class _SmartSplashScreenState extends State<SmartSplashScreen>
   late AnimationController _buttonsController;
   late Animation<double> _ctaFade;
   late Animation<Offset> _ctaSlide;
+
+  late AnimationController _bgController;
+  late AnimationController _glowController;
+  late AnimationController _particleController;
+
+  late List<_Particle> _particles;
 
   @override
   void initState() {
@@ -36,7 +45,7 @@ class _SmartSplashScreenState extends State<SmartSplashScreen>
       vsync: this,
       duration: const Duration(milliseconds: 1500),
     );
-    _logoScale = Tween<double>(begin: 0.7, end: 1.0).animate(
+    _logoScale = Tween<double>(begin: 0.75, end: 1.0).animate(
       CurvedAnimation(parent: _logoController, curve: Curves.easeOutCubic),
     );
     _logoFade = Tween<double>(begin: 0.0, end: 1.0).animate(
@@ -56,6 +65,33 @@ class _SmartSplashScreenState extends State<SmartSplashScreen>
       end: Offset.zero,
     ).animate(_ctaFade);
 
+    _bgController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 8),
+    )..repeat(reverse: true);
+
+    _glowController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 3000),
+    )..repeat(reverse: true);
+
+    _particleController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 15),
+    )..repeat();
+
+    final rng = Random();
+    _particles = List.generate(
+      18,
+      (_) => _Particle(
+        x: rng.nextDouble(),
+        offset: rng.nextDouble(),
+        radius: 2.5 + rng.nextDouble() * 4,
+        phase: rng.nextDouble() * pi * 2,
+        speed: 0.6 + rng.nextDouble() * 0.4,
+      ),
+    );
+
     context.read<AuthBloc>().add(CheckAuthStatusEvent());
 
     _logoController.forward().then((_) async {
@@ -71,6 +107,9 @@ class _SmartSplashScreenState extends State<SmartSplashScreen>
   void dispose() {
     _logoController.dispose();
     _buttonsController.dispose();
+    _bgController.dispose();
+    _glowController.dispose();
+    _particleController.dispose();
     super.dispose();
   }
 
@@ -89,30 +128,74 @@ class _SmartSplashScreenState extends State<SmartSplashScreen>
         backgroundColor: AppColors.background,
         body: Stack(
           children: [
-            // Layered radial gradient — distinct from typical smart-home splash.
+            // Layer 1: Breathing gradient
             Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: RadialGradient(
-                    center: const Alignment(-0.4, -0.7),
-                    radius: 1.4,
-                    colors: [
-                      AppColors.primarySubtle,
-                      AppColors.background,
-                    ],
-                    stops: const [0.0, 0.85],
-                  ),
+              child: AnimatedBuilder(
+                animation: _bgController,
+                builder: (context, _) {
+                  final t = _bgController.value;
+                  return DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: RadialGradient(
+                        center: Alignment(
+                          -0.3 + sin(t * pi) * 0.2,
+                          -0.5 + cos(t * pi) * 0.15,
+                        ),
+                        radius: 1.3 + t * 0.3,
+                        colors: [
+                          Color.lerp(
+                            AppColors.primarySubtle,
+                            AppColors.accentSubtle,
+                            t,
+                          )!,
+                          AppColors.background,
+                        ],
+                        stops: const [0.0, 0.85],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+
+            // Layer 2: Floating particles (optimized — 18 only, blurred circles)
+            Positioned.fill(
+              child: RepaintBoundary(
+                child: AnimatedBuilder(
+                  animation: _particleController,
+                  builder: (context, _) {
+                    return CustomPaint(
+                      painter: _ParticlePainter(
+                        _particleController.value,
+                        _particles,
+                      ),
+                    );
+                  },
                 ),
               ),
             ),
 
-            // Subtle gold orb bottom-right for depth.
+            // Layer 3: Waves at bottom
+            Positioned.fill(
+              child: RepaintBoundary(
+                child: AnimatedBuilder(
+                  animation: _bgController,
+                  builder: (context, _) {
+                    return CustomPaint(
+                      painter: _WavePainter(_bgController.value),
+                    );
+                  },
+                ),
+              ),
+            ),
+
+            // Accent orb bottom-right
             Positioned(
-              right: -120,
-              bottom: -160,
+              right: -100,
+              bottom: -140,
               child: Container(
-                width: 380,
-                height: 380,
+                width: 340,
+                height: 340,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
@@ -128,55 +211,53 @@ class _SmartSplashScreenState extends State<SmartSplashScreen>
             SafeArea(
               child: Column(
                 children: [
-                  SizedBox(height: screenHeight * 0.16),
+                  SizedBox(height: screenHeight * 0.2),
 
-                  // Brand mark — full Osprey Life wordmark in a rounded card
+                  // Logo with breathing glow — no card frame
                   Center(
                     child: FadeTransition(
                       opacity: _logoFade,
                       child: ScaleTransition(
                         scale: _logoScale,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 28,
-                            vertical: 24,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.surface,
-                            borderRadius: BorderRadius.circular(36),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.shadow,
-                                blurRadius: 28,
-                                offset: const Offset(0, 12),
-                              ),
-                            ],
-                          ),
-                          child: Image.asset(
-                            'assets/osprey_life_logo.png',
-                            width: 260,
-                            fit: BoxFit.contain,
-                          ),
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            // Breathing glow
+                            AnimatedBuilder(
+                              animation: _glowController,
+                              builder: (context, _) {
+                                final v = _glowController.value;
+                                return Container(
+                                  width: 220,
+                                  height: 140,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(60),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: AppColors.accent
+                                            .withValues(alpha: 0.05 + v * 0.07),
+                                        blurRadius: 35 + v * 25,
+                                        spreadRadius: 5,
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                            Image.asset(
+                              'assets/osprey_life_logo.png',
+                              width: 300,
+                              fit: BoxFit.contain,
+                            ),
+                          ],
                         ),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  FadeTransition(
-                    opacity: _logoFade,
-                    child: Text(
-                      'AI curtain assistant.',
-                      style: AppTypography.bodyMedium.copyWith(
-                        color: AppColors.textSecondary,
-                        letterSpacing: 0.3,
                       ),
                     ),
                   ),
 
                   const Spacer(),
 
+                  // Get started
                   if (_showUI)
                     SlideTransition(
                       position: _ctaSlide,
@@ -187,25 +268,24 @@ class _SmartSplashScreenState extends State<SmartSplashScreen>
                           child: SizedBox(
                             width: double.infinity,
                             child: ElevatedButton(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => BlocProvider.value(
-                                      value: context.read<AuthBloc>(),
-                                      child: const LoginPage(),
-                                    ),
+                              onPressed: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => BlocProvider.value(
+                                    value: context.read<AuthBloc>(),
+                                    child: const LoginPage(),
                                   ),
-                                );
-                              },
+                                ),
+                              ),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.primary,
                                 foregroundColor: AppColors.textInverse,
                                 minimumSize: const Size(0, 56),
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(
-                                      AppRadius.lg),
+                                  borderRadius:
+                                      BorderRadius.circular(AppRadius.lg),
                                 ),
+                                elevation: 0,
                               ),
                               child: Text(
                                 'Get started',
@@ -227,4 +307,88 @@ class _SmartSplashScreenState extends State<SmartSplashScreen>
       ),
     );
   }
+}
+
+// ---------------------------------------------------------------------------
+// Data
+// ---------------------------------------------------------------------------
+
+class _Particle {
+  final double x;
+  final double offset;
+  final double radius;
+  final double phase;
+  final double speed;
+
+  const _Particle({
+    required this.x,
+    required this.offset,
+    required this.radius,
+    required this.phase,
+    required this.speed,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Painters
+// ---------------------------------------------------------------------------
+
+class _ParticlePainter extends CustomPainter {
+  final double t;
+  final List<_Particle> particles;
+
+  _ParticlePainter(this.t, this.particles);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    for (final p in particles) {
+      final progress = (t * p.speed + p.offset) % 1.0;
+      final x = p.x * size.width + sin(progress * pi * 2 + p.phase) * 18;
+      final y = size.height * (1.0 - progress);
+      final opacity = (1.0 - (progress - 0.5).abs() * 2).clamp(0.0, 1.0);
+
+      canvas.drawCircle(
+        Offset(x, y),
+        p.radius,
+        Paint()
+          ..color = AppColors.accent.withValues(alpha: opacity * 0.1)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6),
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _ParticlePainter old) => old.t != t;
+}
+
+class _WavePainter extends CustomPainter {
+  final double t;
+
+  _WavePainter(this.t);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    for (int i = 0; i < 3; i++) {
+      final path = Path()..moveTo(0, size.height);
+      final waveH = 14.0 + i * 5;
+      final speed = t * pi * 2 + i * 0.9;
+      final yBase = size.height * (0.83 + i * 0.05);
+
+      for (double x = 0; x <= size.width; x += 3) {
+        path.lineTo(x, yBase + sin(x / size.width * pi * 2 + speed) * waveH);
+      }
+      path.lineTo(size.width, size.height);
+      path.close();
+
+      canvas.drawPath(
+        path,
+        Paint()
+          ..color = AppColors.accent.withValues(alpha: 0.02 + i * 0.01)
+          ..style = PaintingStyle.fill,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _WavePainter old) => old.t != t;
 }

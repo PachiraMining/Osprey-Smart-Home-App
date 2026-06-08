@@ -414,7 +414,7 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
-              'Disable Osprey Life skill on the Amazon Alexa app or tap '
+              'Disable osprey.life skill on the Amazon Alexa app or tap '
               'Me > the Setting button in the top right corner > '
               'Account and Security to unauthorize it.',
               textAlign: TextAlign.center,

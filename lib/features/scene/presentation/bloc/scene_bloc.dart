@@ -63,17 +63,15 @@ class SceneBloc extends Bloc<SceneEvent, SceneState> {
     DeleteSceneEvent event,
     Emitter<SceneState> emit,
   ) async {
-    final List<SceneEntity> currentScenes = state is SceneLoaded
-        ? (state as SceneLoaded).scenes
-        : [];
+    final List<SceneEntity> currentScenes =
+        state is SceneLoaded ? (state as SceneLoaded).scenes : [];
 
     final result = await deleteScene(event.sceneId);
     result.fold(
       (failure) => emit(SceneError(failure.message)),
       (_) {
-        final updated = currentScenes
-            .where((s) => s.id != event.sceneId)
-            .toList();
+        final updated =
+            currentScenes.where((s) => s.id != event.sceneId).toList();
         emit(SceneLoaded(updated));
       },
     );
@@ -83,21 +81,17 @@ class SceneBloc extends Bloc<SceneEvent, SceneState> {
     ToggleSceneEvent event,
     Emitter<SceneState> emit,
   ) async {
-    // Optimistic update
     if (state is SceneLoaded) {
       final currentScenes = (state as SceneLoaded).scenes;
       final updated = currentScenes.map((s) {
         if (s.id == event.sceneId) {
           return SceneEntity(
             id: s.id,
-            userId: s.userId,
             name: s.name,
-            deviceToken: s.deviceToken,
-            action: s.action,
-            time: s.time,
-            daysOfWeek: s.daysOfWeek,
             enabled: event.enabled,
-            repeatMode: s.repeatMode,
+            icon: s.icon,
+            conditions: s.conditions,
+            actions: s.actions,
             createdAt: s.createdAt,
           );
         }
@@ -108,13 +102,8 @@ class SceneBloc extends Bloc<SceneEvent, SceneState> {
 
     final result = await toggleScene(event.sceneId, event.enabled);
     result.fold(
-      (failure) {
-        // Revert on failure - reload from server
-        add(LoadScenesEvent());
-      },
-      (_) {
-        // Already updated optimistically
-      },
+      (failure) => add(LoadScenesEvent()),
+      (_) {},
     );
   }
 }

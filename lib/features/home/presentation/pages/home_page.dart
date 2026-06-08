@@ -9,7 +9,7 @@ import 'package:smart_curtain_app/features/ai/presentation/bloc/voice_command_bl
 import 'package:smart_curtain_app/core/theme/app_typography.dart';
 import 'package:smart_curtain_app/features/home/presentation/pages/CreateSceneTriggerPage.dart';
 import 'package:smart_curtain_app/features/home/presentation/pages/create_scene_page.dart';
-import 'package:smart_curtain_app/features/home/presentation/pages/add_device_page.dart';
+import 'package:smart_curtain_app/features/pairing/presentation/pages/osprey_add_device_page.dart';
 import 'package:smart_curtain_app/features/scene/presentation/bloc/scene_bloc.dart';
 import 'package:smart_curtain_app/features/scene/presentation/bloc/scene_event.dart';
 import 'package:smart_curtain_app/features/scene/presentation/bloc/scene_state.dart';
@@ -74,7 +74,7 @@ class HomePageState extends State<HomePage> {
       case 'Add Device':
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => const AddDevicePage()),
+          MaterialPageRoute(builder: (_) => const OspreyAddDevicePage()),
         );
       case 'Create Scene':
         final triggerData = await Navigator.push(
@@ -395,21 +395,6 @@ class _SceneTabState extends State<SceneTab> {
     }
   }
 
-  String _formatRepeatMode(SceneEntity scene) {
-    switch (scene.repeatMode) {
-      case 'once':
-        return 'Once';
-      case 'daily':
-        return 'Daily';
-      case 'weekly':
-        final days = scene.daysOfWeek;
-        if (days == '1,2,3,4,5') return 'Mon - Fri';
-        if (days == '6,7') return 'Weekend';
-        return 'D ${days.replaceAll(',', ', D ')}';
-      default:
-        return scene.repeatMode;
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -912,7 +897,7 @@ class _SceneTabState extends State<SceneTab> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '${scene.time} | ${_formatRepeatMode(scene)} | ${scene.action.toUpperCase()}',
+                          '${scene.scheduleTime} | ${scene.repeatDisplay} | ${scene.actionSummary.toUpperCase()}',
                           style: TextStyle(
                             fontSize: 13,
                             color: Colors.grey[600],

@@ -3,6 +3,7 @@ import '../../../../core/error/failure.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../domain/entities/home_entity.dart';
 import '../../domain/entities/home_device_entity.dart';
+import '../../domain/entities/factory_reset_result.dart';
 import '../../domain/entities/room_entity.dart';
 import '../../domain/repositories/home_repository.dart';
 import '../datasources/home_remote_datasource.dart';
@@ -166,6 +167,24 @@ class HomeRepositoryImpl implements HomeRepository {
     try {
       await remoteDataSource.removeDeviceFromHome(homeId, deviceId);
       return const Right(null);
+    } on UnauthorizedException {
+      return const Left(UnauthorizedFailure('Unauthorized', message: 'Session expired'));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message, message: e.message));
+    } catch (e) {
+      return Left(ServerFailure('$e', message: 'Unknown error'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, FactoryResetResult>> factoryResetDevice({
+    required String homeId,
+    required String deviceId,
+  }) async {
+    try {
+      final result =
+          await remoteDataSource.factoryResetDevice(homeId, deviceId);
+      return Right(result);
     } on UnauthorizedException {
       return const Left(UnauthorizedFailure('Unauthorized', message: 'Session expired'));
     } on ServerException catch (e) {

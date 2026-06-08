@@ -3,7 +3,7 @@
 class AppConfig {
   static const String thingsboardBaseUrl =
       'https://performentmarketing.ddnsgeek.com';
-  static const String schedulerBaseUrl = 'http://42.118.11.87:8000';
+  static const String schedulerBaseUrl = 'https://performentmarketing.ddnsgeek.com';
   static const String callbackScheme = 'osprey';
   static const String privacyPolicyUrl =
       'https://pachiramining.github.io/Osprey-Smart-Home-App/privacy-policy/';
@@ -38,6 +38,15 @@ class AppConfig {
   /// MQTT broker port. Default 1883 (plain), use 8883 for TLS.
   static const int mqttPort =
       int.fromEnvironment('MQTT_PORT', defaultValue: 1883);
+
+  /// MQTT URL gửi cho DEVICE qua BLE pairing (firmware connect tới đây).
+  static const String deviceMqttUrl =
+      'tcp://performentmarketing.ddnsgeek.com:1883';
+
+  /// HTTP API base URL gửi cho DEVICE qua BLE pairing
+  /// (firmware gọi /api/v1/provision + /pairing/device-callback).
+  static const String deviceHttpApiBaseUrl =
+      'http://performentmarketing.ddnsgeek.com:8080';
 
   /// Build environment: dev | staging | prod. Used for Sentry and analytics tagging.
   static const String environment =

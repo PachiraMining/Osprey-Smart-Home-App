@@ -12,6 +12,6 @@ abstract class SceneRepository {
     required String daysOfWeek,
     required String repeatMode,
   });
-  Future<Either<Failure, void>> deleteScene(int sceneId);
-  Future<Either<Failure, void>> toggleScene(int sceneId, bool enabled);
+  Future<Either<Failure, void>> deleteScene(String sceneId);
+  Future<Either<Failure, void>> toggleScene(String sceneId, bool enabled);
 }

@@ -56,8 +56,13 @@ class SocialLoginService {
       '?pkgName=${AppConfig.pkgName}&platform=$platform',
     );
 
+    // ignore: avoid_print
+    print('[OAuth] fetching providers from $uri');
+
     try {
       final response = await _httpClient.get(uri);
+      // ignore: avoid_print
+      print('[OAuth] response ${response.statusCode} body=${response.body.length > 200 ? response.body.substring(0, 200) : response.body}');
       if (response.statusCode != 200) {
         log('SocialLoginService: provider fetch failed (${response.statusCode})',
             name: 'SocialLoginService');
@@ -72,15 +77,19 @@ class SocialLoginService {
       } else if (decoded is List) {
         clients = decoded;
       } else {
+        // ignore: avoid_print
+        print('[OAuth] unexpected response type: ${decoded.runtimeType}');
         return [];
       }
+      // ignore: avoid_print
+      print('[OAuth] found ${clients.length} providers');
       return clients
           .map((e) => _parseProvider(e as Map<String, dynamic>))
           .whereType<OAuth2ProviderInfo>()
           .toList();
     } catch (e) {
-      log('SocialLoginService: fetchAvailableProviders error: $e',
-          name: 'SocialLoginService');
+      // ignore: avoid_print
+      print('[OAuth] fetchAvailableProviders error: $e');
       return [];
     }
   }

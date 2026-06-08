@@ -11,6 +11,7 @@ import '../../domain/usecases/get_home_devices.dart';
 import '../../domain/usecases/add_device_to_home.dart';
 import '../../domain/usecases/update_home_device.dart';
 import '../../domain/usecases/remove_device_from_home.dart';
+import '../../domain/usecases/factory_reset_device.dart';
 import '../../domain/usecases/get_rooms.dart';
 import '../../domain/usecases/create_room.dart';
 import '../../domain/usecases/update_room.dart';
@@ -28,6 +29,7 @@ class HomeManagementBloc
   final AddDeviceToHome addDeviceToHome;
   final UpdateHomeDevice updateHomeDevice;
   final RemoveDeviceFromHome removeDeviceFromHome;
+  final FactoryResetDevice factoryResetDevice;
   final GetRooms getRooms;
   final CreateRoom createRoom;
   final UpdateRoom updateRoom;
@@ -43,6 +45,7 @@ class HomeManagementBloc
     required this.addDeviceToHome,
     required this.updateHomeDevice,
     required this.removeDeviceFromHome,
+    required this.factoryResetDevice,
     required this.getRooms,
     required this.createRoom,
     required this.updateRoom,
@@ -59,6 +62,7 @@ class HomeManagementBloc
     on<AddDeviceToHomeEvent>(_onAddDeviceToHome);
     on<UpdateHomeDeviceEvent>(_onUpdateHomeDevice);
     on<RemoveDeviceFromHomeEvent>(_onRemoveDeviceFromHome);
+    on<FactoryResetDeviceEvent>(_onFactoryResetDevice);
     on<LoadRoomsEvent>(_onLoadRooms);
     on<CreateRoomEvent>(_onCreateRoom);
     on<UpdateRoomEvent>(_onUpdateRoom);
@@ -307,6 +311,7 @@ class HomeManagementBloc
       deviceId: event.deviceId,
       roomId: event.roomId,
       deviceName: event.deviceName,
+      sortOrder: event.sortOrder,
     );
     result.fold(
       (failure) => emit(state.copyWith(
@@ -327,6 +332,28 @@ class HomeManagementBloc
     emit(state.copyWith(mutationStatus: MutationStatus.loading));
 
     final result = await removeDeviceFromHome(
+      homeId: event.homeId,
+      deviceId: event.deviceId,
+    );
+    result.fold(
+      (failure) => emit(state.copyWith(
+        mutationStatus: MutationStatus.error,
+        errorMessage: failure.message,
+      )),
+      (_) {
+        emit(state.copyWith(mutationStatus: MutationStatus.success));
+        add(LoadHomeDevicesEvent(event.homeId));
+      },
+    );
+  }
+
+  Future<void> _onFactoryResetDevice(
+    FactoryResetDeviceEvent event,
+    Emitter<HomeManagementState> emit,
+  ) async {
+    emit(state.copyWith(mutationStatus: MutationStatus.loading));
+
+    final result = await factoryResetDevice(
       homeId: event.homeId,
       deviceId: event.deviceId,
     );

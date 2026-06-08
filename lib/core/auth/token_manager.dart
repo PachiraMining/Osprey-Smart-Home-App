@@ -15,6 +15,11 @@ class TokenManager {
 
   TokenManager(this._storage);
 
+  Future<void> _safeWrite(String key, String value) async {
+    await _storage.delete(key: key);
+    await _storage.write(key: key, value: value);
+  }
+
   // Cache in memory
   String? _cachedToken;
   String? _cachedCustomerId;
@@ -27,40 +32,33 @@ class TokenManager {
   Future<void> saveTokens({
     required String token,
     required String refreshToken,
-    String? customerId, // THÊM - optional vì có thể lưu sau
+    String? customerId,
   }) async {
-    await Future.wait([
-      _storage.write(key: _tokenKey, value: token),
-      _storage.write(key: _refreshTokenKey, value: refreshToken),
-      if (customerId != null)
-        _storage.write(key: _customerIdKey, value: customerId),
-    ]);
+    await _safeWrite(_tokenKey, token);
+    await _safeWrite(_refreshTokenKey, refreshToken);
+    if (customerId != null) await _safeWrite(_customerIdKey, customerId);
     _cachedToken = token;
     _cachedCustomerId = customerId;
   }
 
-  // Save customerId riêng
   Future<void> saveCustomerId(String customerId) async {
-    await _storage.write(key: _customerIdKey, value: customerId);
+    await _safeWrite(_customerIdKey, customerId);
     _cachedCustomerId = customerId;
   }
 
   Future<void> saveHomeId(String homeId) async {
-    await _storage.write(key: _homeIdKey, value: homeId);
+    await _safeWrite(_homeIdKey, homeId);
     _cachedHomeId = homeId;
   }
 
-  // Save user profile info
   Future<void> saveUserInfo({
     required String email,
     String? firstName,
     String? lastName,
   }) async {
-    await Future.wait([
-      _storage.write(key: _emailKey, value: email),
-      if (firstName != null) _storage.write(key: _firstNameKey, value: firstName),
-      if (lastName != null) _storage.write(key: _lastNameKey, value: lastName),
-    ]);
+    await _safeWrite(_emailKey, email);
+    if (firstName != null) await _safeWrite(_firstNameKey, firstName);
+    if (lastName != null) await _safeWrite(_lastNameKey, lastName);
     _cachedEmail = email;
     _cachedFirstName = firstName;
     _cachedLastName = lastName;

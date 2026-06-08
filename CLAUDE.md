@@ -25,6 +25,7 @@ lib/
 │   ├── auth/                      # Login, JWT auth (ThingsBoard)
 │   ├── device/                    # Device management & control (CRUD + commands)
 │   ├── home/                      # Home page, tabs, scene creation UI, BLE device setup
+│   ├── pairing/                   # Osprey BLE pairing (scan + crypto + GATT) — see lib/features/pairing/README.md
 │   └── scene/                     # Smart scenes/automation (schedule-based)
 ├── main.dart                      # App entry point, MultiBlocProvider setup
 └── smart_splash.dart              # Splash screen with animations
@@ -52,6 +53,7 @@ feature/
 - **Device:** List customer devices, delete device, send commands (on/off/open/close)
 - **Scene:** Schedule-based automation (once/daily/weekly), create/delete/toggle scenes
 - **BLE:** Bluetooth device discovery and WiFi configuration for new devices
+- **BLE Pairing (Osprey protocol):** Secure pairing per `docs/ble-pairing-spec.md` — scan filter by Brand UUID `a50133ef-...37b`, mutual auth HMAC-SHA256 (backend computes from per-device PSK), session key HKDF, WiFi credentials AES-128-CCM encrypted over GATT. Crypto verified byte-by-byte vs firmware vendor's `sim_pairing.py` golden oracle. AES-CCM uses `pointycastle` (`package:cryptography` has NO CCM despite handoff doc claims).
 
 ## Backend
 - **ThingsBoard API:** `https://performentmarketing.ddnsgeek.com`

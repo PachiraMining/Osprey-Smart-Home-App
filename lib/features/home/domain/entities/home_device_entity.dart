@@ -26,8 +26,13 @@ class HomeDeviceEntity extends Equatable {
     this.isOnline,
   });
 
-  /// Display name: custom name > original name > deviceId
-  String get displayName => deviceName ?? originalName ?? deviceId;
+  /// Display name: backend đảm bảo deviceName non-null (Tuya pattern,
+  /// update 2026-06-05) — vẫn guard null/rỗng phòng backend regress.
+  String get displayName {
+    final name = deviceName;
+    if (name != null && name.isNotEmpty) return name;
+    return originalName ?? deviceId;
+  }
 
   HomeDeviceEntity copyWithDeviceInfo({
     String? originalName,

@@ -29,9 +29,13 @@ class TapToRunRemoteDataSourceImpl implements TapToRunRemoteDataSource {
         queryParameters: {'sceneType': 'TAP_TO_RUN'},
       );
       final List<dynamic> data = response.data is List ? response.data : [];
-      return data
-          .map((json) => TapToRunSceneModel.fromJson(json as Map<String, dynamic>))
-          .toList();
+      final scenes = <TapToRunSceneModel>[];
+      for (final json in data) {
+        try {
+          scenes.add(TapToRunSceneModel.fromJson(json as Map<String, dynamic>));
+        } catch (_) {}
+      }
+      return scenes;
     } on DioException catch (e) {
       if (e.response?.statusCode == 401) {
         throw UnauthorizedException();

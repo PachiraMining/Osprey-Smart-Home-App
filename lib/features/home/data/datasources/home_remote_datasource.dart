@@ -3,6 +3,7 @@ import '../../../../core/network/api_client.dart';
 import '../../../../core/error/exceptions.dart';
 import '../models/home_model.dart';
 import '../models/home_device_model.dart';
+import '../models/factory_reset_result_model.dart';
 import '../models/room_model.dart';
 
 abstract class HomeRemoteDataSource {
@@ -14,7 +15,13 @@ abstract class HomeRemoteDataSource {
   Future<List<HomeDeviceModel>> getHomeDevices(String homeId);
   Future<void> addDeviceToHome(String homeId, Map<String, dynamic> body);
   Future<void> updateHomeDevice(String homeId, String deviceId, Map<String, dynamic> body);
+
+  /// Nút "Ngắt kết nối" — DELETE, không gửi RPC factoryReset.
   Future<void> removeDeviceFromHome(String homeId, String deviceId);
+
+  /// Nút "Hủy liên kết và xóa dữ liệu" — POST factory-reset, gửi RPC tới chip.
+  Future<FactoryResetResultModel> factoryResetDevice(
+      String homeId, String deviceId);
 
   Future<List<RoomModel>> getRooms(String homeId);
   Future<RoomModel> createRoom(String homeId, Map<String, dynamic> body);
@@ -22,6 +29,22 @@ abstract class HomeRemoteDataSource {
   Future<void> deleteRoom(String homeId, String roomId);
 
   Future<Map<String, dynamic>> getDeviceInfo(String deviceId);
+}
+
+/// Map status code chung cho 2 endpoint gỡ thiết bị (spec error handling).
+Exception _mapRemoveError(DioException e, String action) {
+  final code = e.response?.statusCode;
+  if (code == 401) return UnauthorizedException();
+  return switch (code) {
+    403 => ServerException(
+        message: 'Bạn không có quyền $action thiết bị này '
+            '(chỉ chủ nhà hoặc quản trị viên)'),
+    404 => ServerException(
+        message: 'Thiết bị không còn trong nhà (có thể đã được gỡ trước đó)'),
+    500 => ServerException(
+        message: 'Máy chủ gặp lỗi — vui lòng thử lại sau giây lát'),
+    _ => ServerException(message: 'Không thể $action thiết bị: ${e.message}'),
+  };
 }
 
 class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
@@ -91,9 +114,11 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
     try {
       final response = await apiClient.get('/api/smarthome/homes/$homeId/devices');
       final List<dynamic> data = response.data is List ? response.data : [];
-      return data
+      final devices = data
           .map((json) => HomeDeviceModel.fromJson(json as Map<String, dynamic>))
           .toList();
+
+      return devices;
     } on DioException catch (e) {
       if (e.response?.statusCode == 401) {
         throw UnauthorizedException();
@@ -138,10 +163,23 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
     try {
       await apiClient.delete('/api/smarthome/homes/$homeId/devices/$deviceId');
     } on DioException catch (e) {
-      if (e.response?.statusCode == 401) {
-        throw UnauthorizedException();
-      }
-      throw ServerException(message: 'Failed to remove device from home: ${e.message}');
+      throw _mapRemoveError(e, 'ngắt kết nối');
+    }
+  }
+
+  @override
+  Future<FactoryResetResultModel> factoryResetDevice(
+      String homeId, String deviceId) async {
+    try {
+      final response = await apiClient.post(
+        '/api/smarthome/homes/$homeId/devices/$deviceId/factory-reset',
+      );
+      final data = response.data;
+      return FactoryResetResultModel.fromJson(
+        data is Map<String, dynamic> ? data : const {},
+      );
+    } on DioException catch (e) {
+      throw _mapRemoveError(e, 'xóa');
     }
   }
 
@@ -212,7 +250,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
   @override
   Future<Map<String, dynamic>> getDeviceInfo(String deviceId) async {
     try {
-      final response = await apiClient.get('/api/device/$deviceId');
+      final response = await apiClient.get('/api/device/info/$deviceId');
       return response.data as Map<String, dynamic>;
     } on DioException catch (e) {
       if (e.response?.statusCode == 401) {

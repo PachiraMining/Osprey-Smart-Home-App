@@ -4,7 +4,7 @@ import '../../../../core/error/failure.dart';
 import '../repositories/foundation_model_repository.dart';
 
 const _systemPrompt = '''
-You are the Osprey Life assistant, a concise on-device AI for a motorized-curtain
+You are the osprey.life assistant, a concise on-device AI for a motorized-curtain
 app. Help the user with setup, troubleshooting, and automation ideas.
 Keep replies under 4 sentences. If the user asks something off-topic,
 redirect to curtain control.
@@ -40,7 +40,7 @@ class SendChatMessage {
     }
     if (m.contains('hi') || m.contains('hello') || m.contains('hey') ||
         m.contains('xin chào') || m.contains('chao')) {
-      return 'Hi — I\'m the Osprey Life assistant. Try /help to see commands, or just tell me which curtain to control.';
+      return 'Hi — I\'m the osprey.life assistant. Try /help to see commands, or just tell me which curtain to control.';
     }
     if (m.contains('open') || m.contains('mở')) {
       final room = _detectRoom(m);

@@ -1,4 +1,6 @@
 // lib/core/network/api_client.dart
+import 'dart:developer';
+
 import 'package:dio/dio.dart';
 import '../../core/auth/token_manager.dart';
 import '../../core/di/injector.dart';
@@ -24,9 +26,22 @@ class ApiClient {
           if (token != null && token.isNotEmpty) {
             options.headers['X-Authorization'] = 'Bearer $token';
           }
+          // ignore: avoid_print
+          print('[API] → ${options.method} ${options.baseUrl}${options.path}');
           handler.next(options);
         },
+        onResponse: (response, handler) {
+          // ignore: avoid_print
+          print('[API] ← ${response.statusCode} ${response.requestOptions.method} ${response.requestOptions.path}');
+          handler.next(response);
+        },
         onError: (error, handler) {
+          // ignore: avoid_print
+          print('[API] ✗ ${error.type.name} ${error.requestOptions.method} ${error.requestOptions.baseUrl}${error.requestOptions.path} — ${error.message}');
+          if (error.response != null) {
+            // ignore: avoid_print
+            print('[API] ✗ status=${error.response?.statusCode} body=${error.response?.data}');
+          }
           handler.next(error);
         },
       ),

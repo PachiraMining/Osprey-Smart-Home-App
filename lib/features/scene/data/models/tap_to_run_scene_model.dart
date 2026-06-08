@@ -12,7 +12,8 @@ class TapToRunSceneModel extends TapToRunSceneEntity {
   });
 
   factory TapToRunSceneModel.fromJson(Map<String, dynamic> json) {
-    final actionsList = json['actions'] as List<dynamic>? ?? [];
+    final rawActions = json['actions'];
+    final actionsList = rawActions is List ? rawActions : <dynamic>[];
     return TapToRunSceneModel(
       id: json['id'] is Map ? json['id']['id'] : (json['id']?.toString() ?? ''),
       name: json['name'] ?? '',
@@ -20,7 +21,8 @@ class TapToRunSceneModel extends TapToRunSceneEntity {
       icon: json['icon'] as String?,
       enabled: json['enabled'] ?? true,
       actions: actionsList
-          .map((a) => SceneActionModel.fromJson(a as Map<String, dynamic>))
+          .whereType<Map<String, dynamic>>()
+          .map((a) => SceneActionModel.fromJson(a))
           .toList(),
     );
   }

@@ -7,7 +7,7 @@ class ToggleScene {
 
   ToggleScene(this.repository);
 
-  Future<Either<Failure, void>> call(int sceneId, bool enabled) async {
+  Future<Either<Failure, void>> call(String sceneId, bool enabled) async {
     return await repository.toggleScene(sceneId, enabled);
   }
 }
