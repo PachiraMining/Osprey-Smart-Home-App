@@ -77,62 +77,62 @@ class _ApiDebugPageState extends State<ApiDebugPage> {
   /// App hiện tại lại gọi Nút 1 CÓ "homes" → kèm cả 2 biến thể để so kết quả.
   static const List<_Preset> _presets = [
     _Preset(
-      label: 'Nút 1 · Ngắt kết nối (spec: KHÔNG homes)',
+      label: 'Button 1 · Disconnect (spec: NO homes)',
       method: 'DELETE',
       path: '/api/smarthome/{homeId}/devices/{deviceId}',
-      note: 'Theo note backend. Response 200, no body. '
-          'Nếu 404 → backend dùng path CÓ "homes" (xem biến thể dưới).',
+      note: 'Per backend note. Response 200, no body. '
+          'If 404 → backend uses path WITH "homes" (see variant below).',
       color: AppColors.warning,
     ),
     _Preset(
-      label: 'Nút 1 · Ngắt kết nối (app hiện tại: CÓ homes)',
+      label: 'Button 1 · Disconnect (current app: WITH homes)',
       method: 'DELETE',
       path: '/api/smarthome/homes/{homeId}/devices/{deviceId}',
-      note: 'Path app đang dùng thật (home_remote_datasource.dart:164). '
-          'So với biến thể trên xem cái nào ra 200.',
+      note: 'Path the app actually uses (home_remote_datasource.dart:164). '
+          'Compare with the variant above to see which one returns 200.',
       color: AppColors.warning,
     ),
     _Preset(
-      label: 'Nút 2 · Hủy liên kết + xóa dữ liệu (factory-reset)',
+      label: 'Button 2 · Unbind + wipe data (factory-reset)',
       method: 'POST',
       path: '/api/smarthome/homes/{homeId}/devices/{deviceId}/factory-reset',
-      note: 'PHẢI có "homes" + "/factory-reset". Response PHẢI có field '
-          '"deviceWasOnline". Có thể mất ~1.5-2s — KHÔNG retry.',
+      note: 'MUST include "homes" + "/factory-reset". Response MUST contain '
+          'the "deviceWasOnline" field. May take ~1.5-2s — do NOT retry.',
       color: AppColors.error,
     ),
     _Preset(
-      label: 'GET danh sách homes',
+      label: 'GET homes list',
       method: 'GET',
       path: '/api/smarthome/homes',
       color: AppColors.primary,
     ),
     _Preset(
-      label: 'GET thiết bị trong home',
+      label: 'GET devices in home',
       method: 'GET',
       path: '/api/smarthome/homes/{homeId}/devices',
       color: AppColors.primary,
     ),
     // ── Khám phá dữ liệu mạng (SSID/RSSI) cho màn Device Network ──
     _Preset(
-      label: 'GET device info (tìm SSID/RSSI)',
+      label: 'GET device info (find SSID/RSSI)',
       method: 'GET',
       path: '/api/device/info/{deviceId}',
-      note: 'Xem field nào chứa SSID / signal / rssi. Gửi nguyên JSON này về.',
+      note: 'Check which field contains SSID / signal / rssi. Send this raw JSON back.',
       color: AppColors.accent,
     ),
     _Preset(
       label: 'GET TB attributes (ssid/rssi?)',
       method: 'GET',
       path: '/api/plugins/telemetry/DEVICE/{deviceId}/values/attributes',
-      note: 'ThingsBoard attributes. Tìm key ssid/rssi/signal. Có thể 403/404 '
-          'nếu proxy không mở — báo lại status để biết.',
+      note: 'ThingsBoard attributes. Look for ssid/rssi/signal keys. May return '
+          '403/404 if the proxy is closed — report the status back.',
       color: AppColors.accent,
     ),
     _Preset(
       label: 'GET TB timeseries (telemetry)',
       method: 'GET',
       path: '/api/plugins/telemetry/DEVICE/{deviceId}/values/timeseries',
-      note: 'Telemetry mới nhất. SSID/RSSI có thể nằm ở đây thay vì attributes.',
+      note: 'Latest telemetry. SSID/RSSI may live here instead of attributes.',
       color: AppColors.accent,
     ),
   ];
@@ -197,7 +197,7 @@ class _ApiDebugPageState extends State<ApiDebugPage> {
         'deviceId',
     ];
     if (missing.isNotEmpty) {
-      _showSnack('Chưa nhập: ${missing.join(", ")} — path sẽ bị rỗng segment');
+      _showSnack('Missing: ${missing.join(", ")} — path will have an empty segment');
       return;
     }
 
@@ -220,7 +220,7 @@ class _ApiDebugPageState extends State<ApiDebugPage> {
         body = jsonDecode(bodyText);
         rawBody = bodyText;
       } catch (e) {
-        _showSnack('Body không phải JSON hợp lệ: $e');
+        _showSnack('Body is not valid JSON: $e');
         return;
       }
     }
@@ -266,7 +266,7 @@ class _ApiDebugPageState extends State<ApiDebugPage> {
         responseHeaders:
             e.response != null ? _flattenHeaders(e.response!.headers) : const {},
         responseBody:
-            e.response != null ? _pretty(e.response!.data) : '(không có response)',
+            e.response != null ? _pretty(e.response!.data) : '(no response)',
         elapsedMs: sw.elapsedMilliseconds,
         error: '${e.type.name}: ${e.message}',
       );
@@ -331,7 +331,7 @@ class _ApiDebugPageState extends State<ApiDebugPage> {
 
   void _copy(String text, String what) {
     Clipboard.setData(ClipboardData(text: text));
-    _showSnack('Đã sao chép $what');
+    _showSnack('Copied $what');
   }
 
   // ─── UI ──────────────────────────────────────────────────
@@ -346,7 +346,7 @@ class _ApiDebugPageState extends State<ApiDebugPage> {
         actions: [
           if (_history.isNotEmpty)
             IconButton(
-              tooltip: 'Xóa lịch sử',
+              tooltip: 'Clear history',
               icon: const Icon(Icons.delete_sweep_outlined),
               onPressed: () => setState(_history.clear),
             ),
@@ -366,7 +366,7 @@ class _ApiDebugPageState extends State<ApiDebugPage> {
           _sendButton(),
           const SizedBox(height: 20),
           if (_history.isNotEmpty) ...[
-            const Text('Kết quả',
+            const Text('Results',
                 style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
             const SizedBox(height: 8),
             for (final r in _history) _resultCard(r),
@@ -415,7 +415,7 @@ class _ApiDebugPageState extends State<ApiDebugPage> {
                   controller: _pathCtrl,
                   style: const TextStyle(
                       fontSize: 13, fontFamily: 'monospace'),
-                  decoration: _dec('Path  (dùng {homeId} {deviceId})'),
+                  decoration: _dec('Path  (use {homeId} {deviceId})'),
                 ),
               ),
             ],
@@ -450,7 +450,7 @@ class _ApiDebugPageState extends State<ApiDebugPage> {
               minLines: 2,
               style:
                   const TextStyle(fontSize: 13, fontFamily: 'monospace'),
-              decoration: _dec('Body (JSON, để trống nếu không có)'),
+              decoration: _dec('Body (JSON, leave empty if none)'),
             ),
           ],
           const SizedBox(height: 8),
@@ -461,7 +461,7 @@ class _ApiDebugPageState extends State<ApiDebugPage> {
               alignment: Alignment.centerLeft,
               child: Text(
                 '→ ${AppConfig.thingsboardBaseUrl}$resolved'
-                '${hasEmptySegment ? '  ⚠ segment rỗng' : ''}',
+                '${hasEmptySegment ? '  ⚠ empty segment' : ''}',
                 style: TextStyle(
                     fontSize: 11,
                     fontFamily: 'monospace',
@@ -563,7 +563,7 @@ class _ApiDebugPageState extends State<ApiDebugPage> {
                 child: CircularProgressIndicator(
                     strokeWidth: 2, color: Colors.white))
             : const Icon(Icons.send, size: 18),
-        label: Text(_sending ? 'Đang gọi...' : 'Gửi request'),
+        label: Text(_sending ? 'Sending...' : 'Send request'),
       ),
     );
   }
@@ -633,7 +633,7 @@ class _ApiDebugPageState extends State<ApiDebugPage> {
           ),
           children: [
             if (mismatch) _mismatchBanner(),
-            if (r.error != null) _kvBlock('Lỗi', r.error!, AppColors.error),
+            if (r.error != null) _kvBlock('Error', r.error!, AppColors.error),
             _kvBlock('Response body', r.responseBody, AppColors.textPrimary),
             if (r.responseHeaders.isNotEmpty)
               _kvBlock(
@@ -695,9 +695,9 @@ class _ApiDebugPageState extends State<ApiDebugPage> {
           SizedBox(width: 8),
           Expanded(
             child: Text(
-              'NGHI GỌI NHẦM: factory-reset trả 200 nhưng KHÔNG có '
-              '"deviceWasOnline" → có thể trúng Nút 1 (removeDeviceFromHome) '
-              'thay vì Nút 2. Kiểm tra lại path.',
+              'POSSIBLE WRONG CALL: factory-reset returned 200 but WITHOUT '
+              '"deviceWasOnline" → may have hit Button 1 (removeDeviceFromHome) '
+              'instead of Button 2. Double-check the path.',
               style: TextStyle(
                   fontSize: 12, color: AppColors.error, height: 1.4),
             ),

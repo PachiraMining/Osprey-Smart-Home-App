@@ -32,7 +32,7 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
   void _comingSoon() {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(const SnackBar(content: Text('Tính năng đang phát triển')));
+      ..showSnackBar(const SnackBar(content: Text('Feature coming soon')));
   }
 
   String get _deviceId => widget.device.id;
@@ -53,9 +53,9 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
             // Nút 1 — Ngắt kết nối (DELETE, thiết bị về pairing sau 1-2 phút)
             ListTile(
               leading: const Icon(Icons.link_off, color: AppColors.warning),
-              title: const Text('Ngắt kết nối'),
+              title: const Text('Disconnect'),
               subtitle: const Text(
-                'Gỡ khỏi nhà, thiết bị tự về chế độ ghép nối sau 1-2 phút',
+                'Removes from home; device returns to pairing mode in 1-2 minutes',
                 style: TextStyle(fontSize: 12),
               ),
               onTap: () {
@@ -67,11 +67,11 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
             ListTile(
               leading: const Icon(Icons.delete_forever, color: AppColors.error),
               title: const Text(
-                'Hủy liên kết và xóa dữ liệu',
+                'Unlink and erase data',
                 style: TextStyle(color: AppColors.error),
               ),
               subtitle: const Text(
-                'Xóa toàn bộ dữ liệu, không thể khôi phục',
+                'Erases all data, cannot be undone',
                 style: TextStyle(fontSize: 12),
               ),
               onTap: () {
@@ -90,20 +90,20 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Ngắt kết nối thiết bị?'),
+        title: const Text('Disconnect device?'),
         content: Text(
-          '"$_displayName" sẽ được gỡ khỏi nhà của bạn và tự động chuyển về '
-          'chế độ ghép nối trong khoảng 1-2 phút.',
+          '"$_displayName" will be removed from your home and automatically '
+          'return to pairing mode in about 1-2 minutes.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Hủy'),
+            child: const Text('Cancel'),
           ),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: AppColors.warning),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Ngắt kết nối'),
+            child: const Text('Disconnect'),
           ),
         ],
       ),
@@ -116,20 +116,20 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Xóa dữ liệu thiết bị?'),
+        title: const Text('Erase device data?'),
         content: Text(
-          'Toàn bộ dữ liệu của "$_displayName" sẽ bị xóa và KHÔNG THỂ khôi '
-          'phục. Bạn chắc chắn?',
+          'All data for "$_displayName" will be erased and CANNOT be '
+          'recovered. Are you sure?',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Hủy'),
+            child: const Text('Cancel'),
           ),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: AppColors.error),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Xóa'),
+            child: const Text('Delete'),
           ),
         ],
       ),
@@ -143,7 +143,7 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
     final homeId = bloc.state.selectedHomeId;
     if (homeId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Chưa chọn nhà, vui lòng thử lại')),
+        const SnackBar(content: Text('No home selected, please try again')),
       );
       return;
     }
@@ -163,13 +163,13 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
       final messenger = ScaffoldMessenger.of(context);
       Navigator.of(context).popUntil((route) => route.isFirst);
       messenger.showSnackBar(const SnackBar(
-        content: Text('Đã gỡ thiết bị khỏi nhà.'),
+        content: Text('Device removed from home.'),
         backgroundColor: AppColors.success,
       ));
     } else if (state.mutationStatus == MutationStatus.error) {
       setState(() => _removing = false);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(state.errorMessage ?? 'Có lỗi xảy ra, vui lòng thử lại'),
+        content: Text(state.errorMessage ?? 'Something went wrong, please try again'),
         backgroundColor: AppColors.error,
       ));
     }
@@ -219,7 +219,7 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
                   _navRow('Device Review', onTap: _comingSoon),
                   _divider(),
                   _switchRow(
-                    'Thông báo ngoại tuyến',
+                    'Offline notification',
                     value: _offlineNotify,
                     onChanged: (v) => setState(() => _offlineNotify = v),
                   ),
@@ -227,13 +227,13 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
                 const SizedBox(height: 24),
                 _sectionHeader('General Settings'),
                 _card([
-                  _navRow('Câu hỏi thường gặp và phản hồi', onTap: _comingSoon),
+                  _navRow('FAQ & feedback', onTap: _comingSoon),
                   _divider(),
-                  _navRow('Thêm vào màn hình chính', onTap: _comingSoon),
+                  _navRow('Add to home screen', onTap: _comingSoon),
                   _divider(),
                   _navRow(
-                    'Kiểm tra nâng cấp',
-                    trailing: const Text('Đây là phiên bản mới nhất',
+                    'Check for updates',
+                    trailing: const Text('This is the latest version',
                         style:
                             TextStyle(fontSize: 13, color: AppColors.textMuted)),
                     onTap: _comingSoon,
@@ -272,7 +272,7 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
                   height: 20,
                   child: CircularProgressIndicator(strokeWidth: 2))
               : const Text(
-                  'Gỡ bỏ thiết bị',
+                  'Remove device',
                   style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -286,7 +286,7 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
   Widget _isOnlineText() {
     final online = widget.device.status == 'online';
     return Text(
-      online ? 'Đang kết nối' : 'Ngoại tuyến',
+      online ? 'Connected' : 'Offline',
       style: TextStyle(
         fontSize: 13,
         color: online ? AppColors.success : AppColors.textMuted,

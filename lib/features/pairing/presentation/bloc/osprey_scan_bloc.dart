@@ -44,7 +44,7 @@ class OspreyScanBloc extends Bloc<OspreyScanEvent, OspreyScanState> {
       await scanForDevices.start();
       emit(const OspreyScanning([]));
     } catch (e) {
-      emit(OspreyScanError('Không bắt đầu scan được: $e'));
+      emit(OspreyScanError('Could not start scan: $e'));
     }
   }
 

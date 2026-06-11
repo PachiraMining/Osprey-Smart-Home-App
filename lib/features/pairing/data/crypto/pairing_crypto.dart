@@ -67,10 +67,10 @@ class PairingCrypto {
     required List<int> hmacExpected,
   }) {
     if (nonceApp.length != PairingConstants.nonceLength) {
-      throw ArgumentError('nonce_app phải đúng 16 bytes');
+      throw ArgumentError('nonce_app must be exactly 16 bytes');
     }
     if (hmacExpected.length != 32) {
-      throw ArgumentError('hmac_expected phải đúng 32 bytes');
+      throw ArgumentError('hmac_expected must be exactly 32 bytes');
     }
     return Uint8List.fromList([...nonceApp, ...hmacExpected]);
   }
@@ -85,7 +85,7 @@ class PairingCrypto {
     required List<int> plaintext,
   }) {
     if (sessionKey.length != 32) {
-      throw ArgumentError('session_key phải đúng 32 bytes');
+      throw ArgumentError('session_key must be exactly 32 bytes');
     }
     final cipher = _buildCcm(
       sessionKey: sessionKey,

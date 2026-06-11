@@ -37,13 +37,13 @@ Exception _mapRemoveError(DioException e, String action) {
   if (code == 401) return UnauthorizedException();
   return switch (code) {
     403 => ServerException(
-        message: 'Bạn không có quyền $action thiết bị này '
-            '(chỉ chủ nhà hoặc quản trị viên)'),
+        message: 'You do not have permission to $action this device '
+            '(home owner or admin only)'),
     404 => ServerException(
-        message: 'Thiết bị không còn trong nhà (có thể đã được gỡ trước đó)'),
+        message: 'Device is no longer in this home (it may have already been removed)'),
     500 => ServerException(
-        message: 'Máy chủ gặp lỗi — vui lòng thử lại sau giây lát'),
-    _ => ServerException(message: 'Không thể $action thiết bị: ${e.message}'),
+        message: 'Server error — please try again in a moment'),
+    _ => ServerException(message: 'Could not $action device: ${e.message}'),
   };
 }
 
@@ -163,7 +163,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
     try {
       await apiClient.delete('/api/smarthome/homes/$homeId/devices/$deviceId');
     } on DioException catch (e) {
-      throw _mapRemoveError(e, 'ngắt kết nối');
+      throw _mapRemoveError(e, 'disconnect');
     }
   }
 
@@ -179,7 +179,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
         data is Map<String, dynamic> ? data : const {},
       );
     } on DioException catch (e) {
-      throw _mapRemoveError(e, 'xóa');
+      throw _mapRemoveError(e, 'delete');
     }
   }
 

@@ -54,7 +54,7 @@ class _OspreyScanDebugPageState extends State<OspreyScanDebugPage> {
   final Map<String, _SeenDevice> _seen = {};
   StreamSubscription<List<ScanResult>>? _sub;
   bool _ospreyOnly = false;
-  String _status = 'Chuẩn bị quét...';
+  String _status = 'Preparing to scan...';
 
   static final Guid _brandGuid = Guid(PairingConstants.brandServiceUuid);
 
@@ -83,12 +83,12 @@ class _OspreyScanDebugPageState extends State<OspreyScanDebugPage> {
     final granted = statuses.values
         .every((s) => s.isGranted || s.isLimited || s.isProvisional);
     if (!granted) {
-      setState(() => _status = 'Thiếu quyền Bluetooth/Vị trí');
+      setState(() => _status = 'Missing Bluetooth/Location permission');
       return;
     }
 
     _seen.clear();
-    setState(() => _status = 'Đang quét (không lọc)...');
+    setState(() => _status = 'Scanning (unfiltered)...');
     _sub?.cancel();
     _sub = FlutterBluePlus.scanResults.listen(_onResults);
 
@@ -103,7 +103,7 @@ class _OspreyScanDebugPageState extends State<OspreyScanDebugPage> {
         androidScanMode: AndroidScanMode.lowLatency,
       );
     } catch (e) {
-      setState(() => _status = 'Lỗi quét: $e');
+      setState(() => _status = 'Scan error: $e');
     }
   }
 
@@ -189,16 +189,16 @@ class _OspreyScanDebugPageState extends State<OspreyScanDebugPage> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: AppColors.surface,
-        title: const Text('Debug quét BLE',
+        title: const Text('BLE scan debug',
             style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
         actions: [
           IconButton(
-            tooltip: 'Sao chép log',
+            tooltip: 'Copy log',
             icon: const Icon(Icons.copy_all),
             onPressed: () => _copyAll(all),
           ),
           IconButton(
-            tooltip: 'Quét lại',
+            tooltip: 'Rescan',
             icon: const Icon(Icons.refresh),
             onPressed: _start,
           ),
@@ -216,7 +216,7 @@ class _OspreyScanDebugPageState extends State<OspreyScanDebugPage> {
                       style: const TextStyle(
                           fontSize: 12, color: AppColors.textMuted)),
                 ),
-                const Text('Chỉ Osprey',
+                const Text('Osprey only',
                     style: TextStyle(fontSize: 12)),
                 Switch(
                   value: _ospreyOnly,
@@ -229,7 +229,7 @@ class _OspreyScanDebugPageState extends State<OspreyScanDebugPage> {
           Expanded(
             child: shown.isEmpty
                 ? const Center(
-                    child: Text('Chưa thấy thiết bị nào',
+                    child: Text('No devices found yet',
                         style: TextStyle(color: AppColors.textMuted)))
                 : ListView.separated(
                     padding: const EdgeInsets.all(12),
@@ -252,10 +252,10 @@ class _OspreyScanDebugPageState extends State<OspreyScanDebugPage> {
         spacing: 8,
         runSpacing: 8,
         children: [
-          _stat('Tổng', '$total', AppColors.textPrimary),
-          _stat('Quảng bá Brand UUID', '$brand', AppColors.primary),
+          _stat('Total', '$total', AppColors.textPrimary),
+          _stat('Advertising Brand UUID', '$brand', AppColors.primary),
           _stat('Osprey', '$osprey', AppColors.accent),
-          _stat('Sẽ hiện', '$wouldShow', AppColors.success),
+          _stat('Would show', '$wouldShow', AppColors.success),
         ],
       ),
     );
@@ -284,7 +284,7 @@ class _OspreyScanDebugPageState extends State<OspreyScanDebugPage> {
     }
     Clipboard.setData(ClipboardData(text: buf.toString()));
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Đã sao chép log vào clipboard')),
+      const SnackBar(content: Text('Log copied to clipboard')),
     );
   }
 
@@ -292,16 +292,16 @@ class _OspreyScanDebugPageState extends State<OspreyScanDebugPage> {
     final adv = r.advertisementData;
     if (adv.advName.isNotEmpty) return adv.advName;
     if (r.device.platformName.isNotEmpty) return r.device.platformName;
-    return '(không tên)';
+    return '(no name)';
   }
 
   String _verdictLabel(_Verdict v) => switch (v) {
-        _Verdict.wouldShow => 'SẼ HIỆN',
-        _Verdict.hiddenPaired => 'ẨN: đã paired',
-        _Verdict.hiddenNoMfg => 'ẨN: thiếu mfg 0xFFFF',
-        _Verdict.hiddenShortMfg => 'ẨN: mfg < 6 bytes',
-        _Verdict.hiddenNoBrandUuid => 'ẨN: BLE filter (không có Brand UUID)',
-        _Verdict.notOsprey => 'không phải Osprey',
+        _Verdict.wouldShow => 'WOULD SHOW',
+        _Verdict.hiddenPaired => 'HIDDEN: already paired',
+        _Verdict.hiddenNoMfg => 'HIDDEN: missing mfg 0xFFFF',
+        _Verdict.hiddenShortMfg => 'HIDDEN: mfg < 6 bytes',
+        _Verdict.hiddenNoBrandUuid => 'HIDDEN: BLE filter (no Brand UUID)',
+        _Verdict.notOsprey => 'not Osprey',
       };
 }
 
@@ -352,7 +352,7 @@ class _DeviceDebugCard extends StatelessWidget {
           const SizedBox(height: 6),
           _kv('ID', r.device.remoteId.str),
           _kv('RSSI', '${r.rssi} dBm   •   connectable: ${adv.connectable}'),
-          _kv('Quảng bá Brand UUID', device.advertisesBrandUuid ? 'CÓ' : 'KHÔNG'),
+          _kv('Advertises Brand UUID', device.advertisesBrandUuid ? 'YES' : 'NO'),
           if (adv.serviceUuids.isNotEmpty)
             _kv('Service UUIDs',
                 adv.serviceUuids.map((g) => g.str).join('\n')),
@@ -418,12 +418,12 @@ class _DeviceDebugCard extends StatelessWidget {
   }
 
   (Color, String) _verdictStyle(_Verdict v) => switch (v) {
-        _Verdict.wouldShow => (AppColors.success, 'SẼ HIỆN'),
-        _Verdict.hiddenPaired => (AppColors.warning, 'ẨN: đã paired'),
-        _Verdict.hiddenNoMfg => (AppColors.error, 'ẨN: thiếu 0xFFFF'),
-        _Verdict.hiddenShortMfg => (AppColors.error, 'ẨN: mfg ngắn'),
+        _Verdict.wouldShow => (AppColors.success, 'WOULD SHOW'),
+        _Verdict.hiddenPaired => (AppColors.warning, 'HIDDEN: paired'),
+        _Verdict.hiddenNoMfg => (AppColors.error, 'HIDDEN: no 0xFFFF'),
+        _Verdict.hiddenShortMfg => (AppColors.error, 'HIDDEN: short mfg'),
         _Verdict.hiddenNoBrandUuid =>
-          (AppColors.error, 'ẨN: BLE filter'),
-        _Verdict.notOsprey => (AppColors.textMuted, 'khác'),
+          (AppColors.error, 'HIDDEN: BLE filter'),
+        _Verdict.notOsprey => (AppColors.textMuted, 'other'),
       };
 }

@@ -49,7 +49,7 @@ class _DeviceNetworkPageState extends State<DeviceNetworkPage> {
   void _comingSoon() {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(const SnackBar(content: Text('Tính năng đang phát triển')));
+      ..showSnackBar(const SnackBar(content: Text('Feature coming soon')));
   }
 
   @override
@@ -130,7 +130,7 @@ class _DeviceNetworkPageState extends State<DeviceNetworkPage> {
         ),
         const Divider(height: 1, indent: 16, endIndent: 16),
         _kvRow(
-          'Trạng thái',
+          'Status',
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -144,7 +144,7 @@ class _DeviceNetworkPageState extends State<DeviceNetworkPage> {
               ),
               const SizedBox(width: 6),
               Text(
-                _isOnline ? 'Đang kết nối' : 'Ngoại tuyến',
+                _isOnline ? 'Connected' : 'Offline',
                 style: TextStyle(
                   fontSize: 15,
                   color: _isOnline ? AppColors.success : AppColors.textMuted,

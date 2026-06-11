@@ -85,12 +85,12 @@ class _OspreyAddDeviceViewState extends State<_OspreyAddDeviceView>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(Platform.isIOS
-              ? 'Cần quyền Bluetooth để tìm thiết bị'
-              : 'Cần quyền Bluetooth và Vị trí để tìm thiết bị'),
+              ? 'Bluetooth permission is required to find devices'
+              : 'Bluetooth and Location permissions are required to find devices'),
           backgroundColor: AppColors.error,
           action: permanentlyDenied
               ? SnackBarAction(
-                  label: 'Mở Cài đặt',
+                  label: 'Open Settings',
                   textColor: Colors.white,
                   onPressed: openAppSettings,
                 )
@@ -128,7 +128,7 @@ class _OspreyAddDeviceViewState extends State<_OspreyAddDeviceView>
         ),
         centerTitle: true,
         title: const Text(
-          'Thêm thiết bị',
+          'Add device',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -147,7 +147,7 @@ class _OspreyAddDeviceViewState extends State<_OspreyAddDeviceView>
           ),
           // Debug: quét KHÔNG lọc để so sánh với nRF Connect
           IconButton(
-            tooltip: 'Debug quét BLE',
+            tooltip: 'BLE scan debug',
             icon: const Icon(Icons.bug_report_outlined,
                 color: AppColors.textMuted),
             onPressed: () {
@@ -191,7 +191,7 @@ class _OspreyAddDeviceViewState extends State<_OspreyAddDeviceView>
                       ),
                       onPressed: _requestAndScan,
                       icon: const Icon(Icons.refresh),
-                      label: const Text('Quét lại'),
+                      label: const Text('Rescan'),
                     ),
                   ),
               ],
@@ -207,10 +207,10 @@ class _OspreyAddDeviceViewState extends State<_OspreyAddDeviceView>
     if (state is OspreyScanError) {
       text = state.message;
     } else if (isScanning) {
-      text = 'Đang tìm thiết bị Osprey gần bạn. Hãy chắc chắn thiết bị '
-          'đã vào chế độ ghép nối (giữ nút reset 5 giây).';
+      text = 'Searching for nearby Osprey devices. Make sure the device '
+          'is in pairing mode (hold the reset button for 5 seconds).';
     } else {
-      text = 'Đã dừng quét.';
+      text = 'Scanning stopped.';
     }
 
     return Container(
@@ -289,7 +289,7 @@ class _OspreyAddDeviceViewState extends State<_OspreyAddDeviceView>
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
             child: Text(
-              'Thiết bị tìm thấy (${devices.length})',
+              'Devices found (${devices.length})',
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,

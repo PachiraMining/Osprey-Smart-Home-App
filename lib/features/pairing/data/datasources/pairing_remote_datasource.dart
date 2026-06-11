@@ -49,7 +49,7 @@ class PairingRemoteDataSourceImpl implements PairingRemoteDataSource {
               OspreyProductModel.fromJson(json as Map<String, dynamic>))
           .toList();
     } on DioException catch (e) {
-      throw _mapError(e, 'Không tải được danh sách sản phẩm');
+      throw _mapError(e, 'Could not load product list');
     }
   }
 
@@ -62,7 +62,7 @@ class PairingRemoteDataSourceImpl implements PairingRemoteDataSource {
           response.data as Map<String, dynamic>);
     } on DioException catch (e) {
       if (e.response?.statusCode == 404) return null;
-      throw _mapError(e, 'Không tra cứu được sản phẩm');
+      throw _mapError(e, 'Could not look up product');
     }
   }
 
@@ -84,14 +84,14 @@ class PairingRemoteDataSourceImpl implements PairingRemoteDataSource {
     } on DioException catch (e) {
       if (e.response?.statusCode == 404) {
         throw ServerException(
-            message: 'Thiết bị chưa được đăng ký trong hệ thống '
+            message: 'Device is not registered in the system '
                 '(DEVICE_NOT_REGISTERED)');
       }
       if (e.response?.statusCode == 429) {
         throw ServerException(
-            message: 'Thử lại quá nhiều lần — vui lòng đợi 1 phút');
+            message: 'Too many attempts — please wait 1 minute');
       }
-      throw _mapError(e, 'Không lấy được mã xác thực thiết bị');
+      throw _mapError(e, 'Could not get device authentication code');
     }
   }
 
@@ -121,7 +121,7 @@ class PairingRemoteDataSourceImpl implements PairingRemoteDataSource {
       return PairingTokenModel.fromJson(
           response.data as Map<String, dynamic>);
     } on DioException catch (e) {
-      throw _mapError(e, 'Không tạo được pairing token');
+      throw _mapError(e, 'Could not create pairing token');
     }
   }
 
@@ -133,7 +133,7 @@ class PairingRemoteDataSourceImpl implements PairingRemoteDataSource {
       return PairingTokenModel.fromJson(
           response.data as Map<String, dynamic>);
     } on DioException catch (e) {
-      throw _mapError(e, 'Không kiểm tra được trạng thái pairing');
+      throw _mapError(e, 'Could not check pairing status');
     }
   }
 

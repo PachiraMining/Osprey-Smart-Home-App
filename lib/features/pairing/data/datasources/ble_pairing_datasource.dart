@@ -99,7 +99,7 @@ class BlePairingDataSourceImpl implements BlePairingDataSource {
     try {
       await device.connect(timeout: PairingConstants.connectTimeout);
     } catch (e) {
-      throw BlePairingException('Không kết nối được thiết bị: $e');
+      throw BlePairingException('Could not connect to device: $e');
     }
     _device = device;
 
@@ -111,10 +111,10 @@ class BlePairingDataSourceImpl implements BlePairingDataSource {
         await device.requestMtu(PairingConstants.requiredMtu);
       } catch (e) {
         await closeSession();
-        throw BlePairingException('Không negotiate được MTU 247: $e');
+        throw BlePairingException('Could not negotiate MTU 247: $e');
       }
     }
-    log('[BLE-PAIR] MTU sau negotiate: ${device.mtuNow}',
+    log('[BLE-PAIR] MTU after negotiation: ${device.mtuNow}',
         name: 'BlePairing');
 
     // Discover GATT Pairing Service + 3 characteristics
@@ -123,7 +123,7 @@ class BlePairingDataSourceImpl implements BlePairingDataSource {
       services = await device.discoverServices();
     } catch (e) {
       await closeSession();
-      throw BlePairingException('Không discover được GATT services: $e');
+      throw BlePairingException('Could not discover GATT services: $e');
     }
 
     final pairingService = _firstWhereOrNull(
@@ -133,8 +133,8 @@ class BlePairingDataSourceImpl implements BlePairingDataSource {
     if (pairingService == null) {
       await closeSession();
       throw BlePairingException(
-          'Thiết bị không có Pairing Service — không phải thiết bị Osprey '
-          'hoặc firmware chưa đúng');
+          'Device has no Pairing Service — not an Osprey device '
+          'or incorrect firmware');
     }
 
     _authChar = _findChar(pairingService, PairingConstants.authChallengeCharUuid);
@@ -145,7 +145,7 @@ class BlePairingDataSourceImpl implements BlePairingDataSource {
         _findChar(pairingService, PairingConstants.deviceUuidCharUuid);
     if (_authChar == null || _dataChar == null || _statusChar == null) {
       await closeSession();
-      throw BlePairingException('Thiếu characteristic trong Pairing Service');
+      throw BlePairingException('Missing characteristic in Pairing Service');
     }
 
     // Subscribe CCCD TRƯỚC khi write AUTH_CHALLENGE — nếu sai thứ tự
@@ -162,7 +162,7 @@ class BlePairingDataSourceImpl implements BlePairingDataSource {
       await _statusChar!.setNotifyValue(true);
     } catch (e) {
       await closeSession();
-      throw BlePairingException('Không subscribe được STATUS_NOTIFY: $e');
+      throw BlePairingException('Could not subscribe to STATUS_NOTIFY: $e');
     }
   }
 
@@ -173,21 +173,21 @@ class BlePairingDataSourceImpl implements BlePairingDataSource {
   @override
   Future<String> readDeviceUuid() async {
     if (_device == null) {
-      throw BlePairingException('Chưa mở BLE session');
+      throw BlePairingException('BLE session not opened');
     }
     final char = _deviceUuidChar;
     if (char == null) {
       // Vendor yêu cầu hard-error thay vì fallback ngầm: khi backend ship
       // per-device PSK (Phase 2), UUID sai sẽ fail rất khó debug.
       throw BlePairingException(
-          'Firmware thiết bị quá cũ — thiếu characteristic DEVICE_UUID '
-          '(cần firmware build từ 2026-06-05)');
+          'Device firmware is too old — missing DEVICE_UUID characteristic '
+          '(requires firmware build from 2026-06-05)');
     }
     final List<int> bytes;
     try {
       bytes = await char.read();
     } catch (e) {
-      throw BlePairingException('READ DEVICE_UUID thất bại: $e');
+      throw BlePairingException('READ DEVICE_UUID failed: $e');
     }
     // Strip null bytes phòng firmware null-terminate, rồi validate format
     final uuid = String.fromCharCodes(bytes.where((b) => b != 0))
@@ -196,7 +196,7 @@ class BlePairingDataSourceImpl implements BlePairingDataSource {
     if (!_uuidPattern.hasMatch(uuid)) {
       // Char tồn tại nhưng value sai format → lỗi firmware, phải surface
       throw BlePairingException(
-          'DEVICE_UUID không hợp lệ từ thiết bị: "$uuid" '
+          'Invalid DEVICE_UUID from device: "$uuid" '
           '(${bytes.length} bytes)');
     }
     log('[BLE-PAIR] DEVICE_UUID: $uuid (watchdog disarmed)',
@@ -208,16 +208,16 @@ class BlePairingDataSourceImpl implements BlePairingDataSource {
   Future<void> writeAuthChallengeAndAwaitOk(Uint8List payload) async {
     final authChar = _authChar;
     if (authChar == null) {
-      throw BlePairingException('Chưa mở BLE session');
+      throw BlePairingException('BLE session not opened');
     }
     if (payload.length != PairingConstants.authChallengeLength) {
       throw BlePairingException(
-          'AUTH_CHALLENGE phải đúng 48 bytes (hiện ${payload.length})');
+          'AUTH_CHALLENGE must be exactly 48 bytes (got ${payload.length})');
     }
     try {
       await authChar.write(payload);
     } catch (e) {
-      throw BlePairingException('Write AUTH_CHALLENGE thất bại: $e');
+      throw BlePairingException('Write AUTH_CHALLENGE failed: $e');
     }
     final status = await _awaitStatus();
     if (status != PairingConstants.statusAuthOk) {
@@ -233,20 +233,20 @@ class BlePairingDataSourceImpl implements BlePairingDataSource {
     final dataChar = _dataChar;
     final device = _device;
     if (dataChar == null || device == null) {
-      throw BlePairingException('Chưa mở BLE session');
+      throw BlePairingException('BLE session not opened');
     }
     // Sanity check MTU: payload phải nằm gọn trong 1 ATT write
     // (firmware chưa support long-write).
     final mtu = device.mtuNow;
     if (ciphertext.length > mtu - 3) {
       throw BlePairingException(
-          'PAIRING_DATA ${ciphertext.length} B vượt quá MTU $mtu — '
-          'thiết bị không hỗ trợ MTU 247');
+          'PAIRING_DATA ${ciphertext.length} B exceeds MTU $mtu — '
+          'device does not support MTU 247');
     }
     try {
       await dataChar.write(ciphertext, allowLongWrite: false);
     } catch (e) {
-      throw BlePairingException('Write PAIRING_DATA thất bại: $e');
+      throw BlePairingException('Write PAIRING_DATA failed: $e');
     }
     final status = await _awaitStatus();
     if (status != PairingConstants.statusDataOk) {
@@ -273,7 +273,7 @@ class BlePairingDataSourceImpl implements BlePairingDataSource {
       try {
         await device.disconnect();
       } catch (e) {
-        log('[BLE-PAIR] disconnect error (bỏ qua): $e', name: 'BlePairing');
+        log('[BLE-PAIR] disconnect error (ignored): $e', name: 'BlePairing');
       }
     }
   }
@@ -281,31 +281,31 @@ class BlePairingDataSourceImpl implements BlePairingDataSource {
   Future<int> _awaitStatus() async {
     final controller = _statusController;
     if (controller == null) {
-      throw BlePairingException('Chưa subscribe STATUS_NOTIFY');
+      throw BlePairingException('STATUS_NOTIFY not subscribed');
     }
     try {
       return await controller.stream.first
           .timeout(PairingConstants.statusNotifyTimeout);
     } on TimeoutException {
       throw BlePairingException(
-          'Thiết bị không phản hồi sau '
+          'Device did not respond after '
           '${PairingConstants.statusNotifyTimeout.inSeconds}s');
     }
   }
 
   static String _describeStatus(int status) => switch (status) {
         PairingConstants.statusAuthFail =>
-          'Xác thực thiết bị thất bại (HMAC mismatch) — thiết bị có thể '
-              'không phải hàng chính hãng',
+          'Device authentication failed (HMAC mismatch) — the device may '
+              'not be genuine',
         PairingConstants.statusDecryptError =>
-          'Thiết bị không giải mã được dữ liệu (DECRYPT_ERROR)',
+          'Device could not decrypt the data (DECRYPT_ERROR)',
         PairingConstants.statusJsonParseError =>
-          'Dữ liệu pairing không hợp lệ (JSON_PARSE_ERROR)',
+          'Invalid pairing data (JSON_PARSE_ERROR)',
         PairingConstants.statusBadInput =>
-          'Payload sai độ dài (BAD_INPUT)',
+          'Payload has wrong length (BAD_INPUT)',
         PairingConstants.statusInternalError =>
-          'Thiết bị gặp lỗi nội bộ (INTERNAL_ERROR)',
-        _ => 'Thiết bị trả về mã lỗi không xác định: '
+          'Device encountered an internal error (INTERNAL_ERROR)',
+        _ => 'Device returned an unknown error code: '
             '0x${status.toRadixString(16)}',
       };
 

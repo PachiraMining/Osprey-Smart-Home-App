@@ -84,7 +84,7 @@ class PairingRepositoryImpl implements PairingRepository {
         final raw = r.advertisementData
             .manufacturerData[PairingConstants.manufacturerCompanyId];
         if (raw == null) {
-          _logScan(id, r.rssi, 'SKIP: thiếu manufacturer 0xFFFF');
+          _logScan(id, r.rssi, 'SKIP: missing manufacturer 0xFFFF');
           continue;
         }
 
@@ -97,14 +97,14 @@ class PairingRepositoryImpl implements PairingRepository {
         // Device đã paired → skip khỏi danh sách "Add Device"
         if (advData.isPaired) {
           _logScan(id, r.rssi,
-              'SKIP: đã paired (hash=${advData.productIdHashHex})');
+              'SKIP: already paired (hash=${advData.productIdHashHex})');
           continue;
         }
 
         final product = _findProductByHash(advData.productIdHashHex);
         _logScan(id, r.rssi,
             'OK: hash=${advData.productIdHashHex} '
-            'product=${product?.displayName ?? "(chưa có trong catalog)"}');
+            'product=${product?.displayName ?? "(not in catalog)"}');
         devices.add(DiscoveredOspreyDevice(
           remoteId: id,
           name: r.advertisementData.advName.isNotEmpty
@@ -140,8 +140,8 @@ class PairingRepositoryImpl implements PairingRepository {
       final smartHomeId = getSmartHomeId();
       if (smartHomeId.isEmpty) {
         throw ServerException(
-            message: 'Chưa chọn nhà — vui lòng tạo/chọn nhà trước khi '
-                'thêm thiết bị');
+            message: 'No home selected — please create/select a home '
+                'before adding a device');
       }
 
       // ── 1. Connect + READ DEVICE_UUID (disarm watchdog) ──────
@@ -163,7 +163,7 @@ class PairingRepositoryImpl implements PairingRepository {
           : (device.product?.deviceProfileId ?? '');
       if (deviceProfileId.isEmpty) {
         throw ServerException(
-            message: 'Không xác định được device profile của sản phẩm');
+            message: 'Could not determine the device profile for this product');
       }
       final tokenResp = await remoteDataSource.createPairingToken(
         deviceProfileId: deviceProfileId,
@@ -213,11 +213,11 @@ class PairingRepositoryImpl implements PairingRepository {
       await bleDataSource.closeSession();
       yield* Stream.error(ServerFailure(e.message, message: e.message));
     } catch (e) {
-      log('[PAIRING] lỗi không xác định: $e', name: 'PairingRepository');
+      log('[PAIRING] unknown error: $e', name: 'PairingRepository');
       await bleDataSource.closeSession();
       yield* Stream.error(ServerFailure(
         e.toString(),
-        message: 'Lỗi không xác định khi ghép nối: $e',
+        message: 'Unknown error during pairing: $e',
       ));
     }
   }
@@ -231,13 +231,13 @@ class PairingRepositoryImpl implements PairingRepository {
       }
       if (status.isExpired) {
         throw ServerException(
-            message: 'Pairing token đã hết hạn — vui lòng thử lại');
+            message: 'Pairing token has expired — please try again');
       }
       await Future.delayed(PairingConstants.pollInterval);
     }
     throw ServerException(
-        message: 'Thiết bị chưa lên cloud sau 90 giây — kiểm tra lại '
-            'WiFi (thiết bị chỉ hỗ trợ mạng 2.4GHz) rồi thử lại');
+        message: 'Device did not come online after 90 seconds — check your '
+            'WiFi (the device only supports 2.4GHz networks) and try again');
   }
 
   OspreyProductModel? _findProductByHash(String hashHex) {

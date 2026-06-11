@@ -81,8 +81,8 @@ class PairingConstants {
 
   // ─── Dev/test ────────────────────────────────────────────
   /// Device UUID test (PSK 0xAA×32 đã seed trong DB backend).
-  @Deprecated('Đọc UUID từ GATT char DEVICE_UUID (...380) — hằng số này '
-      'chỉ để debug offline, KHÔNG dùng trong production flow')
+  @Deprecated('Read the UUID from GATT char DEVICE_UUID (...380) — this '
+      'constant is for offline debugging only, do NOT use in the production flow')
   static const String devFallbackDeviceUuid =
       '11111111-1111-1111-1111-111111111111';
 }

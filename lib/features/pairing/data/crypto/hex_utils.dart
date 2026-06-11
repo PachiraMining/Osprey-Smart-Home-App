@@ -10,13 +10,13 @@ class HexUtils {
   static Uint8List decode(String hex) {
     final cleaned = hex.startsWith('0x') ? hex.substring(2) : hex;
     if (cleaned.length.isOdd) {
-      throw FormatException('Hex string phải có độ dài chẵn: $hex');
+      throw FormatException('Hex string must have an even length: $hex');
     }
     final result = Uint8List(cleaned.length ~/ 2);
     for (var i = 0; i < result.length; i++) {
       final byte = int.tryParse(cleaned.substring(i * 2, i * 2 + 2), radix: 16);
       if (byte == null) {
-        throw FormatException('Hex string không hợp lệ: $hex');
+        throw FormatException('Invalid hex string: $hex');
       }
       result[i] = byte;
     }

@@ -141,7 +141,7 @@ class _OspreyPairingViewState extends State<_OspreyPairingView> {
                 .saveSsid(state.deviceId, _ssidController.text.trim());
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Ghép nối thành công! Thiết bị đã sẵn sàng.'),
+                content: Text('Pairing successful! Device is ready.'),
                 backgroundColor: AppColors.success,
               ),
             );
@@ -184,8 +184,8 @@ class _OspreyPairingViewState extends State<_OspreyPairingView> {
                 SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Thiết bị sẽ kết nối vào WiFi điện thoại đang dùng. '
-                    'Thiết bị chỉ hỗ trợ mạng 2.4GHz.',
+                    'The device will connect to the WiFi your phone is using. '
+                    'Only 2.4GHz networks are supported.',
                     style: TextStyle(
                         fontSize: 13, color: AppColors.textSecondary),
                   ),
@@ -204,8 +204,8 @@ class _OspreyPairingViewState extends State<_OspreyPairingView> {
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    'Mạng này có vẻ là 5GHz — hãy chuyển điện thoại sang '
-                    'mạng 2.4GHz rồi bấm làm mới.',
+                    'This network looks like 5GHz — switch your phone to a '
+                    '2.4GHz network, then tap refresh.',
                     style: TextStyle(
                         fontSize: 12, color: AppColors.warning.withAlpha(230)),
                   ),
@@ -218,7 +218,7 @@ class _OspreyPairingViewState extends State<_OspreyPairingView> {
             controller: _passwordController,
             obscureText: _obscurePassword,
             decoration: InputDecoration(
-              labelText: 'Mật khẩu WiFi',
+              labelText: 'WiFi password',
               prefixIcon: const Icon(Icons.lock_outline),
               border: const OutlineInputBorder(),
               suffixIcon: IconButton(
@@ -230,7 +230,7 @@ class _OspreyPairingViewState extends State<_OspreyPairingView> {
               ),
             ),
             validator: (v) =>
-                (v == null || v.isEmpty) ? 'Nhập mật khẩu WiFi' : null,
+                (v == null || v.isEmpty) ? 'Enter the WiFi password' : null,
           ),
           const SizedBox(height: 28),
           FilledButton(
@@ -239,7 +239,7 @@ class _OspreyPairingViewState extends State<_OspreyPairingView> {
               padding: const EdgeInsets.symmetric(vertical: 16),
             ),
             onPressed: _startPairing,
-            child: const Text('Bắt đầu ghép nối',
+            child: const Text('Start pairing',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
           ),
         ],
@@ -266,7 +266,7 @@ class _OspreyPairingViewState extends State<_OspreyPairingView> {
             ),
             SizedBox(width: 14),
             Text(
-              'Đang nhận WiFi đang kết nối...',
+              'Detecting current WiFi...',
               style: TextStyle(fontSize: 15, color: AppColors.textMuted),
             ),
           ],
@@ -281,16 +281,16 @@ class _OspreyPairingViewState extends State<_OspreyPairingView> {
       // không detect được → fallback cho nhập tay
       readOnly: detected,
       decoration: InputDecoration(
-        labelText: 'Tên WiFi (SSID)',
+        labelText: 'WiFi name (SSID)',
         helperText: detected
-            ? 'Tự nhận từ WiFi điện thoại đang kết nối'
-            : 'Không nhận được WiFi — nhập tên mạng thủ công',
+            ? 'Auto-detected from the WiFi your phone is connected to'
+            : 'Could not detect WiFi — enter the network name manually',
         prefixIcon: Icon(
           detected ? Icons.wifi : Icons.router_outlined,
           color: detected ? AppColors.success : null,
         ),
         suffixIcon: IconButton(
-          tooltip: 'Làm mới',
+          tooltip: 'Refresh',
           icon: const Icon(Icons.refresh),
           onPressed: _detectCurrentWifi,
         ),
@@ -298,18 +298,18 @@ class _OspreyPairingViewState extends State<_OspreyPairingView> {
       ),
       onChanged: (_) => setState(() {}), // refresh cảnh báo 5GHz
       validator: (v) =>
-          (v == null || v.trim().isEmpty) ? 'Nhập tên WiFi' : null,
+          (v == null || v.trim().isEmpty) ? 'Enter the WiFi name' : null,
     );
   }
 
   // ─── Progress stepper ──────────────────────────────────────
   // Option 2: connect + đọc DEVICE_UUID trước (disarm watchdog), backend sau
   static const _steps = [
-    (PairingStep.connecting, 'Kết nối Bluetooth'),
-    (PairingStep.requestingToken, 'Đăng ký với máy chủ'),
-    (PairingStep.authenticating, 'Xác thực thiết bị'),
-    (PairingStep.sendingWifiCredentials, 'Gửi thông tin WiFi'),
-    (PairingStep.waitingForDevice, 'Chờ thiết bị lên mạng'),
+    (PairingStep.connecting, 'Connecting via Bluetooth'),
+    (PairingStep.requestingToken, 'Registering with server'),
+    (PairingStep.authenticating, 'Authenticating device'),
+    (PairingStep.sendingWifiCredentials, 'Sending WiFi credentials'),
+    (PairingStep.waitingForDevice, 'Waiting for device to come online'),
   ];
 
   Widget _buildProgress(PairingStep currentStep) {
@@ -363,8 +363,8 @@ class _OspreyPairingViewState extends State<_OspreyPairingView> {
         const SizedBox(height: 20),
         if (currentStep == PairingStep.waitingForDevice)
           const Text(
-            'Thiết bị đang khởi động lại và kết nối WiFi — '
-            'có thể mất tới 90 giây.',
+            'The device is restarting and connecting to WiFi — '
+            'this can take up to 90 seconds.',
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 13, color: AppColors.textMuted),
           ),
@@ -389,7 +389,7 @@ class _OspreyPairingViewState extends State<_OspreyPairingView> {
         ),
         const SizedBox(height: 24),
         const Text(
-          'Ghép nối thành công!',
+          'Pairing successful!',
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 20,
@@ -399,7 +399,7 @@ class _OspreyPairingViewState extends State<_OspreyPairingView> {
         ),
         const SizedBox(height: 8),
         Text(
-          '${widget.device.displayName} đã được thêm vào nhà của bạn.',
+          '${widget.device.displayName} has been added to your home.',
           textAlign: TextAlign.center,
           style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
         ),
@@ -411,7 +411,7 @@ class _OspreyPairingViewState extends State<_OspreyPairingView> {
           ),
           // Trả true để trang trước refresh danh sách thiết bị
           onPressed: () => Navigator.pop(context, true),
-          child: const Text('Hoàn tất'),
+          child: const Text('Done'),
         ),
       ],
     );
@@ -433,7 +433,7 @@ class _OspreyPairingViewState extends State<_OspreyPairingView> {
         ),
         const SizedBox(height: 24),
         const Text(
-          'Ghép nối thất bại',
+          'Pairing failed',
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 20,
@@ -455,11 +455,11 @@ class _OspreyPairingViewState extends State<_OspreyPairingView> {
           ),
           onPressed: () =>
               context.read<PairingBloc>().add(const ResetPairingEvent()),
-          child: const Text('Thử lại'),
+          child: const Text('Retry'),
         ),
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Quay lại',
+          child: const Text('Go back',
               style: TextStyle(color: AppColors.textMuted)),
         ),
       ],

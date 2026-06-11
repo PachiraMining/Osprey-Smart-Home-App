@@ -15,9 +15,10 @@ import '../bloc/auth_state.dart';
 import '../utils/auth_error_text.dart';
 import '../widgets/auth_form_widgets.dart';
 
-/// Đăng ký kiểu Tuya, 2 bước trên cùng 1 màn:
-///  1. email + mật khẩu → gửi mã xác thực 6 số (hạn 5 phút)
-///  2. nhập mã → tạo tài khoản (kích hoạt ngay) → tự đăng nhập → vào Home.
+/// Đăng ký kiểu Tuya, 2 bước trên cùng 1 màn (theo spec backend):
+///  1. nhập email → gửi OTP 6 số
+///  2. nhập OTP + mật khẩu + tên (optional) → signup trả JWT ngay
+///     → lưu phiên → vào Home (không cần login lần 2).
 class SignUpPage extends StatefulWidget {
   /// Email gõ sẵn bên màn login (nếu có) — đỡ phải nhập lại.
   final String? initialEmail;
@@ -42,7 +43,6 @@ class _SignUpPageState extends State<SignUpPage> {
   String? _codeError;
   String? _serverError;
   bool _agreementHighlight = false;
-  bool _codeAutoSubmitted = false;
 
   Timer? _resendTimer;
   int _resendIn = 0;
@@ -51,6 +51,8 @@ class _SignUpPageState extends State<SignUpPage> {
       TextEditingController(text: widget.initialEmail ?? '');
   final passwordController = TextEditingController();
   final codeController = TextEditingController();
+  final firstNameController = TextEditingController();
+  final lastNameController = TextEditingController();
   final _agreementShakeKey = GlobalKey<ShakeableState>();
 
   @override
@@ -59,25 +61,23 @@ class _SignUpPageState extends State<SignUpPage> {
     emailController.dispose();
     passwordController.dispose();
     codeController.dispose();
+    firstNameController.dispose();
+    lastNameController.dispose();
     super.dispose();
   }
 
-  // ─── Step 1: gửi mã ─────────────────────────────────────────
+  // ─── Step 1: chỉ email → gửi OTP (theo spec) ────────────────
   bool _validateAccountStep() {
     final email = emailController.text.trim();
-    final password = passwordController.text;
     setState(() {
       _emailError = email.isEmpty
           ? 'Enter your email address'
           : (!_emailRegex.hasMatch(email)
               ? 'Enter a valid email address'
               : null);
-      _passwordError = password.isEmpty
-          ? 'Enter a password'
-          : (password.length < 6 ? 'At least 6 characters' : null);
       _serverError = null;
     });
-    if (_emailError != null || _passwordError != null) return false;
+    if (_emailError != null) return false;
     if (!agreePolicy) {
       HapticFeedback.mediumImpact();
       setState(() => _agreementHighlight = true);
@@ -101,7 +101,6 @@ class _SignUpPageState extends State<SignUpPage> {
           .sendSignupVerificationCode(emailController.text.trim());
       if (!mounted) return;
       codeController.clear();
-      _codeAutoSubmitted = false;
       _startResendCooldown();
       setState(() {
         _sending = false;
@@ -126,27 +125,31 @@ class _SignUpPageState extends State<SignUpPage> {
     });
   }
 
-  // ─── Step 2: tạo tài khoản ──────────────────────────────────
+  // ─── Step 2: OTP + mật khẩu + tên → tạo tài khoản ───────────
   Future<void> _createAccount() async {
     if (_sending) return;
     final code = codeController.text.trim();
-    if (code.length != 6) {
-      setState(() => _codeError = 'Enter the 6-digit code');
-      return;
-    }
+    final password = passwordController.text;
+    setState(() {
+      _codeError = code.length != 6 ? 'Enter the 6-digit code' : null;
+      _passwordError = password.isEmpty
+          ? 'Enter a password'
+          : (password.length < 6 ? 'At least 6 characters' : null);
+    });
+    if (_codeError != null || _passwordError != null) return;
     FocusScope.of(context).unfocus();
     setState(() {
       _sending = true;
-      _codeError = null;
       _serverError = null;
     });
     final email = emailController.text.trim();
-    final password = passwordController.text;
     try {
       final session = await sl<AuthRemoteDataSource>().signup(
         email: email,
         verificationCode: code,
         password: password,
+        firstName: firstNameController.text.trim(),
+        lastName: lastNameController.text.trim(),
       );
       if (!mounted) return;
       setState(() => _sending = false);
@@ -159,7 +162,6 @@ class _SignUpPageState extends State<SignUpPage> {
       if (!mounted) return;
       setState(() {
         _sending = false;
-        _codeAutoSubmitted = false;
         _serverError = authErrorText(e);
       });
     }
@@ -263,45 +265,16 @@ class _SignUpPageState extends State<SignUpPage> {
           controller: emailController,
           hintText: 'you@example.com',
           keyboardType: TextInputType.emailAddress,
-          textInputAction: TextInputAction.next,
+          textInputAction: TextInputAction.done,
           autofillHints: const [AutofillHints.email],
           enabled: !busy,
           errorText: _emailError,
           onChanged: (_) {
             if (_emailError != null) setState(() => _emailError = null);
           },
+          onSubmitted: (_) => _sendCode(),
           prefix: const Icon(Icons.alternate_email_rounded,
               color: AppColors.textMuted, size: 20),
-        ),
-        const SizedBox(height: 16),
-        AuthField(
-          label: 'Password',
-          controller: passwordController,
-          hintText: 'At least 6 characters',
-          obscureText: _obscurePassword,
-          textInputAction: TextInputAction.done,
-          autofillHints: const [AutofillHints.newPassword],
-          enabled: !busy,
-          errorText: _passwordError,
-          onChanged: (_) {
-            if (_passwordError != null) {
-              setState(() => _passwordError = null);
-            }
-          },
-          onSubmitted: (_) => _sendCode(),
-          prefix: const Icon(Icons.lock_outline_rounded,
-              color: AppColors.textMuted, size: 20),
-          suffix: IconButton(
-            icon: Icon(
-              _obscurePassword
-                  ? Icons.visibility_off_outlined
-                  : Icons.visibility_outlined,
-              color: AppColors.textMuted,
-              size: 20,
-            ),
-            onPressed: () =>
-                setState(() => _obscurePassword = !_obscurePassword),
-          ),
         ),
         const SizedBox(height: 22),
         Shakeable(
@@ -366,14 +339,65 @@ class _SignUpPageState extends State<SignUpPage> {
           controller: codeController,
           enabled: !busy,
           errorText: _codeError,
-          onChanged: (value) {
+          onChanged: (_) {
             if (_codeError != null) setState(() => _codeError = null);
-            // Đủ 6 số → tự submit một lần, khỏi bấm nút.
-            if (value.length == 6 && !_codeAutoSubmitted && !busy) {
-              _codeAutoSubmitted = true;
-              _createAccount();
+          },
+        ),
+        const SizedBox(height: 16),
+        AuthField(
+          label: 'Password',
+          controller: passwordController,
+          hintText: 'At least 6 characters',
+          obscureText: _obscurePassword,
+          textInputAction: TextInputAction.next,
+          autofillHints: const [AutofillHints.newPassword],
+          enabled: !busy,
+          errorText: _passwordError,
+          onChanged: (_) {
+            if (_passwordError != null) {
+              setState(() => _passwordError = null);
             }
           },
+          prefix: const Icon(Icons.lock_outline_rounded,
+              color: AppColors.textMuted, size: 20),
+          suffix: IconButton(
+            icon: Icon(
+              _obscurePassword
+                  ? Icons.visibility_off_outlined
+                  : Icons.visibility_outlined,
+              color: AppColors.textMuted,
+              size: 20,
+            ),
+            onPressed: () =>
+                setState(() => _obscurePassword = !_obscurePassword),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: AuthField(
+                label: 'First name (optional)',
+                controller: firstNameController,
+                hintText: 'First name',
+                textInputAction: TextInputAction.next,
+                autofillHints: const [AutofillHints.givenName],
+                enabled: !busy,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: AuthField(
+                label: 'Last name (optional)',
+                controller: lastNameController,
+                hintText: 'Last name',
+                textInputAction: TextInputAction.done,
+                autofillHints: const [AutofillHints.familyName],
+                enabled: !busy,
+                onSubmitted: (_) => _createAccount(),
+              ),
+            ),
+          ],
         ),
         AuthErrorBanner(message: _serverError),
         const SizedBox(height: 22),

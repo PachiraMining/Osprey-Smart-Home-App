@@ -143,7 +143,7 @@ class _HomeTabState extends State<HomeTab> {
             const SizedBox(height: 8),
             ListTile(
               leading: const Icon(Icons.edit_outlined, color: AppColors.primary),
-              title: const Text('Đổi tên thiết bị'),
+              title: const Text('Rename device'),
               onTap: () {
                 Navigator.pop(sheetCtx);
                 _showRenameDeviceDialog(device);
@@ -153,9 +153,9 @@ class _HomeTabState extends State<HomeTab> {
             // Nút 1 — Ngắt kết nối (DELETE, không wipe ngay, ~1-2 phút)
             ListTile(
               leading: const Icon(Icons.link_off, color: AppColors.warning),
-              title: const Text('Ngắt kết nối'),
+              title: const Text('Disconnect'),
               subtitle: const Text(
-                'Gỡ khỏi nhà, thiết bị tự về chế độ ghép nối sau 1-2 phút',
+                'Removes from home; device returns to pairing mode in 1-2 minutes',
                 style: TextStyle(fontSize: 12),
               ),
               onTap: () {
@@ -167,11 +167,11 @@ class _HomeTabState extends State<HomeTab> {
             ListTile(
               leading: const Icon(Icons.delete_forever, color: AppColors.error),
               title: const Text(
-                'Hủy liên kết và xóa dữ liệu',
+                'Unlink and erase data',
                 style: TextStyle(color: AppColors.error),
               ),
               subtitle: const Text(
-                'Xóa toàn bộ dữ liệu, không thể khôi phục',
+                'Erases all data, cannot be undone',
                 style: TextStyle(fontSize: 12),
               ),
               onTap: () {
@@ -191,20 +191,20 @@ class _HomeTabState extends State<HomeTab> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Ngắt kết nối thiết bị?'),
+        title: const Text('Disconnect device?'),
         content: Text(
-          '"${device.displayName}" sẽ được gỡ khỏi nhà của bạn và tự động '
-          'chuyển về chế độ ghép nối trong khoảng 1-2 phút.',
+          '"${device.displayName}" will be removed from your home and '
+          'automatically return to pairing mode in about 1-2 minutes.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Hủy'),
+            child: const Text('Cancel'),
           ),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: AppColors.warning),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Ngắt kết nối'),
+            child: const Text('Disconnect'),
           ),
         ],
       ),
@@ -215,8 +215,8 @@ class _HomeTabState extends State<HomeTab> {
     final homeId = bloc.state.selectedHomeId;
     if (homeId == null) return;
     _pendingSuccessMessage =
-        'Đã ngắt thiết bị khỏi nhà. Thiết bị sẽ về chế độ ghép nối '
-        'trong 1-2 phút.';
+        'Device disconnected from home. It will return to pairing mode '
+        'in 1-2 minutes.';
     bloc.add(RemoveDeviceFromHomeEvent(
       homeId: homeId,
       deviceId: device.deviceId,
@@ -228,20 +228,20 @@ class _HomeTabState extends State<HomeTab> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Xóa dữ liệu thiết bị?'),
+        title: const Text('Erase device data?'),
         content: Text(
-          'Toàn bộ dữ liệu của "${device.displayName}" sẽ bị xóa và '
-          'KHÔNG THỂ khôi phục. Bạn chắc chắn?',
+          'All data for "${device.displayName}" will be erased and '
+          'CANNOT be recovered. Are you sure?',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Hủy'),
+            child: const Text('Cancel'),
           ),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: AppColors.error),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Xóa'),
+            child: const Text('Delete'),
           ),
         ],
       ),
@@ -252,7 +252,7 @@ class _HomeTabState extends State<HomeTab> {
     final homeId = bloc.state.selectedHomeId;
     if (homeId == null) return;
     _pendingSuccessMessage =
-        'Đã xóa thiết bị. Thiết bị đang trở về chế độ ghép nối.';
+        'Device deleted. It is returning to pairing mode.';
     bloc.add(FactoryResetDeviceEvent(
       homeId: homeId,
       deviceId: device.deviceId,
@@ -264,25 +264,25 @@ class _HomeTabState extends State<HomeTab> {
     final newName = await showDialog<String>(
       context: context,
       builder: (dialogCtx) => AlertDialog(
-        title: const Text('Đổi tên thiết bị'),
+        title: const Text('Rename device'),
         content: TextField(
           controller: controller,
           autofocus: true,
           maxLength: 50,
           decoration: const InputDecoration(
-            labelText: 'Tên thiết bị',
+            labelText: 'Device name',
             border: OutlineInputBorder(),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx),
-            child: const Text('Hủy'),
+            child: const Text('Cancel'),
           ),
           FilledButton(
             onPressed: () =>
                 Navigator.pop(dialogCtx, controller.text.trim()),
-            child: const Text('Lưu'),
+            child: const Text('Save'),
           ),
         ],
       ),
@@ -293,7 +293,7 @@ class _HomeTabState extends State<HomeTab> {
     final bloc = context.read<HomeManagementBloc>();
     final homeId = bloc.state.selectedHomeId;
     if (homeId == null) return;
-    _pendingSuccessMessage = 'Đã đổi tên thiết bị.';
+    _pendingSuccessMessage = 'Device renamed.';
     // PUT backend là full-replace — truyền kèm roomId + sortOrder hiện tại
     // để không bị reset (văng device khỏi room).
     bloc.add(UpdateHomeDeviceEvent(
@@ -320,7 +320,7 @@ class _HomeTabState extends State<HomeTab> {
     } else if (state.mutationStatus == MutationStatus.error) {
       _pendingSuccessMessage = null;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(state.errorMessage ?? 'Có lỗi xảy ra, vui lòng thử lại'),
+        content: Text(state.errorMessage ?? 'Something went wrong, please try again'),
         backgroundColor: AppColors.error,
       ));
     }
