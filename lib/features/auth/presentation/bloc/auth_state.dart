@@ -1,5 +1,4 @@
 // lib/features/auth/presentation/bloc/auth_state.dart
-import '../../domain/entities/user_entity.dart';
 
 abstract class AuthState {}
 

@@ -1,4 +1,3 @@
-import '../entities/user_entity.dart';
 import 'package:dartz/dartz.dart';
 import '../repositories/auth_repository.dart';
 import '../../data/models/login_request_model.dart';

@@ -25,6 +25,7 @@ import 'package:smart_curtain_app/features/scene/presentation/bloc/tap_to_run/ta
 import 'package:smart_curtain_app/features/scene/presentation/bloc/tap_to_run/tap_to_run_state.dart';
 import 'package:smart_curtain_app/features/home/presentation/bloc/home_management_bloc.dart';
 import 'package:smart_curtain_app/features/home/presentation/bloc/home_management_state.dart';
+import 'package:smart_curtain_app/features/home/presentation/pages/chat_tab.dart';
 import 'package:smart_curtain_app/features/home/presentation/pages/home_tab.dart'
     as home_tab;
 import 'package:smart_curtain_app/features/scene/domain/entities/tap_to_run_scene_entity.dart';
@@ -32,13 +33,21 @@ import 'package:smart_curtain_app/features/scene/presentation/pages/tap_to_run/c
 import 'package:smart_curtain_app/features/scene/presentation/pages/tap_to_run/manage_scenes_page.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  /// Tab mở đầu: 0 Home, 1 Chat, 2 Scenes, 3 Me. Sau đăng nhập vào thẳng Chat.
+  final int initialIndex;
+  const HomePage({super.key, this.initialIndex = 0});
   @override
   State<HomePage> createState() => HomePageState();
 }
 
 class HomePageState extends State<HomePage> {
-  int currentIndex = 0;
+  // Index các tab — giữ đồng bộ với _pages và _BrandBottomNav._items.
+  static const int tabHome = 0;
+  static const int tabChat = 1;
+  static const int tabScenes = 2;
+  static const int tabMe = 3;
+
+  late int currentIndex = widget.initialIndex;
   static final GlobalKey<HomePageState> globalKey = GlobalKey<HomePageState>();
   late final List<Widget> _pages;
 
@@ -47,6 +56,9 @@ class HomePageState extends State<HomePage> {
     super.initState();
     _pages = [
       const home_tab.HomeTab(),
+      ChatTab(
+        onOpenScenes: () => setState(() => currentIndex = tabScenes),
+      ),
       const SceneTab(),
       const ProfileTab(),
     ];
@@ -145,7 +157,7 @@ class HomePageState extends State<HomePage> {
             child: Column(
               children: [
                 // Top bar - hidden on Me tab
-                if (currentIndex != 2)
+                if (currentIndex != tabMe)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
                     child: Row(
@@ -176,7 +188,7 @@ class HomePageState extends State<HomePage> {
                         ),
                         const Spacer(),
                         // Add button - blue circle on Home, black icon on Scene
-                        if (currentIndex == 1)
+                        if (currentIndex == tabScenes)
                           GestureDetector(
                             onTap: () async {
                               final triggerData = await Navigator.push(
@@ -292,6 +304,7 @@ class _BrandBottomNav extends StatelessWidget {
 
   static const _items = [
     (Icons.cottage_outlined, Icons.cottage, 'Home'),
+    (Icons.chat_bubble_outline_rounded, Icons.chat_bubble_rounded, 'Chat'),
     (Icons.auto_awesome_outlined, Icons.auto_awesome, 'Scenes'),
     (Icons.person_outline_rounded, Icons.person_rounded, 'Me'),
   ];
@@ -384,8 +397,19 @@ class _SceneTabState extends State<SceneTab> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadAutomationScenes();
       _loadTapToRunScenes();
     });
+  }
+
+  /// Nạp automation scenes — chỉ gọi khi đã có home. Repo đọc homeId từ
+  /// TokenManager; dispatch sớm quá (trước khi homes load) sẽ dính lỗi
+  /// "Vui long chon home truoc" và kẹt ở nút Retry.
+  void _loadAutomationScenes() {
+    final homeId = context.read<HomeManagementBloc>().state.selectedHomeId;
+    if (homeId != null) {
+      context.read<SceneBloc>().add(LoadScenesEvent());
+    }
   }
 
   void _loadTapToRunScenes() {
@@ -401,6 +425,7 @@ class _SceneTabState extends State<SceneTab> {
     return BlocListener<HomeManagementBloc, HomeManagementState>(
       listenWhen: (prev, curr) => prev.selectedHomeId != curr.selectedHomeId && curr.status == HomeStatus.loaded,
       listener: (context, state) {
+        _loadAutomationScenes();
         _loadTapToRunScenes();
       },
       child: Padding(

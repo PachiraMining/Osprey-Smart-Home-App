@@ -19,6 +19,8 @@ import '../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../features/auth/domain/repositories/auth_repository.dart';
 
 // Device
+import '../widget/home_widget_service.dart';
+import '../../features/device/data/device_network_store.dart';
 import '../../features/device/data/datasources/device_remote_data_source.dart';
 import '../../features/device/data/repositories/device_repository_impl.dart';
 import '../../features/device/domain/repositories/device_repository.dart';
@@ -113,6 +115,12 @@ Future<void> setupInjector() async {
   // ========== Core ==========
   // Secure Storage
   sl.registerLazySingleton(() => const FlutterSecureStorage());
+
+  // Device network store (SSID đã provision per device)
+  sl.registerLazySingleton(() => DeviceNetworkStore(sl()));
+
+  // Home-screen widget bridge (iOS WidgetKit + Android AppWidget)
+  sl.registerLazySingleton(() => HomeWidgetService());
 
   // Token Manager
   sl.registerLazySingleton(() => TokenManager(sl()));

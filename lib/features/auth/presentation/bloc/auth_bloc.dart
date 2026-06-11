@@ -25,6 +25,41 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<CheckAuthStatusEvent>(_onCheckAuthStatus);
     on<DeleteAccountEvent>(_onDeleteAccount);
     on<SocialLoginRequested>(_onSocialLoginRequested);
+    on<SessionTokensReceived>(_onSessionTokensReceived);
+  }
+
+  /// Lưu phiên từ JWT có sẵn (signup trả token ngay) rồi fetch profile.
+  Future<void> _onSessionTokensReceived(
+    SessionTokensReceived event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+    try {
+      final tokenMgr = tokenManager ?? sl<TokenManager>();
+      await tokenMgr.saveTokens(
+        token: event.token,
+        refreshToken: event.refreshToken,
+      );
+      tokenMgr.setCachedToken(event.token);
+
+      try {
+        final dataSource = authDataSource ?? sl<AuthRemoteDataSource>();
+        final userResponse = await dataSource.getCurrentUser();
+        await tokenMgr.saveCustomerId(userResponse.customerId);
+        tokenMgr.setCachedCustomerId(userResponse.customerId);
+        await tokenMgr.saveUserInfo(
+          email: userResponse.email,
+          firstName: userResponse.firstName,
+          lastName: userResponse.lastName,
+        );
+      } catch (e) {
+        // Profile fetch failure is non-fatal; tokens are already saved.
+      }
+
+      emit(AuthSuccess(token: event.token, refreshToken: event.refreshToken));
+    } catch (e) {
+      emit(AuthFailure('An error occurred: ${e.toString()}'));
+    }
   }
 
   Future<void> _onLoginRequested(

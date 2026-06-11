@@ -3,16 +3,19 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
+import 'package:home_widget/home_widget.dart';
+
 import 'core/config/app_config.dart';
 import 'core/di/injector.dart';
 import 'core/base/bloc_observer.dart';
+import 'core/widget/home_widget_service.dart';
+import 'core/widget/widget_interactivity.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/device/presentation/bloc/device_bloc.dart';
 import 'features/scene/presentation/bloc/scene_bloc.dart';
-import 'features/scene/presentation/bloc/scene_event.dart';
 import 'smart_splash.dart';
-import 'features/home/presentation/pages/chat_home_page.dart';
+import 'features/home/presentation/pages/home_page.dart';
 import 'features/device/presentation/bloc/device_event.dart';
 import 'features/scene/presentation/bloc/tap_to_run/tap_to_run_bloc.dart';
 import 'features/home/presentation/bloc/home_management_bloc.dart';
@@ -26,6 +29,10 @@ Future<void> _bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
   await setupInjector();
   Bloc.observer = SimpleBlocObserver();
+
+  // Home-screen widget: app group (iOS) + callback nút bấm chạy nền (Android)
+  await GetIt.instance<HomeWidgetService>().init();
+  await HomeWidget.registerInteractivityCallback(ospreyWidgetCallback);
 }
 
 void main() async {
@@ -73,10 +80,10 @@ class SmartApp extends StatelessWidget {
           create: (_) => GetIt.instance<DeviceBloc>()
             ..add(LoadDevicesEvent()), // tự động load luôn khi app khởi động
         ),
-        BlocProvider(
-          create: (_) => GetIt.instance<SceneBloc>()
-            ..add(LoadScenesEvent()),
-        ),
+        // KHÔNG dispatch LoadScenesEvent ở đây: lúc khởi động chưa login/
+        // chưa có homeId → SceneError kẹt ở nút Retry. SceneTab tự load
+        // khi đã có home (initState + listener selectedHomeId).
+        BlocProvider(create: (_) => GetIt.instance<SceneBloc>()),
         BlocProvider(create: (_) => GetIt.instance<TapToRunBloc>()),
         BlocProvider(create: (_) => GetIt.instance<VoiceCommandBloc>()),
         BlocProvider(create: (_) => GetIt.instance<AiSuggestionBloc>()),
@@ -88,7 +95,10 @@ class SmartApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light,
         home: const SmartSplashScreen(),
-        routes: {'/home': (_) => const ChatHomePage()},
+        routes: {
+          '/home': (_) =>
+              const HomePage(initialIndex: HomePageState.tabChat),
+        },
       ),
     );
   }

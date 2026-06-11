@@ -78,7 +78,23 @@ class AiChatBloc extends Bloc<AiChatEvent, AiChatState> {
 
     final result = await _send(e.content);
     result.fold(
-      (f) => emit(state.copyWith(isThinking: false, error: f.message)),
+      // Luôn trả lời bằng bubble — set mỗi `error` thì UI không render gì,
+      // user tưởng chat chết. Model on-device thiếu (Android/iOS cũ) →
+      // hướng dẫn các lệnh vẫn dùng được.
+      (f) {
+        final unavailable = f.message.contains('Foundation Models') ||
+            f.message.contains('Platform error');
+        _emitReply(
+          unavailable
+              ? 'AI chat is not available on this device yet. I can still '
+                  'control your curtains — try "Open the curtain", or use '
+                  '/devices, /scenes, /help.'
+              : (f.message.isNotEmpty
+                  ? f.message
+                  : 'Sorry, something went wrong. Please try again.'),
+          emit,
+        );
+      },
       (reply) => _emitReply(reply, emit),
     );
   }
@@ -122,7 +138,8 @@ class AiChatBloc extends Bloc<AiChatEvent, AiChatState> {
     final devices = devicesResult.fold((_) => <DeviceEntity>[], (d) => d);
 
     if (devices.isEmpty) {
-      _emitReply('No devices found. Add a curtain first from the drawer.', emit);
+      _emitReply(
+          'No devices found. Add a curtain first from the Home tab.', emit);
       return;
     }
 

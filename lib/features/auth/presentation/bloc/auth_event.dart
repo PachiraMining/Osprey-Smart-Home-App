@@ -17,6 +17,14 @@ class DeleteAccountEvent extends AuthEvent {
   DeleteAccountEvent({this.reason});
 }
 
+/// Signup trả JWT ngay trong response — lưu phiên luôn, không cần
+/// gọi login lần 2.
+class SessionTokensReceived extends AuthEvent {
+  final String token;
+  final String refreshToken;
+  SessionTokensReceived({required this.token, required this.refreshToken});
+}
+
 /// Dispatched when the user taps a social login button (e.g. Google).
 ///
 /// [providerUrl] is the authorization URL returned by the server's

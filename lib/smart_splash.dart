@@ -119,6 +119,10 @@ class _SmartSplashScreenState extends State<SmartSplashScreen>
 
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
+        // Chỉ auto-điều hướng khi splash đang trên cùng (cold-start
+        // auto-login). Khi LoginPage/SignUpPage ở trên, trang đó tự điều
+        // hướng — tránh push '/home' hai lần (HomePage init đôi).
+        if (!(ModalRoute.of(context)?.isCurrent ?? true)) return;
         if (state is AuthSuccess && !_navigated) {
           _navigated = true;
           Navigator.pushReplacementNamed(context, '/home');

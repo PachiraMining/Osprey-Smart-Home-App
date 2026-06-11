@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/auth/token_manager.dart';
 import '../../../../core/di/injector.dart';
+import '../../../../core/widget/home_widget_service.dart';
 import '../../data/datasources/home_remote_datasource.dart';
 import '../../domain/usecases/get_homes.dart';
 import '../../domain/usecases/create_home.dart';
@@ -274,6 +275,20 @@ class HomeManagementBloc
           }),
         );
         emit(state.copyWith(devices: enriched));
+
+        // Đẩy danh sách thiết bị lên home-screen widget
+        // (iOS: Edit Widget chọn thiết bị, mặc định là thiết bị đầu tiên).
+        if (enriched.isNotEmpty) {
+          sl<HomeWidgetService>().pushDevices(
+            enriched
+                .map((d) => WidgetDevice(
+                      id: d.deviceId,
+                      name: d.displayName,
+                      isOnline: d.isOnline ?? false,
+                    ))
+                .toList(),
+          );
+        }
       },
     );
   }

@@ -80,18 +80,33 @@ class PairingRepositoryImpl implements PairingRepository {
     return bleDataSource.scanResults.map((results) {
       final devices = <DiscoveredOspreyDevice>[];
       for (final r in results) {
+        final id = r.device.remoteId.str;
         final raw = r.advertisementData
             .manufacturerData[PairingConstants.manufacturerCompanyId];
-        if (raw == null) continue;
+        if (raw == null) {
+          _logScan(id, r.rssi, 'SKIP: thiếu manufacturer 0xFFFF');
+          continue;
+        }
 
         final advData = OspreyAdvParser.parse(raw);
-        if (advData == null) continue;
+        if (advData == null) {
+          _logScan(id, r.rssi,
+              'SKIP: manufacturer < 6 bytes (${raw.length}B)');
+          continue;
+        }
         // Device đã paired → skip khỏi danh sách "Add Device"
-        if (advData.isPaired) continue;
+        if (advData.isPaired) {
+          _logScan(id, r.rssi,
+              'SKIP: đã paired (hash=${advData.productIdHashHex})');
+          continue;
+        }
 
         final product = _findProductByHash(advData.productIdHashHex);
+        _logScan(id, r.rssi,
+            'OK: hash=${advData.productIdHashHex} '
+            'product=${product?.displayName ?? "(chưa có trong catalog)"}');
         devices.add(DiscoveredOspreyDevice(
-          remoteId: r.device.remoteId.str,
+          remoteId: id,
           name: r.advertisementData.advName.isNotEmpty
               ? r.advertisementData.advName
               : r.device.platformName,
@@ -104,6 +119,14 @@ class PairingRepositoryImpl implements PairingRepository {
       devices.sort((a, b) => b.rssi.compareTo(a.rssi));
       return devices;
     });
+  }
+
+  // Tránh spam log: chỉ log khi verdict của 1 device thay đổi.
+  final Map<String, String> _lastScanLog = {};
+  void _logScan(String id, int rssi, String verdict) {
+    if (_lastScanLog[id] == verdict) return;
+    _lastScanLog[id] = verdict;
+    log('[SCAN] $id rssi=$rssi → $verdict', name: 'PairingRepository');
   }
 
   @override

@@ -5,6 +5,7 @@ import 'package:permission_handler/permission_handler.dart';
 
 import '../../../../core/di/injector.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../device/data/device_network_store.dart';
 import '../../domain/entities/discovered_osprey_device.dart';
 import '../../domain/entities/pairing_progress.dart';
 import '../bloc/pairing_bloc.dart';
@@ -134,6 +135,10 @@ class _OspreyPairingViewState extends State<_OspreyPairingView> {
       body: BlocConsumer<PairingBloc, PairingState>(
         listener: (context, state) {
           if (state is PairingSuccess) {
+            // Lưu SSID đã provision để màn Device Network hiển thị lại sau
+            // (firmware không báo SSID lên backend — đây là nguồn thật duy nhất).
+            sl<DeviceNetworkStore>()
+                .saveSsid(state.deviceId, _ssidController.text.trim());
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('Ghép nối thành công! Thiết bị đã sẵn sàng.'),

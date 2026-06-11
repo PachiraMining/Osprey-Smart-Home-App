@@ -48,6 +48,15 @@ class AppConfig {
   static const String deviceHttpApiBaseUrl =
       'http://performentmarketing.ddnsgeek.com:8080';
 
+  /// Tenant ID của brand Osprey trên backend multi-tenant.
+  ///
+  /// Dùng cho email signup/login kiểu Tuya (CUSTOMER_USER): app build cho
+  /// brand nào dùng tenantId của brand đó — cùng codebase, khác config.
+  static const String brandTenantId = String.fromEnvironment(
+    'BRAND_TENANT_ID',
+    defaultValue: '15e19c90-d000-11f0-ab7e-c31cfe647037',
+  );
+
   /// Build environment: dev | staging | prod. Used for Sentry and analytics tagging.
   static const String environment =
       String.fromEnvironment('APP_ENV', defaultValue: 'dev');

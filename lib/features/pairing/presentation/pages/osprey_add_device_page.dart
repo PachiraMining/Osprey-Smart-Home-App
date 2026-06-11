@@ -13,6 +13,8 @@ import '../bloc/osprey_scan_bloc.dart';
 import '../bloc/osprey_scan_event.dart';
 import '../bloc/osprey_scan_state.dart';
 import 'osprey_pairing_page.dart';
+import 'api_debug_page.dart';
+import 'osprey_scan_debug_page.dart';
 
 /// Trang "Thêm thiết bị" Osprey — BLE scan filter theo Brand Service UUID,
 /// chỉ hiện thiết bị Osprey đang ở pairing mode (spec §8.2).
@@ -133,6 +135,34 @@ class _OspreyAddDeviceViewState extends State<_OspreyAddDeviceView>
             color: AppColors.textPrimary,
           ),
         ),
+        actions: [
+          // Debug: gọi API thủ công (xem request/response thật)
+          IconButton(
+            tooltip: 'Debug API',
+            icon: const Icon(Icons.api_outlined, color: AppColors.textMuted),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ApiDebugPage()),
+            ),
+          ),
+          // Debug: quét KHÔNG lọc để so sánh với nRF Connect
+          IconButton(
+            tooltip: 'Debug quét BLE',
+            icon: const Icon(Icons.bug_report_outlined,
+                color: AppColors.textMuted),
+            onPressed: () {
+              final bloc = context.read<OspreyScanBloc>();
+              bloc.add(const StopOspreyScanEvent());
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (_) => const OspreyScanDebugPage()),
+              ).then((_) {
+                if (mounted) bloc.add(const StartOspreyScanEvent());
+              });
+            },
+          ),
+        ],
       ),
       body: BlocBuilder<OspreyScanBloc, OspreyScanState>(
         builder: (context, state) {

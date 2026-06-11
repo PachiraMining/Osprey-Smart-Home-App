@@ -205,7 +205,8 @@ class _CreateScenePageState extends State<CreateScenePage> {
             Future.delayed(const Duration(milliseconds: 200), () {
               final homeState = HomePageState.globalKey.currentState;
               if (homeState != null && homeState.mounted) {
-                homeState.setState(() => homeState.currentIndex = 1);
+                homeState.setState(
+                    () => homeState.currentIndex = HomePageState.tabScenes);
               }
             });
           } else if (state is SceneError) {

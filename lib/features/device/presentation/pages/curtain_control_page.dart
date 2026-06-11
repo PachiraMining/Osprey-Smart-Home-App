@@ -7,6 +7,7 @@ import 'package:get_it/get_it.dart';
 import '../../../../core/auth/token_manager.dart';
 import '../../../../core/config/app_config.dart';
 import '../../domain/entities/device_entity.dart';
+import 'device_settings_page.dart';
 
 class CurtainControlPage extends StatefulWidget {
   final DeviceEntity device;
@@ -168,8 +169,14 @@ class _CurtainControlPageState extends State<CurtainControlPage>
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.edit_outlined, size: 22, color: Colors.black87),
-            onPressed: () {},
+            icon: const Icon(Icons.settings_outlined,
+                size: 22, color: Colors.black87),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => DeviceSettingsPage(device: widget.device),
+              ),
+            ),
           ),
         ],
       ),

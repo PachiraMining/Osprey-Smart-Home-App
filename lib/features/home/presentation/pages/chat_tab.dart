@@ -6,21 +6,23 @@ import '../../../ai/domain/entities/chat_message.dart';
 import '../../../ai/presentation/bloc/ai_chat_bloc.dart';
 import '../../../ai/presentation/widgets/voice_command_button.dart';
 import '../../../device/domain/entities/device_entity.dart';
-import '../widgets/chat_drawer.dart';
 
-/// Primary screen for osprey.life.
+/// Tab Chat AI bên trong [HomePage] (thay cho ChatHomePage standalone cũ).
 ///
-/// Replaces the legacy 4-tab `HomePage` as the default surface after sign-in.
-/// The first impression is an AI conversation, not a device grid — this is the
-/// primary functional differentiator the App Review notes lean on.
-class ChatHomePage extends StatefulWidget {
-  const ChatHomePage({super.key});
+/// Không có Scaffold/AppBar riêng — sống trong IndexedStack của HomePage,
+/// dưới top bar thương hiệu và trên pill bottom nav (extendBody nên phải tự
+/// chừa khoảng trống đáy cho composer).
+class ChatTab extends StatefulWidget {
+  /// Chuyển sang tab Scenes (HomePage truyền vào) — dùng cho chip "Scenes"
+  /// và lệnh /scenes thay vì mở sheet thông tin suông.
+  final VoidCallback? onOpenScenes;
+  const ChatTab({super.key, this.onOpenScenes});
 
   @override
-  State<ChatHomePage> createState() => _ChatHomePageState();
+  State<ChatTab> createState() => _ChatTabState();
 }
 
-class _ChatHomePageState extends State<ChatHomePage> {
+class _ChatTabState extends State<ChatTab> {
   final _input = TextEditingController();
   final _scroll = ScrollController();
 
@@ -117,6 +119,12 @@ class _ChatHomePageState extends State<ChatHomePage> {
   }
 
   void _showScenesSheet() {
+    // Có HomePage bọc ngoài → nhảy thẳng sang tab Scenes.
+    final openScenes = widget.onOpenScenes;
+    if (openScenes != null) {
+      openScenes();
+      return;
+    }
     showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
@@ -130,7 +138,7 @@ class _ChatHomePageState extends State<ChatHomePage> {
               Text('Scenes', style: Theme.of(ctx).textTheme.titleLarge),
               const SizedBox(height: 12),
               const Text(
-                'Create and manage Tap-to-Run scenes from the drawer menu. '
+                'Create and manage Tap-to-Run scenes from the Scenes tab. '
                 'Scenes let you chain multiple curtain actions with delays '
                 'into a single tap.',
               ),
@@ -161,8 +169,8 @@ class _ChatHomePageState extends State<ChatHomePage> {
               const SizedBox(height: 12),
               const Text(
                 'Set up automated schedules for your curtains. '
-                'Open the drawer → Tap-to-Run scenes to create daily, '
-                'weekly, or one-time automation schedules.',
+                'Open the Scenes tab to create daily, weekly, or one-time '
+                'automation schedules.',
               ),
               const SizedBox(height: 16),
               FilledButton(
@@ -192,13 +200,15 @@ class _ChatHomePageState extends State<ChatHomePage> {
                 style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
               ),
               const SizedBox(height: 12),
-              const _HelpRow(cmd: '/devices', desc: 'Browse and control your curtains.'),
-              const _HelpRow(cmd: '/scenes',  desc: 'Run a tap-to-run scene.'),
-              const _HelpRow(cmd: '/schedule', desc: 'Open the automation schedule.'),
-              const _HelpRow(cmd: '/help',    desc: 'Show this list.'),
+              const _HelpRow(
+                  cmd: '/devices', desc: 'Browse and control your curtains.'),
+              const _HelpRow(cmd: '/scenes', desc: 'Run a tap-to-run scene.'),
+              const _HelpRow(
+                  cmd: '/schedule', desc: 'Open the automation schedule.'),
+              const _HelpRow(cmd: '/help', desc: 'Show this list.'),
               const SizedBox(height: 8),
               const Text(
-                'You can also speak — tap the mic in the bottom-right.',
+                'You can also speak — tap the mic button.',
                 style: TextStyle(color: Colors.black54),
               ),
               const SizedBox(height: 16),
@@ -226,75 +236,82 @@ class _ChatHomePageState extends State<ChatHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('osprey.life'),
-        centerTitle: false,
-      ),
-      drawer: const ChatDrawer(),
-      body: Stack(
-        children: [
-          BlocBuilder<AiChatBloc, AiChatState>(
-            buildWhen: (a, b) => a.isThinking != b.isThinking,
-            builder: (context, state) => Positioned.fill(
-              child: IgnorePointer(
-                child: AuroraGlow(
-                  style: AuroraGlowStyle.subtle,
-                  active: state.isThinking,
-                ),
+    // extendBody của HomePage đã đưa chiều cao pill nav vào
+    // MediaQuery.padding.bottom → SafeArea trong _Composer tự né nav,
+    // chỉ cần đệm nhỏ. Khi mở bàn phím thì bỏ SafeArea (viewInsets lo).
+    final keyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
+
+    return Stack(
+      children: [
+        BlocBuilder<AiChatBloc, AiChatState>(
+          buildWhen: (a, b) => a.isThinking != b.isThinking,
+          builder: (context, state) => Positioned.fill(
+            child: IgnorePointer(
+              child: AuroraGlow(
+                style: AuroraGlowStyle.subtle,
+                active: state.isThinking,
               ),
             ),
           ),
-          Column(
-            children: [
-              Expanded(
-                child: BlocConsumer<AiChatBloc, AiChatState>(
-                  listenWhen: (a, b) => a.messages.length != b.messages.length,
-                  listener: (_, __) => _scrollToBottom(),
-                  builder: (context, state) {
-                    if (state.messages.isEmpty && !state.isThinking) {
-                      return _EmptyHint(onSuggestionTap: _send);
+        ),
+        Column(
+          children: [
+            Expanded(
+              child: BlocConsumer<AiChatBloc, AiChatState>(
+                listenWhen: (a, b) => a.messages.length != b.messages.length,
+                listener: (_, __) => _scrollToBottom(),
+                builder: (context, state) {
+                  if (state.messages.isEmpty && !state.isThinking) {
+                    return _EmptyHint(onSuggestionTap: _send);
+                  }
+                  return ListView.builder(
+                    controller: _scroll,
+                    padding: const EdgeInsets.all(16),
+                    itemCount:
+                        state.messages.length + (state.isThinking ? 1 : 0),
+                    itemBuilder: (context, i) {
+                      if (i == state.messages.length) {
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 12),
+                          child: _ThinkingDot(),
+                        );
+                      }
+                      return _Bubble(message: state.messages[i]);
+                    },
+                  );
+                },
+              ),
+            ),
+            // Mic trong flow layout (hàng riêng) — không bao giờ đè composer.
+            Padding(
+              padding: const EdgeInsets.only(right: 16, bottom: 6),
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: VoiceCommandButton(
+                  onIntentReady: (ready) {
+                    // Đưa transcript vào thread chat để user thấy 1 lịch sử
+                    // duy nhất.
+                    final transcript = ready.intent.transcript;
+                    if (transcript.isNotEmpty) {
+                      _send(transcript);
                     }
-                    return ListView.builder(
-                      controller: _scroll,
-                      padding: const EdgeInsets.all(16),
-                      itemCount:
-                          state.messages.length + (state.isThinking ? 1 : 0),
-                      itemBuilder: (context, i) {
-                        if (i == state.messages.length) {
-                          return const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 12),
-                            child: _ThinkingDot(),
-                          );
-                        }
-                        return _Bubble(message: state.messages[i]);
-                      },
-                    );
                   },
                 ),
               ),
-              _QuickActions(
-                onDevices: _showDevicesPicker,
-                onScenes: () => _send('/scenes'),
-                onHelp: () => _send('/help'),
-              ),
-              _Composer(controller: _input, onSend: _send),
-            ],
-          ),
-        ],
-      ),
-      floatingActionButton: VoiceCommandButton(
-        onIntentReady: (ready) {
-          // For now, route the recognised transcript into the chat thread so
-          // the user sees a single conversation history. The voice intent
-          // structure (action/device/value) will be wired into device
-          // commands when Section 3 lands.
-          final transcript = ready.intent.transcript;
-          if (transcript.isNotEmpty) {
-            _send(transcript);
-          }
-        },
-      ),
+            ),
+            _QuickActions(
+              onDevices: _showDevicesPicker,
+              onScenes: () => _send('/scenes'),
+              onHelp: () => _send('/help'),
+            ),
+            _Composer(
+              controller: _input,
+              onSend: _send,
+              safeBottom: !keyboardOpen,
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
@@ -317,6 +334,7 @@ class _EmptyHint extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            const SizedBox(height: 32),
             const Icon(Icons.auto_awesome, size: 48),
             const SizedBox(height: 12),
             const Text(
@@ -407,13 +425,20 @@ class _ThinkingDot extends StatelessWidget {
 class _Composer extends StatelessWidget {
   final TextEditingController controller;
   final void Function([String?]) onSend;
-  const _Composer({required this.controller, required this.onSend});
+  final bool safeBottom;
+  const _Composer({
+    required this.controller,
+    required this.onSend,
+    required this.safeBottom,
+  });
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
+      top: false,
+      bottom: safeBottom,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 8, 12, 80),
+        padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
         child: Row(
           children: [
             Expanded(
@@ -543,9 +568,7 @@ class _DeviceControlTile extends StatelessWidget {
         children: [
           Icon(
             Icons.curtains,
-            color: device.isOnline
-                ? theme.colorScheme.primary
-                : Colors.grey,
+            color: device.isOnline ? theme.colorScheme.primary : Colors.grey,
           ),
           const SizedBox(width: 12),
           Expanded(

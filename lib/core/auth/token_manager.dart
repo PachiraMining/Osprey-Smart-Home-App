@@ -2,6 +2,9 @@
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import '../di/injector.dart';
+import '../widget/home_widget_service.dart';
+
 class TokenManager {
   final FlutterSecureStorage _storage;
 
@@ -39,6 +42,17 @@ class TokenManager {
     if (customerId != null) await _safeWrite(_customerIdKey, customerId);
     _cachedToken = token;
     _cachedCustomerId = customerId;
+    _mirrorTokenToWidget(token);
+  }
+
+  /// Mirror JWT sang App Group cho iOS widget (extension không đọc được
+  /// Keychain của app). Best-effort — không chặn luồng login.
+  void _mirrorTokenToWidget(String? token) {
+    try {
+      if (sl.isRegistered<HomeWidgetService>()) {
+        sl<HomeWidgetService>().pushAuthToken(token);
+      }
+    } catch (_) {}
   }
 
   Future<void> saveCustomerId(String customerId) async {
@@ -124,6 +138,7 @@ class TokenManager {
     _cachedFirstName = null;
     _cachedLastName = null;
     _cachedHomeId = null;
+    _mirrorTokenToWidget(null);
   }
 
   // Load to cache
