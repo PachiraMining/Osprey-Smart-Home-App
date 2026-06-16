@@ -22,6 +22,7 @@ import '../../features/auth/domain/repositories/auth_repository.dart';
 import '../widget/home_widget_service.dart';
 import '../../features/device/data/device_network_store.dart';
 import '../../features/device/data/datasources/device_remote_data_source.dart';
+import '../../features/device/data/datasources/device_wifi_remote_datasource.dart';
 import '../../features/device/data/repositories/device_repository_impl.dart';
 import '../../features/device/domain/repositories/device_repository.dart';
 import '../../features/device/domain/usecases/get_customer_devices.dart';
@@ -205,6 +206,11 @@ Future<void> setupInjector() async {
   // Repositories
   sl.registerLazySingleton<DeviceRepository>(
     () => DeviceRepositoryImpl(remoteDataSource: sl()),
+  );
+
+  // Multi-WiFi management (network-info / wifi-list / add / delete / switch)
+  sl.registerLazySingleton(
+    () => DeviceWifiRemoteDataSource(apiClient: sl<ApiClient>()),
   );
 
   // Use cases

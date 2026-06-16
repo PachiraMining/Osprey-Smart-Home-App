@@ -1,6 +1,4 @@
 // lib/core/network/api_client.dart
-import 'dart:developer';
-
 import 'package:dio/dio.dart';
 import '../../core/auth/token_manager.dart';
 import '../../core/di/injector.dart';
@@ -48,22 +46,27 @@ class ApiClient {
     );
   }
 
-  Future<Response> post(String path, {Map<String, dynamic>? data}) async {
-    return _dio.post(path, data: data);
+  Future<Response> post(
+    String path, {
+    Map<String, dynamic>? data,
+    Options? options,
+  }) async {
+    return _dio.post(path, data: data, options: options);
   }
 
   Future<Response> get(
     String path, {
     Map<String, dynamic>? queryParameters,
+    Options? options,
   }) async {
-    return _dio.get(path, queryParameters: queryParameters);
+    return _dio.get(path, queryParameters: queryParameters, options: options);
   }
 
   Future<Response> put(String path, {Map<String, dynamic>? data}) async {
     return _dio.put(path, data: data);
   }
 
-  Future<Response> delete(String path) async {
-    return _dio.delete(path);
+  Future<Response> delete(String path, {Options? options}) async {
+    return _dio.delete(path, options: options);
   }
 }
