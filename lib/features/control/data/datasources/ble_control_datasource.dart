@@ -105,6 +105,23 @@ class BleControlDataSourceImpl implements BleControlDataSource {
       return BleControlResult.transportTimeout;
     }
     _device = device;
+    log('[BLE-CTRL] connected $bleRemoteId', name: 'BleControl');
+
+    // GATT CACHE FIX (Android): firmware vendor verify rằng chip có ship
+    // char `381` nhưng phone vẫn dùng service list cache từ phiên pair
+    // trước → discover không thấy `381` → app disconnect mà không write.
+    // `clearGattCache` dùng BluetoothGatt.refresh() (reflection) để force
+    // re-discover. iOS không có API public → user phải tắt/bật Bluetooth
+    // hoặc forget device trên system settings để clear.
+    if (Platform.isAndroid) {
+      try {
+        await device.clearGattCache();
+        log('[BLE-CTRL] cleared GATT cache (Android)', name: 'BleControl');
+      } catch (e) {
+        log('[BLE-CTRL] clearGattCache failed (non-fatal): $e',
+            name: 'BleControl');
+      }
+    }
 
     if (Platform.isAndroid) {
       try {
@@ -123,11 +140,29 @@ class BleControlDataSourceImpl implements BleControlDataSource {
       return BleControlResult.transportTimeout;
     }
 
+    // Debug log đầy đủ services + chars để firmware team trace nếu cần
+    log('[BLE-CTRL] discovered ${services.length} services:',
+        name: 'BleControl');
+    for (final s in services) {
+      log('[BLE-CTRL]   svc ${s.uuid}: '
+          '${s.characteristics.length} chars',
+          name: 'BleControl');
+      for (final c in s.characteristics) {
+        log('[BLE-CTRL]     - char ${c.uuid} '
+            '(write=${c.properties.write}, '
+            'writeWoResp=${c.properties.writeWithoutResponse}, '
+            'notify=${c.properties.notify})',
+            name: 'BleControl');
+      }
+    }
+
     final svc = _firstWhereOrNull(
       services,
       (s) => s.uuid == Guid(PairingConstants.pairingServiceUuid),
     );
     if (svc == null) {
+      log('[BLE-CTRL] FAIL: service ${PairingConstants.pairingServiceUuid} '
+          'not in discovered list', name: 'BleControl');
       await closeSession();
       return BleControlResult.transportTimeout;
     }
@@ -137,11 +172,18 @@ class BleControlDataSourceImpl implements BleControlDataSource {
       (c) => c.uuid == Guid(BleControlConstants.bleControlCmdCharUuid),
     );
     if (_cmdChar == null) {
-      log('[BLE-CTRL] BLE_CONTROL_CMD char not found — firmware too old?',
+      log('[BLE-CTRL] FAIL: char ${BleControlConstants.bleControlCmdCharUuid} '
+          'NOT FOUND in service ${svc.uuid} '
+          '(${svc.characteristics.length} chars discovered) — '
+          'GATT cache stale? Try Bluetooth off/on + retry.',
           name: 'BleControl');
       await closeSession();
       return BleControlResult.transportTimeout;
     }
+    log('[BLE-CTRL] ✓ char 381 found '
+        '(write=${_cmdChar!.properties.write}, '
+        'notify=${_cmdChar!.properties.notify})',
+        name: 'BleControl');
 
     // Subscribe NOTIFY TRƯỚC khi write
     _notifyController = StreamController<int>.broadcast();
