@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer' as dev;
+import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -95,48 +97,85 @@ class _CurtainControlPageState extends State<CurtainControlPage>
     if (_isLoading) return;
     setState(() => _isLoading = true);
 
+    var fallbackToBle = false;
+
     try {
-      // Rule A+C: Cloud có thể → đi cloud bằng endpoint `/commands` (giữ
-      // semantics dpId/value hiện hữu).
+      // Rule A: thử cloud trước nếu transport router đang nghĩ online.
+      // MQTT có TCP keep-alive 60s nên CloudHealthCubit có thể chưa kịp
+      // flip xuống `down` lúc user vừa tắt WiFi → cloud HTTP fail bằng
+      // SocketException trong < 1s. Fallback BLE inline.
       if (_transport == TransportState.cloud) {
-        final url =
-            '$_baseUrl/api/smarthome/devices/${widget.device.id}/commands';
-        final body = jsonEncode({'dpId': dpId, 'value': value});
-
-        final response = await _client.post(
-          Uri.parse(url),
-          headers: _headers,
-          body: body,
-        );
-
-        if (response.statusCode == 200) {
-          _showSnackBar('Command sent', Colors.green);
-        } else {
+        try {
+          final url =
+              '$_baseUrl/api/smarthome/devices/${widget.device.id}/commands';
+          final body = jsonEncode({'dpId': dpId, 'value': value});
+          final response = await _client.post(
+            Uri.parse(url),
+            headers: _headers,
+            body: body,
+          );
+          if (response.statusCode == 200) {
+            _showSnackBar('Command sent', Colors.green);
+            return;
+          }
+          // Non-2xx (4xx/5xx): backend reachable, không phải lỗi mạng → show.
           _showSnackBar('Error: ${response.statusCode}', Colors.red);
+          return;
+        } on SocketException catch (e) {
+          dev.log('[CurtainCtrl] cloud HTTP SocketException ($e) — '
+              'falling back to BLE', name: 'CurtainCtrl');
+          fallbackToBle = true;
+        } on HttpException catch (e) {
+          dev.log('[CurtainCtrl] cloud HTTP HttpException ($e) — '
+              'falling back to BLE', name: 'CurtainCtrl');
+          fallbackToBle = true;
+        } catch (e) {
+          // Catch-all cho ClientException (http package wrap SocketException
+          // bên trong tùy version). Bất kỳ "không ra net" error nào → BLE.
+          dev.log('[CurtainCtrl] cloud HTTP error ($e) — '
+              'falling back to BLE', name: 'CurtainCtrl');
+          fallbackToBle = true;
         }
-        return;
       }
 
-      // bleFallback / unreachable: route qua TransportRouter (mã hoá AES-CCM
-      // gửi qua BLE_CONTROL_CMD). Map dpId+value → string command.
+      // BLE path: dùng cho `bleFallback`/`unreachable` HOẶC fallback từ cloud
+      // network error ở trên. Route qua TransportRouter (mã hoá AES-CCM gửi
+      // qua BLE_CONTROL_CMD char `...381`).
       final cmd = _mapDpToCommand(dpId, value);
       if (cmd == null) {
         _showSnackBar('Local control does not support this action', Colors.red);
         return;
       }
-      final result = await _router.sendCommand(
-          tbDeviceId: widget.device.id, command: cmd);
+      dev.log('[CurtainCtrl] BLE sendCommand: $cmd (fallback=$fallbackToBle, '
+          'transport=$_transport)', name: 'CurtainCtrl');
+      // Khi vừa fallback từ cloud SocketException → force BLE (skip state
+      // machine vì cubit chưa kịp flip). Khi user đã ở BLE/unreachable mode
+      // → đi qua sendCommand bình thường.
+      final result = fallbackToBle
+          ? await _router.sendCommandViaBle(
+              tbDeviceId: widget.device.id, command: cmd)
+          : await _router.sendCommand(
+              tbDeviceId: widget.device.id, command: cmd);
       result.fold(
         (failure) {
+          dev.log('[CurtainCtrl] BLE result: Left(${failure.runtimeType}) '
+              '${failure.message}', name: 'CurtainCtrl');
           if (failure is ReLearnRequiredFailure) {
             _showRePairDialog();
+          } else if (fallbackToBle && failure is DeviceUnreachableFailure) {
+            _showSnackBar(
+                'No internet and Bluetooth not in range', Colors.red);
           } else {
             _showSnackBar(failure.message, Colors.red);
           }
         },
-        (_) => _showSnackBar('Local control: command sent', Colors.green),
+        (_) {
+          dev.log('[CurtainCtrl] BLE result: Right(ok)', name: 'CurtainCtrl');
+          _showSnackBar('Local control: command sent', Colors.green);
+        },
       );
     } catch (e) {
+      dev.log('[CurtainCtrl] unexpected error: $e', name: 'CurtainCtrl');
       _showSnackBar('Connection error', Colors.red);
     } finally {
       if (mounted) setState(() => _isLoading = false);

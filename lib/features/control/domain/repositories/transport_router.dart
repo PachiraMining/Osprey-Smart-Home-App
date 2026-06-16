@@ -29,4 +29,13 @@ abstract class TransportRouter {
     required String tbDeviceId,
     required String command,
   });
+
+  /// Force BLE path bypass state machine — dùng khi UI vừa thấy cloud HTTP
+  /// fail SocketException (CloudHealthCubit chưa kịp flip vì MQTT TCP
+  /// keep-alive 60s). Có side-effect: nếu BLE thành công, signal cho
+  /// CloudHealthCubit biết cloud đang lỗi để badge "Local control" hiện ra.
+  Future<Either<Failure, void>> sendCommandViaBle({
+    required String tbDeviceId,
+    required String command,
+  });
 }

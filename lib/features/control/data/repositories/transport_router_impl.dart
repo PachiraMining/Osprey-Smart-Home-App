@@ -162,6 +162,28 @@ class TransportRouterImpl implements TransportRouter {
     }
   }
 
+  @override
+  Future<Either<Failure, void>> sendCommandViaBle({
+    required String tbDeviceId,
+    required String command,
+  }) async {
+    log('[TransportRouter] sendCommandViaBle (forced) for $tbDeviceId',
+        name: 'TransportRouter');
+    final result = await _sendBle(tbDeviceId, command);
+    // Nếu BLE thành công → đẩy state sang bleFallback để badge UI hiện.
+    // Khi cloud back, CloudHealthCubit sẽ tự flip lại online.
+    if (result.isRight()) {
+      _bleInRange = true;
+      if (_state != TransportState.bleFallback) {
+        _state = TransportState.bleFallback;
+        _transportCtrl.add(_state);
+        log('[TransportRouter] forced → bleFallback (cloud HTTP failed)',
+            name: 'TransportRouter');
+      }
+    }
+    return result;
+  }
+
   Future<Either<Failure, void>> _sendCloud(
       String tbDeviceId, String command) async {
     try {
