@@ -1,11 +1,14 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:typed_data';
 
 import 'package:dartz/dartz.dart';
 
 import '../../../../core/config/app_config.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/error/failure.dart';
+import '../../../control/data/storage/ble_session_store.dart';
+import '../../../control/domain/entities/ble_session.dart';
 import '../../domain/entities/discovered_osprey_device.dart';
 import '../../domain/entities/osprey_product.dart';
 import '../../domain/entities/pairing_progress.dart';
@@ -25,6 +28,7 @@ class PairingRepositoryImpl implements PairingRepository {
   final BlePairingDataSource bleDataSource;
   final ProductCatalogCache catalogCache;
   final PairingCrypto crypto;
+  final BleSessionStore bleSessionStore;
 
   /// Lấy smartHomeId hiện tại (TokenManager.getHomeIdSync qua DI).
   final String Function() getSmartHomeId;
@@ -34,6 +38,7 @@ class PairingRepositoryImpl implements PairingRepository {
     required this.bleDataSource,
     required this.catalogCache,
     required this.crypto,
+    required this.bleSessionStore,
     required this.getSmartHomeId,
   });
 
@@ -201,6 +206,22 @@ class PairingRepositoryImpl implements PairingRepository {
       await bleDataSource.closeSession();
       yield const PairingProgress(PairingStep.waitingForDevice);
       final deviceId = await _pollUntilPaired(tokenResp.token);
+
+      // ── 6. Persist BLE session material cho fallback control ─
+      // Spec BLE_CONTROL_FALLBACK §5.1: session_key + counter + osprey_uuid
+      // được dùng khi MQTT down để mã hoá lệnh gửi qua BLE_CONTROL_CMD.
+      if (deviceId.isNotEmpty) {
+        await bleSessionStore.save(
+          deviceId,
+          BleSession(
+            sessionKey: Uint8List.fromList(
+                HexUtils.decode(authResp.sessionKeyHex)),
+            ospreyUuid: deviceUuid,
+            counter: 0,
+            bleRemoteId: device.remoteId,
+          ),
+        );
+      }
 
       yield PairingProgress(PairingStep.done, deviceId: deviceId);
     } on BlePairingException catch (e) {

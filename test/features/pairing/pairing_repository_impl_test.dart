@@ -5,6 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:smart_curtain_app/core/error/exceptions.dart';
 import 'package:smart_curtain_app/core/error/failure.dart';
+import 'package:smart_curtain_app/features/control/data/storage/ble_session_store.dart';
+import 'package:smart_curtain_app/features/control/domain/entities/ble_session.dart';
 import 'package:smart_curtain_app/features/pairing/data/crypto/pairing_crypto.dart';
 import 'package:smart_curtain_app/features/pairing/data/datasources/ble_pairing_datasource.dart';
 import 'package:smart_curtain_app/features/pairing/data/datasources/pairing_remote_datasource.dart';
@@ -24,10 +26,13 @@ class MockBlePairingDataSource extends Mock implements BlePairingDataSource {}
 
 class MockProductCatalogCache extends Mock implements ProductCatalogCache {}
 
+class MockBleSessionStore extends Mock implements BleSessionStore {}
+
 void main() {
   late MockPairingRemoteDataSource remote;
   late MockBlePairingDataSource ble;
   late MockProductCatalogCache cache;
+  late MockBleSessionStore bleSessionStore;
   late PairingRepositoryImpl repository;
   String smartHomeId = 'home-1';
 
@@ -73,18 +78,24 @@ void main() {
 
   setUpAll(() {
     registerFallbackValue(Uint8List(0));
+    registerFallbackValue(
+      BleSession(sessionKey: Uint8List(32), ospreyUuid: '', counter: 0),
+    );
   });
 
   setUp(() {
     remote = MockPairingRemoteDataSource();
     ble = MockBlePairingDataSource();
     cache = MockProductCatalogCache();
+    bleSessionStore = MockBleSessionStore();
     smartHomeId = 'home-1';
+    when(() => bleSessionStore.save(any(), any())).thenAnswer((_) async {});
     repository = PairingRepositoryImpl(
       remoteDataSource: remote,
       bleDataSource: ble,
       catalogCache: cache,
       crypto: PairingCrypto(), // crypto thật — deterministic, đã có golden test
+      bleSessionStore: bleSessionStore,
       getSmartHomeId: () => smartHomeId,
     );
   });

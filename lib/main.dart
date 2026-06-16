@@ -12,6 +12,7 @@ import 'core/widget/home_widget_service.dart';
 import 'core/widget/widget_interactivity.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
+import 'features/control/presentation/bloc/cloud_health_cubit.dart';
 import 'features/device/presentation/bloc/device_bloc.dart';
 import 'features/scene/presentation/bloc/scene_bloc.dart';
 import 'smart_splash.dart';
@@ -89,6 +90,8 @@ class SmartApp extends StatelessWidget {
         BlocProvider(create: (_) => GetIt.instance<AiSuggestionBloc>()),
         BlocProvider(create: (_) => GetIt.instance<WeatherAiBloc>()),
         BlocProvider(create: (_) => GetIt.instance<AiChatBloc>()),
+        // BLE Control Fallback — cloud-down detector cho badge + scenes banner
+        BlocProvider(create: (_) => GetIt.instance<CloudHealthCubit>()),
       ],
       child: MaterialApp(
         title: 'osprey.life',

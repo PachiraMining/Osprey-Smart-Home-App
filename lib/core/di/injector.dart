@@ -89,6 +89,14 @@ import '../../features/pairing/domain/usecases/scan_for_osprey_devices.dart';
 import '../../features/pairing/presentation/bloc/osprey_scan_bloc.dart';
 import '../../features/pairing/presentation/bloc/pairing_bloc.dart';
 
+// BLE Control Fallback
+import '../../features/control/data/crypto/ble_control_crypto.dart';
+import '../../features/control/data/datasources/ble_control_datasource.dart';
+import '../../features/control/data/repositories/transport_router_impl.dart';
+import '../../features/control/data/storage/ble_session_store.dart';
+import '../../features/control/domain/repositories/transport_router.dart';
+import '../../features/control/presentation/bloc/cloud_health_cubit.dart';
+
 // AI Feature
 import '../../features/ai/data/datasources/foundation_models_datasource.dart';
 import '../../features/ai/data/datasources/speech_to_text_datasource.dart';
@@ -119,6 +127,10 @@ Future<void> setupInjector() async {
 
   // Device network store (SSID đã provision per device)
   sl.registerLazySingleton(() => DeviceNetworkStore(sl()));
+
+  // BLE Control Fallback — session key + counter + osprey UUID per device
+  sl.registerLazySingleton(() => BleSessionStore(sl()));
+  sl.registerLazySingleton(() => BleControlCrypto());
 
   // Home-screen widget bridge (iOS WidgetKit + Android AppWidget)
   sl.registerLazySingleton(() => HomeWidgetService());
@@ -222,7 +234,7 @@ Future<void> setupInjector() async {
     () => DeviceBloc(getCustomerDevices: sl(), deleteDevice: sl()),
   );
   // ========== Device Control Feature ==========
-  // Device Control Repository
+  // Cloud datasource (MQTT/RPC qua REST)
   sl.registerLazySingleton<DeviceControlDataSource>(
     () => DeviceControlDataSourceImpl(
       client: sl<http.Client>(),
@@ -246,8 +258,27 @@ Future<void> setupInjector() async {
     ),
   );
 
+  // BLE datasource cho fallback (scan + connect + write BLE_CONTROL_CMD)
+  sl.registerLazySingleton<BleControlDataSource>(
+    () => BleControlDataSourceImpl(),
+  );
+
+  // Cloud health monitor (single instance — share across device pages)
+  sl.registerLazySingleton(() => CloudHealthCubit(sl<MqttService>()));
+
+  // Transport router — chọn MQTT vs BLE cho từng command
+  sl.registerLazySingleton<TransportRouter>(
+    () => TransportRouterImpl(
+      cloud: sl(),
+      ble: sl(),
+      sessionStore: sl(),
+      healthCubit: sl(),
+      crypto: sl(),
+    ),
+  );
+
   sl.registerLazySingleton<DeviceControlRepository>(
-    () => DeviceControlRepositoryImpl(dataSource: sl()),
+    () => DeviceControlRepositoryImpl(router: sl<TransportRouter>()),
   );
 
   // Device Control Use Case
@@ -382,6 +413,7 @@ Future<void> setupInjector() async {
       bleDataSource: sl(),
       catalogCache: sl(),
       crypto: sl(),
+      bleSessionStore: sl(),
       getSmartHomeId: () => sl<TokenManager>().getHomeIdSync() ?? '',
     ),
   );

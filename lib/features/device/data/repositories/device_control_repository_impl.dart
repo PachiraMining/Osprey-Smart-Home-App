@@ -2,34 +2,21 @@
 
 import 'package:dartz/dartz.dart';
 import '../../../../core/error/failure.dart';
-import '../../../../core/error/exceptions.dart';
+import '../../../control/domain/repositories/transport_router.dart';
 import '../../domain/repositories/device_control_repository.dart';
-import '../datasources/device_control_data_source.dart';
 
+/// Device control delegates to [TransportRouter] để chọn MQTT/RPC vs BLE
+/// fallback (spec BLE_CONTROL_FALLBACK §4). Repository chỉ là adapter mỏng.
 class DeviceControlRepositoryImpl implements DeviceControlRepository {
-  final DeviceControlDataSource dataSource;
+  final TransportRouter router;
 
-  DeviceControlRepositoryImpl({required this.dataSource});
+  DeviceControlRepositoryImpl({required this.router});
 
   @override
   Future<Either<Failure, void>> sendCommand(
     String deviceId,
     String command,
-  ) async {
-    try {
-      await dataSource.sendCommand(deviceId, command);
-      return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure('Unexpected error: $e', message: ''));
-    } on NetworkException catch (e) {
-      return Left(
-        NetworkFailure(
-          'Unexpected error: $e',
-          message: 'No internet connection',
-        ),
-      );
-    } catch (e) {
-      return Left(ServerFailure('Unexpected error: $e', message: ''));
-    }
+  ) {
+    return router.sendCommand(tbDeviceId: deviceId, command: command);
   }
 }
