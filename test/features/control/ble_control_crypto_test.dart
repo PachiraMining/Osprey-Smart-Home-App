@@ -9,98 +9,101 @@ import 'package:smart_curtain_app/features/pairing/data/crypto/hex_utils.dart';
 void main() {
   final crypto = BleControlCrypto();
 
-  // Fixed session key + IV cho golden-vector style assertions (lặp lại được).
-  // Session key này khớp pairing-crypto-test reference (PSK=0xAA, nonce=0x00).
+  // Fixed session key (khớp pairing-crypto-test reference: PSK=0xAA, nonce=0x00).
   final sessionKey = Uint8List.fromList(HexUtils.decode(
       '08df2a1f3972b6157fbbc66434f520d5ba24d64657fe66d0fc2f784d097a9bfa'));
-  final fixedIv = Uint8List.fromList(List<int>.filled(13, 0x33));
 
-  group('BleControlCrypto — wire format §5.2', () {
-    test('encrypted frame layout = [counter:8][iv:13][ct][tag:8]', () {
+  group('BleControlCrypto — wire format v2 §5.2 (commit ab34570d)', () {
+    test('wire layout = [counter:8][ciphertext+tag] (NO IV field)', () {
       const counter = 1;
       final plain = utf8.encode('{"cmd":"open"}');
-      final frame = crypto.encryptCommandWithIv(
+      final frame = crypto.encryptCommand(
         sessionKey: sessionKey,
         counter: counter,
-        iv: fixedIv,
         plaintext: plain,
       );
-      // 8 counter + 13 iv + plaintext + 8 tag
-      expect(frame.length, 8 + 13 + plain.length + 8);
+      // 8 counter + plaintext + 8 tag (CTR-mode CCM → ct len = plaintext len)
+      expect(frame.length, 8 + plain.length + 8);
 
       // Counter ở 8 byte đầu, big-endian
       expect(frame.sublist(0, 8), Uint8List.fromList([0, 0, 0, 0, 0, 0, 0, 1]));
-      // IV ở 13 byte tiếp theo
-      expect(frame.sublist(8, 8 + 13), fixedIv);
+      // KHÔNG có IV bytes ở giữa — ciphertext start ngay sau counter
     });
 
     test('round-trip decrypt khớp plaintext gốc', () {
       const counter = 42;
-      final plain = utf8.encode('{"cmd":"pct","v":67}');
-      final frame = crypto.encryptCommandWithIv(
+      final plain = utf8.encode('{"cmd":"open"}');
+      final frame = crypto.encryptCommand(
         sessionKey: sessionKey,
         counter: counter,
-        iv: fixedIv,
         plaintext: plain,
       );
       final decrypted = crypto.decryptFrame(
         sessionKey: sessionKey,
         frame: frame,
       );
-      expect(utf8.decode(decrypted), '{"cmd":"pct","v":67}');
+      expect(utf8.decode(decrypted), '{"cmd":"open"}');
     });
 
     test('counter big-endian: 0x0102030405060708 → đúng layout', () {
       const counter = 0x0102030405060708;
-      final frame = crypto.encryptCommandWithIv(
+      final frame = crypto.encryptCommand(
         sessionKey: sessionKey,
         counter: counter,
-        iv: fixedIv,
         plaintext: utf8.encode('{"cmd":"stop"}'),
       );
       expect(frame.sublist(0, 8),
           Uint8List.fromList([0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08]));
     });
 
-    test('tag mặc định 8 bytes (KHÔNG phải 16 như pairing)', () {
+    test('tag mặc định 8 bytes (KHÁC pairing 16B)', () {
       final plain = utf8.encode('{"cmd":"close"}');
-      final frame = crypto.encryptCommandWithIv(
+      final frame = crypto.encryptCommand(
         sessionKey: sessionKey,
         counter: 1,
-        iv: fixedIv,
         plaintext: plain,
       );
-      final ctWithTag = frame.sublist(8 + 13);
-      // plaintext length = 15, ciphertext same length (CCM = CTR encrypt) + 8B tag
+      final ctWithTag = frame.sublist(8);
       expect(ctWithTag.length, plain.length + 8);
+    });
+
+    test('IV derive deterministic — cùng counter+plaintext → cùng frame', () {
+      // Spec v2: KHÔNG random IV, IV = counter || 0x00*4 → encrypt cùng
+      // counter+plaintext luôn ra cùng output (chính xác cho test golden).
+      final plain = utf8.encode('{"cmd":"open"}');
+      final a = crypto.encryptCommand(
+          sessionKey: sessionKey, counter: 1, plaintext: plain);
+      final b = crypto.encryptCommand(
+          sessionKey: sessionKey, counter: 1, plaintext: plain);
+      expect(a, b);
+    });
+
+    test('counter khác → IV khác → ciphertext khác', () {
+      final plain = utf8.encode('{"cmd":"open"}');
+      final a = crypto.encryptCommand(
+          sessionKey: sessionKey, counter: 1, plaintext: plain);
+      final b = crypto.encryptCommand(
+          sessionKey: sessionKey, counter: 2, plaintext: plain);
+      expect(a, isNot(b));
+      // Counter bytes khác, ciphertext khác (do IV thay đổi theo counter)
+      expect(a.sublist(0, 8), isNot(b.sublist(0, 8)));
+      expect(a.sublist(8), isNot(b.sublist(8)));
     });
 
     test('AAD = counter bytes → decrypt với counter sai phải fail', () {
       final plain = utf8.encode('{"cmd":"open"}');
-      final encrypted = crypto.encryptCommandWithIv(
+      final encrypted = crypto.encryptCommand(
         sessionKey: sessionKey,
         counter: 100,
-        iv: fixedIv,
         plaintext: plain,
       );
-      // Sửa byte đầu của counter trong frame → MAC verify fail
+      // Sửa byte đầu của counter trong frame → IV + AAD đều mismatch
       final tampered = Uint8List.fromList(encrypted);
       tampered[0] = tampered[0] ^ 0x01;
       expect(
         () => crypto.decryptFrame(sessionKey: sessionKey, frame: tampered),
         throwsA(isA<StateError>()),
       );
-    });
-
-    test('IV ngẫu nhiên: 2 lần encrypt cùng plaintext → frame KHÁC', () {
-      final plain = utf8.encode('{"cmd":"open"}');
-      final a = crypto.encryptCommand(
-          sessionKey: sessionKey, counter: 1, plaintext: plain);
-      final b = crypto.encryptCommand(
-          sessionKey: sessionKey, counter: 1, plaintext: plain);
-      // IV random → ciphertext + tag khác nhau (counter giống nhau, plaintext giống nhau)
-      expect(a.sublist(8, 8 + 13), isNot(b.sublist(8, 8 + 13)));
-      expect(a, isNot(b));
     });
   });
 
@@ -125,21 +128,9 @@ void main() {
       );
     });
 
-    test('IV ≠ 13 bytes → ArgumentError', () {
-      expect(
-        () => crypto.encryptCommandWithIv(
-          sessionKey: sessionKey,
-          counter: 1,
-          iv: Uint8List(12),
-          plaintext: utf8.encode('{}'),
-        ),
-        throwsArgumentError,
-      );
-    });
-
     test('frame quá ngắn để decrypt → ArgumentError', () {
       expect(
-        () => crypto.decryptFrame(sessionKey: sessionKey, frame: Uint8List(20)),
+        () => crypto.decryptFrame(sessionKey: sessionKey, frame: Uint8List(10)),
         throwsArgumentError,
       );
     });
@@ -173,6 +164,8 @@ void main() {
   });
 
   group('Cmd variants (§5.2 plaintext)', () {
+    // Note: v1 spec firmware chỉ support open/close/stop. pct là TODO theo
+    // spec v2 — vẫn test round-trip để pct path sẵn sàng khi firmware ship.
     const variants = [
       '{"cmd":"open"}',
       '{"cmd":"close"}',
@@ -184,10 +177,9 @@ void main() {
     for (final json in variants) {
       test('round-trip "$json"', () {
         final plain = utf8.encode(json);
-        final frame = crypto.encryptCommandWithIv(
+        final frame = crypto.encryptCommand(
           sessionKey: sessionKey,
           counter: 1,
-          iv: fixedIv,
           plaintext: plain,
         );
         final out = crypto.decryptFrame(sessionKey: sessionKey, frame: frame);

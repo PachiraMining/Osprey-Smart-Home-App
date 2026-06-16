@@ -24,12 +24,36 @@ void main() {
     await mqttStateCtrl.close();
   });
 
+  group('CloudHealthCubit — innocent until proven guilty (bootstrap)', () {
+    test('MQTT chưa connect lần nào → bỏ qua disconnect events (stay online)',
+        () {
+      fakeAsync((async) {
+        final cubit = CloudHealthCubit(mqtt);
+        async.flushMicrotasks();
+        expect(cubit.state, CloudHealth.online);
+
+        // MqttService có thể emit disconnected lúc khởi tạo (chưa kịp connect)
+        mqttStateCtrl.add(MqttConnectionState.disconnected);
+        async.flushMicrotasks();
+        async.elapse(const Duration(seconds: 30));
+        expect(cubit.state, CloudHealth.online,
+            reason: 'Chưa thấy connected lần nào → bootstrap phase, KHÔNG flip down');
+
+        cubit.close();
+      });
+    });
+  });
+
   group('CloudHealthCubit — Rule B: 10s grace trước khi flip down', () {
     test('MQTT disconnect → degraded ngay, down sau 10s', () {
       fakeAsync((async) {
         final cubit = CloudHealthCubit(mqtt);
         async.flushMicrotasks();
         expect(cubit.state, CloudHealth.online);
+
+        // Phải có connected lần đầu để cubit "armed" (innocent until proven)
+        mqttStateCtrl.add(MqttConnectionState.connected);
+        async.flushMicrotasks();
 
         // MQTT drops
         mqttStateCtrl.add(MqttConnectionState.disconnected);
@@ -51,6 +75,8 @@ void main() {
     test('MQTT drop rồi reconnect <10s → ở lại online (no flip)', () {
       fakeAsync((async) {
         final cubit = CloudHealthCubit(mqtt);
+        async.flushMicrotasks();
+        mqttStateCtrl.add(MqttConnectionState.connected);
         async.flushMicrotasks();
 
         mqttStateCtrl.add(MqttConnectionState.disconnected);
@@ -77,6 +103,8 @@ void main() {
       fakeAsync((async) {
         final cubit = CloudHealthCubit(mqtt);
         async.flushMicrotasks();
+        mqttStateCtrl.add(MqttConnectionState.connected);
+        async.flushMicrotasks();
 
         mqttStateCtrl.add(MqttConnectionState.disconnected);
         async.flushMicrotasks();
@@ -96,6 +124,8 @@ void main() {
     test('down → online → drop ngay → KHÔNG flip xuống lần 2 trong 30s', () {
       fakeAsync((async) {
         final cubit = CloudHealthCubit(mqtt);
+        async.flushMicrotasks();
+        mqttStateCtrl.add(MqttConnectionState.connected);
         async.flushMicrotasks();
 
         // Flip to down
@@ -132,6 +162,8 @@ void main() {
       fakeAsync((async) {
         final cubit = CloudHealthCubit(mqtt);
         async.flushMicrotasks();
+        mqttStateCtrl.add(MqttConnectionState.connected);
+        async.flushMicrotasks();
 
         var calls = 0;
         cubit.setProbe(() async {
@@ -159,6 +191,8 @@ void main() {
     test('probe trả true sau khi degraded → back online ngay', () {
       fakeAsync((async) {
         final cubit = CloudHealthCubit(mqtt);
+        async.flushMicrotasks();
+        mqttStateCtrl.add(MqttConnectionState.connected);
         async.flushMicrotasks();
 
         mqttStateCtrl.add(MqttConnectionState.disconnected);

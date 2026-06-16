@@ -25,10 +25,9 @@ import '../../domain/entities/cloud_health.dart';
 class CloudHealthCubit extends Cubit<CloudHealth> {
   CloudHealthCubit(this._mqttService) : super(CloudHealth.online) {
     _mqttSub = _mqttService.state$.listen(_onMqttState);
-    // Tình trạng ban đầu: nếu MQTT chưa connect, coi như đang degraded.
-    if (!_mqttService.isConnected) {
-      _onMqttState(MqttConnectionState.disconnected);
-    }
+    // KHÔNG ép disconnected ngay lúc init — MqttService có thể chưa kịp
+    // connect (boot lag, login chưa xong). Cubit "innocent until proven
+    // guilty": chỉ flip down sau khi đã thấy connected rồi mới disconnect.
   }
 
   final MqttService _mqttService;
@@ -37,6 +36,11 @@ class CloudHealthCubit extends Cubit<CloudHealth> {
   Timer? _degradedTimer;
   Timer? _pollTimer;
   DateTime? _lastDownAt;
+
+  /// Có bao giờ thấy MQTT connected trong session này chưa.
+  /// Trước khi true: bỏ qua mọi `disconnected` event (MQTT đang bootstrap).
+  /// Sau khi true: disconnect → grace 10s → down (Rule B).
+  bool _hasEverConnected = false;
 
   Future<bool> Function()? _probe;
 
@@ -77,10 +81,14 @@ class CloudHealthCubit extends Cubit<CloudHealth> {
   void _onMqttState(MqttConnectionState s) {
     switch (s) {
       case MqttConnectionState.connected:
+        _hasEverConnected = true;
         _markUp();
       case MqttConnectionState.disconnected:
       case MqttConnectionState.reconnecting:
-        _markDown();
+        // Bootstrap phase — MQTT chưa bao giờ up → không kết luận cloud-down
+        // vì đây có thể chỉ là MqttService chưa kịp connect, không phải
+        // mạng có vấn đề. HTTP path vẫn hoạt động độc lập với MQTT.
+        if (_hasEverConnected) _markDown();
       case MqttConnectionState.connecting:
         // Trung gian, giữ nguyên state
         break;

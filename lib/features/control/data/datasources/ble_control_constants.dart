@@ -7,16 +7,13 @@ class BleControlConstants {
 
   /// NEW characteristic — WRITE encrypted command + NOTIFY status.
   ///
-  /// **GHI CHÚ**: Spec gốc §5 bảng characteristics ghi UUID `...37c` cho
-  /// `BLE_CONTROL_CMD`, NHƯNG `...37c` đã là Pairing Service UUID
-  /// (xem `PairingConstants.pairingServiceUuid`) — đây là lỗi trong spec.
-  /// Theo convention chuỗi char hiện hữu của firmware (`...37d`/`37e`/`37f`/
-  /// `380`), char mới sẽ ở slot kế tiếp `...381`.
-  ///
-  /// **TODO**: Xác nhận lại với firmware team Vietlam khi họ ship build mới
-  /// (~3-4 ngày sau 2026-06-16) — nếu họ chốt UUID khác, cập nhật ở đây.
+  /// UUID trùng với Pairing Service UUID (`...37c`) — đây là chọn intentional
+  /// của firmware (xác nhận trong spec v2 commit ab34570d, 2026-06-16):
+  /// BLE_CONTROL_CMD characteristic nằm trong service `37c` và mang chính
+  /// UUID `37c`. flutter_blue_plus phân biệt được vì discover qua
+  /// `svc.characteristics` (level khác với service discovery).
   static const String bleControlCmdCharUuid =
-      'a50133ef-ebd6-4a9b-8497-9d06309bf381';
+      'a50133ef-ebd6-4a9b-8497-9d06309bf37c';
 
   // ─── Timing ───────────────────────────────────────────────
   /// Quét tìm chip in-range trước khi quyết transport.

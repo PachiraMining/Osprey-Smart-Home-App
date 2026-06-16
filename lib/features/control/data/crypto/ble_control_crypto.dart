@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:pointycastle/api.dart' as pc;
@@ -7,25 +6,26 @@ import 'package:pointycastle/block/modes/ccm.dart';
 
 import '../../domain/entities/ble_control_result.dart';
 
-/// Crypto cho BLE Control wire format (spec §5.2):
+/// Crypto cho BLE Control wire format (spec v2 §5.2 — commit ab34570d):
 ///
 /// ```
-/// [counter:8B big-EN][IV:13B random][ciphertext:var][tag:8B]
+/// wire = [counter:8B big-EN][ciphertext:var][tag:8B]
 /// ```
 ///
-/// - key   = sessionKey[0..16]   (16 bytes)
-/// - nonce = IV                  (13 bytes random)
-/// - aad   = counter bytes       (8 bytes big-endian — KHÔNG encrypt, chỉ MAC)
-/// - tag   = **8 bytes** (KHÁC pairing — pairing tag 16B; chip parse mặc định 8B)
+/// IV được DERIVE từ counter (không random, không nằm trong wire):
+/// ```
+/// iv  = counter (8B big-EN) || 0x00 0x00 0x00 0x00     (12 bytes)
+/// key = sessionKey[0..16]                              (16 bytes)
+/// aad = counter (8B big-EN)                            (8 bytes)
+/// tag = 8 bytes (KHÁC pairing crypto tag 16B)
+/// ```
 ///
-/// Phần ciphertext+tag do AES-CCM-128 trả về liền nhau (pointycastle convention).
+/// Counter monotonic chip-side → mỗi command 1 IV duy nhất, không nonce
+/// reuse. Wire ngắn hơn spec v1 (bỏ 13B random IV).
 class BleControlCrypto {
-  static final Random _secureRandom = Random.secure();
-
   /// Build frame mã hoá để WRITE vào BLE_CONTROL_CMD.
   ///
-  /// [plaintextJson] ví dụ `{"cmd":"open"}` / `{"cmd":"pct","v":67}` —
-  /// chip parse `strstr` (xem §6.2) nên format JSON tự do, miễn có key đúng.
+  /// [plaintextJson] ví dụ `{"cmd":"open"}` (firmware §6.2 parse bằng strstr).
   Uint8List encryptCommand({
     required Uint8List sessionKey,
     required int counter,
@@ -37,29 +37,9 @@ class BleControlCrypto {
     if (counter < 0) {
       throw ArgumentError('counter must be non-negative');
     }
-    final iv = _randomIv();
     return _frame(
       sessionKey: sessionKey,
       counter: counter,
-      iv: iv,
-      plaintext: plaintext,
-    );
-  }
-
-  /// Build với IV cố định — chỉ dùng cho test golden vectors.
-  Uint8List encryptCommandWithIv({
-    required Uint8List sessionKey,
-    required int counter,
-    required Uint8List iv,
-    required List<int> plaintext,
-  }) {
-    if (iv.length != 13) {
-      throw ArgumentError('IV must be exactly 13 bytes (CCM L=2)');
-    }
-    return _frame(
-      sessionKey: sessionKey,
-      counter: counter,
-      iv: iv,
       plaintext: plaintext,
     );
   }
@@ -70,17 +50,19 @@ class BleControlCrypto {
     required Uint8List sessionKey,
     required Uint8List frame,
   }) {
-    if (frame.length < 8 + 13 + 8) {
+    // Min: counter(8) + tag(8) — ciphertext có thể rỗng (lệnh trống vô nghĩa
+    // nhưng vẫn parse được)
+    if (frame.length < 8 + 8) {
       throw ArgumentError(
-          'frame too short: need ≥29B (counter+iv+tag), got ${frame.length}');
+          'frame too short: need ≥16B (counter+tag), got ${frame.length}');
     }
     final counterBytes = frame.sublist(0, 8);
-    final iv = frame.sublist(8, 8 + 13);
-    final ctWithTag = frame.sublist(8 + 13);
+    final ctWithTag = frame.sublist(8);
 
+    final iv = _deriveIv(counterBytes);
     final cipher = _buildCcm(
       sessionKey: sessionKey,
-      iv: Uint8List.fromList(iv),
+      iv: iv,
       aad: Uint8List.fromList(counterBytes),
       forEncryption: false,
     );
@@ -99,21 +81,13 @@ class BleControlCrypto {
     };
   }
 
-  Uint8List _randomIv() {
-    final iv = Uint8List(13);
-    for (var i = 0; i < iv.length; i++) {
-      iv[i] = _secureRandom.nextInt(256);
-    }
-    return iv;
-  }
-
   Uint8List _frame({
     required Uint8List sessionKey,
     required int counter,
-    required Uint8List iv,
     required List<int> plaintext,
   }) {
     final counterBytes = _u64BigEndian(counter);
+    final iv = _deriveIv(counterBytes);
     final cipher = _buildCcm(
       sessionKey: sessionKey,
       iv: iv,
@@ -121,7 +95,13 @@ class BleControlCrypto {
       forEncryption: true,
     );
     final ctWithTag = cipher.process(Uint8List.fromList(plaintext));
-    return Uint8List.fromList([...counterBytes, ...iv, ...ctWithTag]);
+    return Uint8List.fromList([...counterBytes, ...ctWithTag]);
+  }
+
+  /// IV = counter (8B big-EN) || 0x00 0x00 0x00 0x00 = 12 bytes total.
+  static Uint8List _deriveIv(List<int> counterBytes) {
+    assert(counterBytes.length == 8, 'counter must be 8 bytes big-EN');
+    return Uint8List.fromList([...counterBytes, 0x00, 0x00, 0x00, 0x00]);
   }
 
   static Uint8List _u64BigEndian(int value) {
@@ -146,7 +126,7 @@ class BleControlCrypto {
       forEncryption,
       pc.AEADParameters(
         pc.KeyParameter(key),
-        64, // tag size in BITS = 8 bytes (spec §5.2 — khác pairing 128 bits)
+        64, // tag size in BITS = 8 bytes
         iv,
         aad,
       ),
