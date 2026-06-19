@@ -90,8 +90,11 @@ class SmartApp extends StatelessWidget {
         BlocProvider(create: (_) => GetIt.instance<AiSuggestionBloc>()),
         BlocProvider(create: (_) => GetIt.instance<WeatherAiBloc>()),
         BlocProvider(create: (_) => GetIt.instance<AiChatBloc>()),
-        // BLE Control Fallback — cloud-down detector cho badge + scenes banner
-        BlocProvider(create: (_) => GetIt.instance<CloudHealthCubit>()),
+        // BLE Control Fallback — cloud-down detector cho badge + scenes banner.
+        // `BlocProvider.value`: cubit là LazySingleton trong GetIt (TransportRouter
+        // dùng chung). BlocProvider(create:) sẽ `close()` cubit khi widget tree
+        // rebuild → GetIt vẫn cache instance đã closed → stream subs vỡ.
+        BlocProvider.value(value: GetIt.instance<CloudHealthCubit>()),
       ],
       child: MaterialApp(
         title: 'osprey.life',
