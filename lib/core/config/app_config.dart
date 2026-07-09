@@ -40,13 +40,15 @@ class AppConfig {
       int.fromEnvironment('MQTT_PORT', defaultValue: 1883);
 
   /// MQTT URL gửi cho DEVICE qua BLE pairing (firmware connect tới đây).
+  /// Firmware ≥ v1.0.15 tự chọn giao thức MQTTS theo scheme `ssl://`.
   static const String deviceMqttUrl =
-      'tcp://performentmarketing.ddnsgeek.com:1883';
+      'ssl://performentmarketing.ddnsgeek.com';
 
   /// HTTP API base URL gửi cho DEVICE qua BLE pairing
   /// (firmware gọi /api/v1/provision + /pairing/device-callback).
+  /// Firmware ≥ v1.0.15 tự chọn HTTPS theo scheme `https://`.
   static const String deviceHttpApiBaseUrl =
-      'http://performentmarketing.ddnsgeek.com:8080';
+      'https://performentmarketing.ddnsgeek.com';
 
   /// Tenant ID của brand Osprey trên backend multi-tenant.
   ///
