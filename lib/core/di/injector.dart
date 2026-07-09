@@ -8,7 +8,9 @@ import 'package:smart_curtain_app/features/auth/presentation/bloc/auth_state.dar
 import '../../core/config/app_config.dart';
 import '../../core/network/api_client.dart';
 import '../../core/network/mqtt_service.dart';
+import '../../core/network/token_refresher.dart';
 import '../../core/auth/token_manager.dart';
+import '../../core/auth/session_manager.dart';
 import '../../core/auth/social_login_service.dart';
 
 // Auth
@@ -130,6 +132,29 @@ Future<void> setupInjector() async {
   final tokenManager = sl<TokenManager>();
   await tokenManager.loadTokenToCache();
 
+  // Session expiry coordinator: clears tokens + signals the UI to re-login
+  // once a 401 can no longer be recovered by refreshing.
+  sl.registerLazySingleton(
+    () => SessionManager(sl()),
+    dispose: (manager) => manager.dispose(),
+  );
+
+  // Token refresher: exchanges the stored refresh token for a fresh access
+  // token (own bare Dio, so it never recurses into the 401 interceptor).
+  // On success it re-authenticates the live MQTT telemetry socket so it doesn't
+  // die when the old access token expires (reconnect only if actually connected).
+  sl.registerLazySingleton(
+    () => TokenRefresher(
+      tokenManager: sl(),
+      onRefreshed: (newToken) {
+        if (sl.isRegistered<MqttService>()) {
+          final mqtt = sl<MqttService>();
+          if (mqtt.isConnected) mqtt.updateToken(newToken);
+        }
+      },
+    ),
+  );
+
   // API Client
   sl.registerLazySingleton(
     () => ApiClient(baseUrl: AppConfig.thingsboardBaseUrl),
@@ -163,6 +188,7 @@ Future<void> setupInjector() async {
       tokenManager: sl(),
       authDataSource: sl(),
       socialLoginService: sl(),
+      tokenRefresher: sl(),
     ),
   );
 

@@ -4,6 +4,15 @@ class AppConfig {
   static const String thingsboardBaseUrl =
       'https://performentmarketing.ddnsgeek.com';
   static const String schedulerBaseUrl = 'https://performentmarketing.ddnsgeek.com';
+
+  /// Endpoint that exchanges a refresh token for a fresh access token.
+  /// ThingsBoard standard: `POST /api/auth/token` with `{"refreshToken": "..."}`
+  /// → `{"token": "...", "refreshToken": "..."}`. Override via dart-define if
+  /// the backend exposes a branded path.
+  static const String refreshTokenPath = String.fromEnvironment(
+    'REFRESH_TOKEN_PATH',
+    defaultValue: '/api/auth/token',
+  );
   static const String callbackScheme = 'osprey';
   static const String privacyPolicyUrl =
       'https://pachiramining.github.io/Osprey-Smart-Home-App/privacy-policy/';

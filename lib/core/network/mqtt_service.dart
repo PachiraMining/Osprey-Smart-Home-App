@@ -51,6 +51,11 @@ class MqttService {
   int _reconnectAttempt = 0;
   bool _disposed = false;
 
+  /// Set while [updateToken] tears down the old connection, so the
+  /// disconnect-triggered auto-reconnect doesn't race the immediate reconnect
+  /// we do with the fresh token.
+  bool _suppressReconnect = false;
+
   /// Subscriptions to re-establish after a reconnect.
   final Map<String, MqttQos> _activeSubscriptions = {};
 
@@ -115,6 +120,33 @@ class MqttService {
     }
   }
 
+  /// Swap the JWT the connection authenticates with — call after a token
+  /// refresh so the broker keeps accepting us past the old token's expiry.
+  ///
+  /// If we've never connected, this just stores the token for the next
+  /// [connect]. If a connection exists, it is bounced and re-established with
+  /// the fresh credential (active subscriptions are restored by [_onConnected]).
+  /// A no-op when the token is unchanged or the service is disposed.
+  Future<void> updateToken(String jwtToken) async {
+    if (_disposed || jwtToken.isEmpty || jwtToken == _username) return;
+    _username = jwtToken;
+
+    // Never connected → nothing to bounce; connect() will pick up _username.
+    if (_client == null) return;
+
+    _reconnectTimer?.cancel();
+    _reconnectAttempt = 0;
+    _suppressReconnect = true;
+    _client?.disconnect(); // may synchronously fire _onDisconnected
+    _suppressReconnect = false;
+
+    try {
+      await connect(jwtToken: jwtToken);
+    } catch (_) {
+      // connect() already scheduled its own backoff reconnect on failure.
+    }
+  }
+
   /// Subscribe to [topic] at [qos]. Stored so it survives reconnects.
   void subscribe(String topic, {MqttQos qos = MqttQos.atLeastOnce}) {
     _activeSubscriptions[topic] = qos;
@@ -141,6 +173,7 @@ class MqttService {
   }
 
   Future<void> dispose() async {
+    if (_disposed) return;
     _disposed = true;
     _reconnectTimer?.cancel();
     _client?.disconnect();
@@ -185,7 +218,7 @@ class MqttService {
   }
 
   void _scheduleReconnect() {
-    if (_disposed || _username == null) return;
+    if (_disposed || _username == null || _suppressReconnect) return;
     _reconnectAttempt += 1;
     final backoffSeconds = (5 * (1 << (_reconnectAttempt - 1))).clamp(5, 60);
     developer.log(

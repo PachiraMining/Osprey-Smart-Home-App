@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -6,8 +8,8 @@ import 'package:mocktail/mocktail.dart';
 import 'package:smart_curtain_app/core/auth/social_login_service.dart';
 import 'package:smart_curtain_app/core/auth/token_manager.dart';
 import 'package:smart_curtain_app/core/error/failure.dart';
+import 'package:smart_curtain_app/core/network/token_refresher.dart';
 import 'package:smart_curtain_app/features/auth/data/datasources/auth_remote_datasource.dart';
-import 'package:smart_curtain_app/features/auth/data/models/login_request_model.dart';
 import 'package:smart_curtain_app/features/auth/data/models/login_response_model.dart';
 import 'package:smart_curtain_app/features/auth/data/models/user_response_model.dart';
 import 'package:smart_curtain_app/features/auth/domain/usecases/login_usecase.dart';
@@ -25,6 +27,18 @@ class _MockAuthDataSource extends Mock implements AuthRemoteDataSource {}
 
 class _MockSocialLoginService extends Mock implements SocialLoginService {}
 
+class _MockTokenRefresher extends Mock implements TokenRefresher {}
+
+/// Builds a fake JWT carrying [payload]; signature is irrelevant for expiry.
+String _jwt(Map<String, dynamic> payload) {
+  String seg(Map<String, dynamic> m) =>
+      base64Url.encode(utf8.encode(json.encode(m))).replaceAll('=', '');
+  return '${seg({'alg': 'HS256', 'typ': 'JWT'})}.${seg(payload)}.sig';
+}
+
+int _epoch(Duration fromNow) =>
+    DateTime.now().add(fromNow).millisecondsSinceEpoch ~/ 1000;
+
 void main() {
   setUpAll(registerCommonFallbacks);
 
@@ -32,12 +46,14 @@ void main() {
   late _MockTokenManager tokenManager;
   late _MockAuthDataSource authDataSource;
   late _MockSocialLoginService socialLoginService;
+  late _MockTokenRefresher tokenRefresher;
 
   AuthBloc buildBloc() => AuthBloc(
         loginUseCase: loginUseCase,
         tokenManager: tokenManager,
         authDataSource: authDataSource,
         socialLoginService: socialLoginService,
+        tokenRefresher: tokenRefresher,
       );
 
   setUp(() {
@@ -45,6 +61,7 @@ void main() {
     tokenManager = _MockTokenManager();
     authDataSource = _MockAuthDataSource();
     socialLoginService = _MockSocialLoginService();
+    tokenRefresher = _MockTokenRefresher();
 
     when(() => tokenManager.saveTokens(
           token: any(named: 'token'),
@@ -255,6 +272,51 @@ void main() {
       },
       act: (bloc) => bloc.add(CheckAuthStatusEvent()),
       expect: () => [isA<AuthInitial>()],
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'refreshes an expired token on startup and emits AuthSuccess with the new token',
+      build: () {
+        final expired = _jwt({'exp': _epoch(const Duration(hours: -1))});
+        const freshToken = 'fresh-jwt';
+        final returns = <String>[expired, freshToken];
+        when(() => tokenManager.getToken())
+            .thenAnswer((_) async => returns.removeAt(0));
+        when(() => tokenManager.getRefreshToken())
+            .thenAnswer((_) async => tRefreshToken);
+        when(() => tokenManager.getCustomerId())
+            .thenAnswer((_) async => tCustomerId);
+        when(() => tokenRefresher.tryRefresh()).thenAnswer((_) async => true);
+        return buildBloc();
+      },
+      act: (bloc) => bloc.add(CheckAuthStatusEvent()),
+      expect: () => [
+        isA<AuthSuccess>().having((s) => s.token, 'token', 'fresh-jwt'),
+      ],
+      verify: (_) {
+        verify(() => tokenRefresher.tryRefresh()).called(1);
+        verifyNever(() => tokenManager.clearTokens());
+      },
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'clears tokens and emits AuthInitial when an expired token cannot be refreshed',
+      build: () {
+        final expired = _jwt({'exp': _epoch(const Duration(hours: -1))});
+        when(() => tokenManager.getToken()).thenAnswer((_) async => expired);
+        when(() => tokenManager.getRefreshToken())
+            .thenAnswer((_) async => tRefreshToken);
+        when(() => tokenManager.getCustomerId())
+            .thenAnswer((_) async => tCustomerId);
+        when(() => tokenRefresher.tryRefresh()).thenAnswer((_) async => false);
+        return buildBloc();
+      },
+      act: (bloc) => bloc.add(CheckAuthStatusEvent()),
+      expect: () => [isA<AuthInitial>()],
+      verify: (_) {
+        verify(() => tokenRefresher.tryRefresh()).called(1);
+        verify(() => tokenManager.clearTokens()).called(1);
+      },
     );
   });
 

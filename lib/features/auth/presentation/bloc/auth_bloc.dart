@@ -2,8 +2,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_curtain_app/features/auth/domain/usecases/login_usecase.dart';
 import 'package:smart_curtain_app/features/auth/data/models/login_request_model.dart';
 import 'package:smart_curtain_app/features/auth/data/datasources/auth_remote_datasource.dart';
+import '../../../../core/auth/jwt_utils.dart';
 import '../../../../core/auth/token_manager.dart';
 import '../../../../core/auth/social_login_service.dart';
+import '../../../../core/network/token_refresher.dart';
 import '../../../../core/di/injector.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
@@ -13,12 +15,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final TokenManager? tokenManager;
   final AuthRemoteDataSource? authDataSource;
   final SocialLoginService? socialLoginService;
+  final TokenRefresher? tokenRefresher;
 
   AuthBloc({
     required this.loginUseCase,
     this.tokenManager,
     this.authDataSource,
     this.socialLoginService,
+    this.tokenRefresher,
   }) : super(AuthInitial()) {
     on<LoginRequested>(_onLoginRequested);
     on<LogoutEvent>(_onLogout);
@@ -135,34 +139,61 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     try {
       final tokenMgr = tokenManager ?? sl<TokenManager>();
-      final token = await tokenMgr.getToken();
+      var token = await tokenMgr.getToken();
+
+      if (token == null || token.isEmpty) {
+        emit(AuthInitial());
+        return;
+      }
+
+      // Stale-session guard: if the stored access token is already expired,
+      // refresh it before entering the app. If refresh fails, the session is
+      // truly dead — wipe credentials and route to login instead of booting
+      // into a home screen where every request would 401.
+      if (JwtUtils.isExpired(token)) {
+        final refresher = _resolveRefresher();
+        final refreshed = refresher != null && await refresher.tryRefresh();
+        if (!refreshed) {
+          await tokenMgr.clearTokens();
+          emit(AuthInitial());
+          return;
+        }
+        token = await tokenMgr.getToken();
+        if (token == null || token.isEmpty) {
+          emit(AuthInitial());
+          return;
+        }
+      }
+
       final refreshToken = await tokenMgr.getRefreshToken();
       final customerId = await tokenMgr.getCustomerId();
 
-      if (token != null && token.isNotEmpty) {
-        tokenMgr.setCachedToken(token);
-        await tokenMgr.loadTokenToCache();
+      tokenMgr.setCachedToken(token);
+      await tokenMgr.loadTokenToCache();
 
-        if (customerId == null || customerId.isEmpty) {
-          try {
-            final dataSource = authDataSource ?? sl<AuthRemoteDataSource>();
-            final userResponse = await dataSource.getCurrentUser();
-            await tokenMgr.saveCustomerId(userResponse.customerId);
-            tokenMgr.setCachedCustomerId(userResponse.customerId);
-          } catch (e) {
-            // Could not fetch customerId on app start
-          }
-        } else {
-          tokenMgr.setCachedCustomerId(customerId);
+      if (customerId == null || customerId.isEmpty) {
+        try {
+          final dataSource = authDataSource ?? sl<AuthRemoteDataSource>();
+          final userResponse = await dataSource.getCurrentUser();
+          await tokenMgr.saveCustomerId(userResponse.customerId);
+          tokenMgr.setCachedCustomerId(userResponse.customerId);
+        } catch (e) {
+          // Could not fetch customerId on app start
         }
-
-        emit(AuthSuccess(token: token, refreshToken: refreshToken ?? ''));
       } else {
-        emit(AuthInitial());
+        tokenMgr.setCachedCustomerId(customerId);
       }
+
+      emit(AuthSuccess(token: token, refreshToken: refreshToken ?? ''));
     } catch (e) {
       emit(AuthInitial());
     }
+  }
+
+  /// Prefers the injected refresher (tests); falls back to the DI container.
+  TokenRefresher? _resolveRefresher() {
+    if (tokenRefresher != null) return tokenRefresher;
+    return sl.isRegistered<TokenRefresher>() ? sl<TokenRefresher>() : null;
   }
 
   Future<void> _onDeleteAccount(
