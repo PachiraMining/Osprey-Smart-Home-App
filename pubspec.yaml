@@ -44,6 +44,8 @@ dependencies:
   # AES-128-CCM cho PAIRING_DATA — package:cryptography KHÔNG có CCM
   # (handoff doc gợi ý AesCcm nhưng class đó không tồn tại trong pkg đó)
   pointycastle: ^3.9.1
+  # clock cho fake_async testing CloudHealthCubit (debounce 10s/30s)
+  clock: ^1.1.1
   # Tự detect SSID WiFi đang kết nối (màn nhập WiFi khi pairing)
   network_info_plus: ^6.1.4
   # Product catalog local cache (BLE pairing)

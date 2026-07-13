@@ -17,6 +17,7 @@ import 'core/theme/app_theme.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/auth/presentation/bloc/auth_state.dart';
 import 'features/auth/presentation/pages/login_page.dart';
+import 'features/control/presentation/bloc/cloud_health_cubit.dart';
 import 'features/device/presentation/bloc/device_bloc.dart';
 import 'features/scene/presentation/bloc/scene_bloc.dart';
 import 'smart_splash.dart';
@@ -158,6 +159,11 @@ class _SmartAppState extends State<SmartApp> {
         BlocProvider(create: (_) => GetIt.instance<AiSuggestionBloc>()),
         BlocProvider(create: (_) => GetIt.instance<WeatherAiBloc>()),
         BlocProvider(create: (_) => GetIt.instance<AiChatBloc>()),
+        // BLE Control Fallback — cloud-down detector cho badge + scenes banner.
+        // `BlocProvider.value`: cubit là LazySingleton trong GetIt (TransportRouter
+        // dùng chung). BlocProvider(create:) sẽ `close()` cubit khi widget tree
+        // rebuild → GetIt vẫn cache instance đã closed → stream subs vỡ.
+        BlocProvider.value(value: GetIt.instance<CloudHealthCubit>()),
       ],
       // Re-arm the session guard whenever the user (re)authenticates so a
       // future expiry triggers the redirect again. Placed above MaterialApp so

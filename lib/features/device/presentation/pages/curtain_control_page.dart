@@ -1,4 +1,7 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:developer' as dev;
+import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -6,6 +9,11 @@ import 'package:http/http.dart' as http;
 import 'package:get_it/get_it.dart';
 import '../../../../core/auth/token_manager.dart';
 import '../../../../core/config/app_config.dart';
+import '../../../control/data/repositories/transport_router_impl.dart';
+import '../../../control/domain/entities/transport_state.dart';
+import '../../../control/domain/repositories/transport_router.dart';
+import '../../../control/presentation/widgets/local_control_badge.dart';
+import '../../../pairing/presentation/pages/osprey_add_device_page.dart';
 import '../../domain/entities/device_entity.dart';
 import 'device_settings_page.dart';
 
@@ -23,10 +31,13 @@ class _CurtainControlPageState extends State<CurtainControlPage>
 
   final _tokenManager = GetIt.instance<TokenManager>();
   final _client = GetIt.instance<http.Client>();
+  final _router = GetIt.instance<TransportRouter>();
 
   double _position = 0.0;
   bool _isLoading = false;
   bool _isDragging = false;
+  TransportState _transport = TransportState.cloud;
+  StreamSubscription<TransportState>? _transportSub;
 
   late final AnimationController _animController;
   final _storage = GetIt.instance<FlutterSecureStorage>();
@@ -43,6 +54,13 @@ class _CurtainControlPageState extends State<CurtainControlPage>
         setState(() => _position = _animController.value);
       });
     _loadSavedPosition();
+
+    // BLE Control Fallback: theo dõi transport để show badge + route lệnh.
+    _router.watchDevice(widget.device.id);
+    _transport = _router.currentTransport;
+    _transportSub = _router.transport$.listen((s) {
+      if (mounted) setState(() => _transport = s);
+    });
   }
 
   Future<void> _loadSavedPosition() async {
@@ -63,6 +81,8 @@ class _CurtainControlPageState extends State<CurtainControlPage>
 
   @override
   void dispose() {
+    _transportSub?.cancel();
+    _router.watchDevice(null);
     _animController.dispose();
     super.dispose();
   }
@@ -77,26 +97,134 @@ class _CurtainControlPageState extends State<CurtainControlPage>
     if (_isLoading) return;
     setState(() => _isLoading = true);
 
+    var fallbackToBle = false;
+
     try {
-      final url = '$_baseUrl/api/smarthome/devices/${widget.device.id}/commands';
-      final body = jsonEncode({'dpId': dpId, 'value': value});
-
-      final response = await _client.post(
-        Uri.parse(url),
-        headers: _headers,
-        body: body,
-      );
-
-      if (response.statusCode == 200) {
-        _showSnackBar('Command sent', Colors.green);
-      } else {
-        _showSnackBar('Error: ${response.statusCode}', Colors.red);
+      // Rule A: thử cloud trước nếu transport router đang nghĩ online.
+      // MQTT có TCP keep-alive 60s nên CloudHealthCubit có thể chưa kịp
+      // flip xuống `down` lúc user vừa tắt WiFi → cloud HTTP fail bằng
+      // SocketException trong < 1s. Fallback BLE inline.
+      if (_transport == TransportState.cloud) {
+        try {
+          final url =
+              '$_baseUrl/api/smarthome/devices/${widget.device.id}/commands';
+          final body = jsonEncode({'dpId': dpId, 'value': value});
+          final response = await _client.post(
+            Uri.parse(url),
+            headers: _headers,
+            body: body,
+          );
+          if (response.statusCode == 200) {
+            _showSnackBar('Command sent', Colors.green);
+            return;
+          }
+          // Non-2xx (4xx/5xx): backend reachable, không phải lỗi mạng → show.
+          _showSnackBar('Error: ${response.statusCode}', Colors.red);
+          return;
+        } on SocketException catch (e) {
+          dev.log('[CurtainCtrl] cloud HTTP SocketException ($e) — '
+              'falling back to BLE', name: 'CurtainCtrl');
+          fallbackToBle = true;
+        } on HttpException catch (e) {
+          dev.log('[CurtainCtrl] cloud HTTP HttpException ($e) — '
+              'falling back to BLE', name: 'CurtainCtrl');
+          fallbackToBle = true;
+        } catch (e) {
+          // Catch-all cho ClientException (http package wrap SocketException
+          // bên trong tùy version). Bất kỳ "không ra net" error nào → BLE.
+          dev.log('[CurtainCtrl] cloud HTTP error ($e) — '
+              'falling back to BLE', name: 'CurtainCtrl');
+          fallbackToBle = true;
+        }
       }
+
+      // BLE path: dùng cho `bleFallback`/`unreachable` HOẶC fallback từ cloud
+      // network error ở trên. Route qua TransportRouter (mã hoá AES-CCM gửi
+      // qua BLE_CONTROL_CMD char `...381`).
+      final cmd = _mapDpToCommand(dpId, value);
+      if (cmd == null) {
+        _showSnackBar('Local control does not support this action', Colors.red);
+        return;
+      }
+      dev.log('[CurtainCtrl] BLE sendCommand: $cmd (fallback=$fallbackToBle, '
+          'transport=$_transport)', name: 'CurtainCtrl');
+      // Khi vừa fallback từ cloud SocketException → force BLE (skip state
+      // machine vì cubit chưa kịp flip). Khi user đã ở BLE/unreachable mode
+      // → đi qua sendCommand bình thường.
+      final result = fallbackToBle
+          ? await _router.sendCommandViaBle(
+              tbDeviceId: widget.device.id, command: cmd)
+          : await _router.sendCommand(
+              tbDeviceId: widget.device.id, command: cmd);
+      result.fold(
+        (failure) {
+          dev.log('[CurtainCtrl] BLE result: Left(${failure.runtimeType}) '
+              '${failure.message}', name: 'CurtainCtrl');
+          if (failure is ReLearnRequiredFailure) {
+            _showRePairDialog();
+          } else if (fallbackToBle && failure is DeviceUnreachableFailure) {
+            _showSnackBar(
+                'No internet and Bluetooth not in range', Colors.red);
+          } else {
+            _showSnackBar(failure.message, Colors.red);
+          }
+        },
+        (_) {
+          dev.log('[CurtainCtrl] BLE result: Right(ok)', name: 'CurtainCtrl');
+          _showSnackBar('Local control: command sent', Colors.green);
+        },
+      );
     } catch (e) {
+      dev.log('[CurtainCtrl] unexpected error: $e', name: 'CurtainCtrl');
       _showSnackBar('Connection error', Colors.red);
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  /// dpId=1+open/close/stop → OPEN/CLOSE/STOP, dpId=2+int → PCT:N
+  static String? _mapDpToCommand(int dpId, dynamic value) {
+    if (dpId == 1 && value is String) {
+      final upper = value.toUpperCase();
+      if (upper == 'OPEN' || upper == 'CLOSE' || upper == 'STOP') return upper;
+    }
+    if (dpId == 2 && value is int && value >= 0 && value <= 100) {
+      return 'PCT:$value';
+    }
+    return null;
+  }
+
+  void _showRePairDialog() {
+    if (!mounted) return;
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Re-pair required'),
+        content: const Text(
+          'Local Bluetooth control needs to be re-paired with this device. '
+          'This usually happens after the app data was cleared or the device '
+          'was factory reset.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Later'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const OspreyAddDevicePage(),
+                ),
+              );
+            },
+            child: const Text('Re-pair now'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _onOpen() {
@@ -182,6 +310,13 @@ class _CurtainControlPageState extends State<CurtainControlPage>
       ),
       body: Column(
         children: [
+          // BLE Control Fallback — badge subdued khi cloud-down (silent).
+          LocalControlBadge(
+            transport: _transport,
+            onRetry: _transport == TransportState.unreachable
+                ? () => _router.watchDevice(widget.device.id)
+                : null,
+          ),
           // Curtain visualization — draggable motors on track
           Expanded(
             child: Center(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../control/presentation/widgets/offline_scenes_banner.dart';
 import '../../../domain/entities/tap_to_run_scene_entity.dart';
 import '../../bloc/tap_to_run/tap_to_run_bloc.dart';
 import '../../bloc/tap_to_run/tap_to_run_event.dart';
@@ -32,33 +33,43 @@ class ManageScenesPage extends StatelessWidget {
           ),
         ],
       ),
-      body: BlocBuilder<TapToRunBloc, TapToRunState>(
-        builder: (context, state) {
-          final scenes = state is TapToRunLoaded
-              ? state.scenes
-              : state is TapToRunExecuteResult
-                  ? state.scenes
-                  : <TapToRunSceneEntity>[];
+      body: Column(
+        children: [
+          const OfflineScenesBanner(),
+          Expanded(
+            child: BlocBuilder<TapToRunBloc, TapToRunState>(
+              builder: (context, state) {
+                final scenes = state is TapToRunLoaded
+                    ? state.scenes
+                    : state is TapToRunExecuteResult
+                        ? state.scenes
+                        : <TapToRunSceneEntity>[];
 
-          if (scenes.isEmpty) {
-            return Center(
-              child: Text('No scenes', style: TextStyle(color: Colors.grey.shade400, fontSize: 16)),
-            );
-          }
+                if (scenes.isEmpty) {
+                  return Center(
+                    child: Text('No scenes',
+                        style: TextStyle(
+                            color: Colors.grey.shade400, fontSize: 16)),
+                  );
+                }
 
-          return ListView.builder(
-            itemCount: scenes.length,
-            itemBuilder: (context, index) {
-              final scene = scenes[index];
-              return _SceneManageRow(
-                scene: scene,
-                onDelete: () {
-                  context.read<TapToRunBloc>().add(DeleteTapToRunSceneEvent(scene.id));
-                },
-              );
-            },
-          );
-        },
+                return ListView.builder(
+                  itemCount: scenes.length,
+                  itemBuilder: (context, index) {
+                    final scene = scenes[index];
+                    return _SceneManageRow(
+                      scene: scene,
+                      onDelete: () {
+                        context.read<TapToRunBloc>().add(
+                            DeleteTapToRunSceneEvent(scene.id));
+                      },
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
