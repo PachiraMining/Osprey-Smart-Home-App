@@ -62,7 +62,9 @@ class ApiClient {
             alreadyRetried: alreadyRetried,
           )) {
             final refresher = _refresher;
-            final refreshed = refresher != null && await refresher.tryRefresh();
+            final usedToken = _bearerOf(requestOptions.headers['X-Authorization']);
+            final refreshed = refresher != null &&
+                await refresher.tryRefresh(staleToken: usedToken);
             if (refreshed) {
               requestOptions.extra[_retriedKey] = true;
               // Carry the fresh token explicitly so the replay never depends on
@@ -103,6 +105,14 @@ class ApiClient {
   /// are registered; null-safe for unit tests with no DI container.
   TokenRefresher? get _refresher =>
       sl.isRegistered<TokenRefresher>() ? sl<TokenRefresher>() : null;
+
+  /// Strips the `Bearer ` prefix from an auth header value, so the refresher can
+  /// tell whether the token this request used is still the current one.
+  static String? _bearerOf(dynamic header) {
+    if (header is! String || header.isEmpty) return null;
+    const prefix = 'Bearer ';
+    return header.startsWith(prefix) ? header.substring(prefix.length) : header;
+  }
 
   Future<void> _notifySessionExpired() async {
     if (sl.isRegistered<SessionManager>()) {

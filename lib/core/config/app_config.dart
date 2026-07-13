@@ -59,13 +59,15 @@ class AppConfig {
   static const String deviceHttpApiBaseUrl =
       'https://performentmarketing.ddnsgeek.com';
 
-  /// Tenant ID của brand Osprey trên backend multi-tenant.
+  /// App key định danh brand ở các endpoint auth (email/phone/guest).
   ///
-  /// Dùng cho email signup/login kiểu Tuya (CUSTOMER_USER): app build cho
-  /// brand nào dùng tenantId của brand đó — cùng codebase, khác config.
-  static const String brandTenantId = String.fromEnvironment(
-    'BRAND_TENANT_ID',
-    defaultValue: '15e19c90-d000-11f0-ab7e-c31cfe647037',
+  /// Thay cho tenantId cũ: tenant UUID không được nằm trong app binary khi
+  /// release; appKey thu hồi/cấp lại được. App build cho brand nào dùng appKey
+  /// của brand đó — cùng codebase, khác config. Override qua dart-define
+  /// `APP_KEY` cho brand khác.
+  static const String appKey = String.fromEnvironment(
+    'APP_KEY',
+    defaultValue: 'ak_osprey_dcac38bd1fa1365c62d7e022734d11ea',
   );
 
   /// Build environment: dev | staging | prod. Used for Sentry and analytics tagging.

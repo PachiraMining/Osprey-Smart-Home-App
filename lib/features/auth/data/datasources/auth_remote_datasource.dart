@@ -17,7 +17,7 @@ class AuthRemoteDataSource {
       data: {
         'email': username,
         'password': password,
-        'tenantId': AppConfig.brandTenantId,
+        'appKey': AppConfig.appKey,
       },
     );
 
@@ -34,7 +34,7 @@ class AuthRemoteDataSource {
   Future<void> sendSignupVerificationCode(String email) async {
     await apiClient.post(
       '/api/noauth/smarthome/email/send-otp',
-      data: {'email': email, 'tenantId': AppConfig.brandTenantId},
+      data: {'email': email, 'appKey': AppConfig.appKey},
     );
   }
 
@@ -52,7 +52,7 @@ class AuthRemoteDataSource {
       data: {
         'email': email,
         'otp': verificationCode,
-        'tenantId': AppConfig.brandTenantId,
+        'appKey': AppConfig.appKey,
         'password': password,
         if (firstName != null && firstName.isNotEmpty) 'firstName': firstName,
         if (lastName != null && lastName.isNotEmpty) 'lastName': lastName,

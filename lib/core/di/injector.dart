@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_curtain_app/features/auth/presentation/bloc/auth_state.dart';
 import '../../core/config/app_config.dart';
 import '../../core/network/api_client.dart';
+import '../../core/network/auth_http_client.dart';
 import '../../core/network/mqtt_service.dart';
 import '../../core/network/token_refresher.dart';
 import '../../core/auth/token_manager.dart';
@@ -160,8 +161,18 @@ Future<void> setupInjector() async {
     () => ApiClient(baseUrl: AppConfig.thingsboardBaseUrl),
   );
 
-  // HTTP Client
-  sl.registerLazySingleton(() => http.Client());
+  // HTTP Client — wrapped so `http`-package data sources (device list/control,
+  // curtain page, ...) get the SAME silent refresh-on-401 as the Dio stack.
+  // Shares the TokenRefresher singleton, so the single-flight lock spans both.
+  sl.registerLazySingleton<http.Client>(
+    () => AuthHttpClient(
+      inner: http.Client(),
+      refresher: sl<TokenRefresher>(),
+      sessionManager: sl<SessionManager>(),
+      freshToken: () => sl<TokenManager>().getTokenSync() ?? '',
+      authHost: Uri.parse(AppConfig.thingsboardBaseUrl).host,
+    ),
+  );
 
   // Social Login Service
   sl.registerLazySingleton(() => SocialLoginService(httpClient: sl()));

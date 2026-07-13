@@ -34,8 +34,22 @@ class TokenRefresher {
 
   /// Attempts a refresh, returning whether a new valid access token is now
   /// stored. Never throws — any failure resolves to `false`.
-  Future<bool> tryRefresh() =>
-      _inFlight ??= _doRefresh().whenComplete(() => _inFlight = null);
+  ///
+  /// [staleToken] is the access token the calling request actually sent. If the
+  /// stored token has already moved past it, another request already refreshed
+  /// — we skip a redundant network round-trip and just tell the caller to retry
+  /// with the current token. Combined with the in-flight coalescing below, this
+  /// makes single-flight hold for 401s that arrive *sequentially* (after an
+  /// earlier refresh finished), not only for ones that overlap in time.
+  Future<bool> tryRefresh({String? staleToken}) {
+    if (staleToken != null && staleToken.isNotEmpty) {
+      final current = _tokenManager.getTokenSync();
+      if (current != null && current.isNotEmpty && current != staleToken) {
+        return Future.value(true);
+      }
+    }
+    return _inFlight ??= _doRefresh().whenComplete(() => _inFlight = null);
+  }
 
   Future<bool> _doRefresh() async {
     final refreshToken = await _tokenManager.getRefreshToken();

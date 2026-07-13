@@ -127,6 +127,54 @@ void main() {
     expect(called, isFalse);
   });
 
+  test('skips the network refresh when the token already moved past staleToken',
+      () async {
+    // Another request already refreshed: the stored token differs from the one
+    // this caller used, so no second POST /api/auth/token should be sent.
+    when(() => tokenManager.getTokenSync()).thenReturn('already-new-jwt');
+
+    final ok = await refresher.tryRefresh(staleToken: 'old-jwt');
+
+    expect(ok, isTrue);
+    verifyNever(() => dio.post(any(), data: any(named: 'data')));
+  });
+
+  test('still refreshes when staleToken matches the current token', () async {
+    when(() => tokenManager.getTokenSync()).thenReturn('old-jwt');
+    when(() => tokenManager.getRefreshToken()).thenAnswer((_) async => 'old-rt');
+    when(() => dio.post(any(), data: any(named: 'data'))).thenAnswer(
+      (_) async => _resp({'token': 'new-jwt', 'refreshToken': 'new-rt'}),
+    );
+
+    final ok = await refresher.tryRefresh(staleToken: 'old-jwt');
+
+    expect(ok, isTrue);
+    verify(() => dio.post(any(), data: any(named: 'data'))).called(1);
+  });
+
+  test('sequential 401s after a completed refresh trigger only one network call',
+      () async {
+    // First caller refreshes; once done, the cached token is the new one.
+    var stored = 'old-jwt';
+    when(() => tokenManager.getTokenSync()).thenAnswer((_) => stored);
+    when(() => tokenManager.getRefreshToken()).thenAnswer((_) async => 'old-rt');
+    when(() => tokenManager.setCachedToken(any())).thenAnswer((inv) {
+      stored = inv.positionalArguments.first as String;
+    });
+    when(() => dio.post(any(), data: any(named: 'data'))).thenAnswer(
+      (_) async => _resp({'token': 'new-jwt', 'refreshToken': 'new-rt'}),
+    );
+
+    // Caller A refreshes (token used == stored 'old-jwt').
+    final a = await refresher.tryRefresh(staleToken: 'old-jwt');
+    // Caller B's 401 arrives AFTER A finished; its token is now stale.
+    final b = await refresher.tryRefresh(staleToken: 'old-jwt');
+
+    expect(a, isTrue);
+    expect(b, isTrue);
+    verify(() => dio.post(any(), data: any(named: 'data'))).called(1);
+  });
+
   test('coalesces concurrent calls into a single refresh request (single-flight)',
       () async {
     when(() => tokenManager.getRefreshToken()).thenAnswer((_) async => 'old-rt');
