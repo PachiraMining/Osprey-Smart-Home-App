@@ -24,6 +24,7 @@ import 'smart_splash.dart';
 import 'features/home/presentation/pages/home_page.dart';
 import 'features/device/presentation/bloc/device_event.dart';
 import 'features/scene/presentation/bloc/tap_to_run/tap_to_run_bloc.dart';
+import 'features/scene/presentation/bloc/automation/automation_bloc.dart';
 import 'features/home/presentation/bloc/home_management_bloc.dart';
 import 'features/home/presentation/bloc/home_management_event.dart';
 import 'features/ai/presentation/bloc/ai_chat_bloc.dart';
@@ -154,6 +155,10 @@ class _SmartAppState extends State<SmartApp> {
         // chưa có homeId → SceneError kẹt ở nút Retry. SceneTab tự load
         // khi đã có home (initState + listener selectedHomeId).
         BlocProvider(create: (_) => GetIt.instance<SceneBloc>()),
+        // AutomationBloc: rich schedule/condition automations shown in the Scene
+        // tab. Provided above MaterialApp so pushed AutomationDetailPage routes
+        // resolve the same instance (its _homeId set by the tab's load event).
+        BlocProvider(create: (_) => GetIt.instance<AutomationBloc>()),
         BlocProvider(create: (_) => GetIt.instance<TapToRunBloc>()),
         BlocProvider(create: (_) => GetIt.instance<VoiceCommandBloc>()),
         BlocProvider(create: (_) => GetIt.instance<AiSuggestionBloc>()),

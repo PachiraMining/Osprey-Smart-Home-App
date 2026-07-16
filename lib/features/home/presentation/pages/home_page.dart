@@ -10,10 +10,11 @@ import 'package:smart_curtain_app/core/theme/app_typography.dart';
 import 'package:smart_curtain_app/features/home/presentation/pages/CreateSceneTriggerPage.dart';
 import 'package:smart_curtain_app/features/home/presentation/pages/create_scene_page.dart';
 import 'package:smart_curtain_app/features/pairing/presentation/pages/osprey_add_device_page.dart';
-import 'package:smart_curtain_app/features/scene/presentation/bloc/scene_bloc.dart';
-import 'package:smart_curtain_app/features/scene/presentation/bloc/scene_event.dart';
-import 'package:smart_curtain_app/features/scene/presentation/bloc/scene_state.dart';
-import 'package:smart_curtain_app/features/scene/domain/entities/scene_entity.dart';
+import 'package:smart_curtain_app/features/scene/presentation/bloc/automation/automation_bloc.dart';
+import 'package:smart_curtain_app/features/scene/presentation/bloc/automation/automation_event.dart';
+import 'package:smart_curtain_app/features/scene/presentation/bloc/automation/automation_state.dart';
+import 'package:smart_curtain_app/features/scene/domain/entities/automation_scene_entity.dart';
+import 'package:smart_curtain_app/features/scene/presentation/pages/automation/automation_detail_page.dart';
 import 'package:get_it/get_it.dart';
 import 'package:smart_curtain_app/core/auth/token_manager.dart';
 import 'package:smart_curtain_app/features/home/presentation/pages/personal_info_page.dart';
@@ -408,7 +409,9 @@ class _SceneTabState extends State<SceneTab> {
   void _loadAutomationScenes() {
     final homeId = context.read<HomeManagementBloc>().state.selectedHomeId;
     if (homeId != null) {
-      context.read<SceneBloc>().add(LoadScenesEvent());
+      // Also seeds AutomationBloc._homeId so create/edit from the detail page
+      // knows which home to POST to.
+      context.read<AutomationBloc>().add(LoadAutomationsEvent(homeId));
     }
   }
 
@@ -518,12 +521,12 @@ class _SceneTabState extends State<SceneTab> {
   }
 
   Widget _buildAutomationContent() {
-    return BlocBuilder<SceneBloc, SceneState>(
+    return BlocBuilder<AutomationBloc, AutomationState>(
       builder: (context, state) {
-        if (state is SceneLoading) {
+        if (state is AutomationLoading) {
           return const Center(child: CircularProgressIndicator());
         }
-        if (state is SceneError) {
+        if (state is AutomationError) {
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -531,18 +534,30 @@ class _SceneTabState extends State<SceneTab> {
                 Text(state.message, style: const TextStyle(color: Colors.red)),
                 const SizedBox(height: 16),
                 ElevatedButton(
-                  onPressed: () => context.read<SceneBloc>().add(LoadScenesEvent()),
+                  onPressed: _loadAutomationScenes,
                   child: const Text('Retry'),
                 ),
               ],
             ),
           );
         }
-        if (state is SceneLoaded && state.scenes.isNotEmpty) {
-          return _buildSceneList(context, state.scenes);
+        if (state is AutomationLoaded && state.automations.isNotEmpty) {
+          return _buildAutomationList(context, state.automations);
         }
         return _buildEmptyAutomation();
       },
+    );
+  }
+
+  /// Opens the rich automation editor. Pass an existing automation to edit, or
+  /// null to create a new one. On return the AutomationBloc has already
+  /// refreshed the list (it dispatches LoadAutomationsEvent after create/update).
+  Future<void> _openAutomationDetail([AutomationSceneEntity? automation]) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AutomationDetailPage(automation: automation),
+      ),
     );
   }
 
@@ -581,22 +596,7 @@ class _SceneTabState extends State<SceneTab> {
                 borderRadius: BorderRadius.circular(24),
               ),
             ),
-            onPressed: () async {
-              final triggerData = await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const CreateSceneTriggerPage(),
-                ),
-              );
-              if (triggerData == null) return;
-              if (!mounted) return;
-              await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => CreateScenePage(scheduleData: triggerData),
-                ),
-              );
-            },
+            onPressed: () => _openAutomationDetail(),
             child: const Text(
               'Create Scene',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
@@ -851,18 +851,18 @@ class _SceneTabState extends State<SceneTab> {
     }
   }
 
-  Widget _buildSceneList(BuildContext context, List<SceneEntity> scenes) {
+  Widget _buildAutomationList(
+      BuildContext context, List<AutomationSceneEntity> automations) {
     return RefreshIndicator(
-      onRefresh: () async {
-        context.read<SceneBloc>().add(LoadScenesEvent());
-      },
+      onRefresh: () async => _loadAutomationScenes(),
       child: ListView.separated(
-        itemCount: scenes.length,
+        padding: const EdgeInsets.only(bottom: 100),
+        itemCount: automations.length,
         separatorBuilder: (_, __) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
-          final scene = scenes[index];
+          final automation = automations[index];
           return Dismissible(
-            key: Key('scene_${scene.id}'),
+            key: Key('automation_${automation.id}'),
             direction: DismissDirection.endToStart,
             background: Container(
               alignment: Alignment.centerRight,
@@ -878,7 +878,8 @@ class _SceneTabState extends State<SceneTab> {
                 context: context,
                 builder: (ctx) => AlertDialog(
                   title: const Text('Delete scene?'),
-                  content: Text('Are you sure you want to delete "${scene.name}"?'),
+                  content: Text(
+                      'Are you sure you want to delete "${automation.name}"?'),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(ctx, false),
@@ -886,68 +887,87 @@ class _SceneTabState extends State<SceneTab> {
                     ),
                     TextButton(
                       onPressed: () => Navigator.pop(ctx, true),
-                      child: const Text('Delete', style: TextStyle(color: Colors.red)),
+                      child: const Text('Delete',
+                          style: TextStyle(color: Colors.red)),
                     ),
                   ],
                 ),
               );
             },
             onDismissed: (_) {
-              context.read<SceneBloc>().add(DeleteSceneEvent(scene.id));
+              context
+                  .read<AutomationBloc>()
+                  .add(DeleteAutomationEvent(automation.id));
             },
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white.withAlpha(200),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 20,
-                    backgroundColor: AppColors.primary.withAlpha(30),
-                    child: const Icon(Icons.access_time, color: AppColors.primary),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          scene.name,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${scene.scheduleTime} | ${scene.repeatDisplay} | ${scene.actionSummary.toUpperCase()}',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => _openAutomationDetail(automation),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white.withAlpha(200),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 20,
+                      backgroundColor: AppColors.primary.withAlpha(30),
+                      child: const Icon(Icons.access_time,
+                          color: AppColors.primary),
                     ),
-                  ),
-                  Switch(
-                    value: scene.enabled,
-                    onChanged: (v) {
-                      context.read<SceneBloc>().add(
-                        ToggleSceneEvent(scene.id, v),
-                      );
-                    },
-                    activeThumbColor: AppColors.surface,
-                    activeTrackColor: AppColors.primary,
-                  ),
-                ],
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            automation.name,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            _automationSubtitle(automation),
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Switch(
+                      value: automation.enabled,
+                      onChanged: (v) {
+                        context
+                            .read<AutomationBloc>()
+                            .add(ToggleAutomationEvent(automation.id, v));
+                      },
+                      activeThumbColor: AppColors.surface,
+                      activeTrackColor: AppColors.primary,
+                    ),
+                  ],
+                ),
               ),
             ),
           );
         },
       ),
     );
+  }
+
+  /// One-line summary of an automation for the list card: first schedule +
+  /// action count. Mirrors the Tap-to-Run card density.
+  String _automationSubtitle(AutomationSceneEntity automation) {
+    final schedule = automation.conditions.isNotEmpty
+        ? automation.conditions.first.displayText
+        : 'No schedule';
+    final count = automation.actions.length;
+    final actionLabel = count == 1 ? '1 action' : '$count actions';
+    return '$schedule • $actionLabel';
   }
 }
 

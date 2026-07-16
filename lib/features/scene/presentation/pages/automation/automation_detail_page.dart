@@ -16,6 +16,21 @@ import 'package:smart_curtain_app/features/scene/presentation/pages/tap_to_run/d
 import 'package:smart_curtain_app/features/home/domain/entities/home_device_entity.dart';
 import 'package:smart_curtain_app/features/scene/presentation/pages/automation/schedule_condition_page.dart';
 
+/// A device-control action only carries `deviceName` in memory (set by the
+/// device picker). After a save + reload the backend returns just `entityId`
+/// (name/function aren't persisted), so resolve the display name from the
+/// home's current device list. Falls back to `'Device'` when the id is unknown
+/// (e.g. the device was removed).
+String resolveActionDeviceName(
+    SceneActionEntity action, List<HomeDeviceEntity> devices) {
+  final inMemory = action.deviceName;
+  if (inMemory != null && inMemory.isNotEmpty) return inMemory;
+  for (final d in devices) {
+    if (d.deviceId == action.entityId) return d.displayName;
+  }
+  return 'Device';
+}
+
 class AutomationDetailPage extends StatefulWidget {
   /// Pass existing automation to edit, or null to create new.
   final AutomationSceneEntity? automation;
@@ -1085,11 +1100,12 @@ class _ActionRow extends StatelessWidget {
     required this.onTap,
   });
 
-  (IconData, Color, String, String) _resolveDisplay() {
+  (IconData, Color, String, String) _resolveDisplay(
+      List<HomeDeviceEntity> devices) {
     switch (action.actionType) {
       case 'DEVICE_CONTROL':
         final dp = action.executorProperty;
-        final title = action.deviceName ?? 'Device';
+        final title = resolveActionDeviceName(action, devices);
         final subtitle = action.functionName != null
             ? '${action.functionName}: ${dp?['dpValue']}'
             : dp != null
@@ -1128,7 +1144,8 @@ class _ActionRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (icon, iconColor, title, subtitle) = _resolveDisplay();
+    final devices = context.read<HomeManagementBloc>().state.devices;
+    final (icon, iconColor, title, subtitle) = _resolveDisplay(devices);
     return Dismissible(
       key: Key('action_${action.actionType}_$index'),
       direction: DismissDirection.endToStart,

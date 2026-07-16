@@ -171,7 +171,10 @@ class AutomationRepositoryImpl implements AutomationRepository {
       'conditions': conditions.map((c) {
         return ScheduleConditionModel(
           conditionType: c.conditionType,
-          timeZoneId: c.timeZoneId,
+          // Deliberately NOT forwarding c.timeZoneId: the backend derives the
+          // zone from home.timezone. Re-sending it (legacy scenes carry a
+          // hardcoded 'Asia/Ho_Chi_Minh' from before this change) would override
+          // the home timezone on every edit — even an unrelated rename/toggle.
           loops: c.loops,
           time: c.time,
           date: c.date,
@@ -184,13 +187,18 @@ class AutomationRepositoryImpl implements AutomationRepository {
           startTime: effectiveTime.startTime,
           endTime: effectiveTime.endTime,
           loops: effectiveTime.loops,
-          timeZoneId: effectiveTime.timeZoneId,
+          // Same as above — let the backend derive from home.timezone.
         ).toJson(),
       'actions': actions.map((a) {
         return SceneActionModel(
           actionType: a.actionType,
           entityId: a.entityId,
           executorProperty: a.executorProperty,
+          // Persist the display name + function so they survive a save+reload
+          // (backend stores actions as opaque JSON). Falls back to a live
+          // device-list lookup for legacy records saved before this change.
+          deviceName: a.deviceName,
+          functionName: a.functionName,
         ).toJson();
       }).toList(),
     };

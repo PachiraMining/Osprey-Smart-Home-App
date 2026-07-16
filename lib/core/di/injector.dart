@@ -61,6 +61,17 @@ import '../../features/scene/domain/usecases/execute_tap_to_run_scene.dart';
 import '../../features/scene/domain/usecases/get_device_data_points.dart';
 import '../../features/scene/presentation/bloc/tap_to_run/tap_to_run_bloc.dart';
 
+// Automation Scene (rich schedule/condition automations)
+import '../../features/scene/data/datasources/automation_remote_datasource.dart';
+import '../../features/scene/data/repositories/automation_repository_impl.dart';
+import '../../features/scene/domain/repositories/automation_repository.dart';
+import '../../features/scene/domain/usecases/get_automations.dart';
+import '../../features/scene/domain/usecases/create_automation.dart';
+import '../../features/scene/domain/usecases/update_automation.dart';
+import '../../features/scene/domain/usecases/delete_automation.dart';
+import '../../features/scene/domain/usecases/toggle_automation.dart';
+import '../../features/scene/presentation/bloc/automation/automation_bloc.dart';
+
 // Home Management
 import '../../features/home/data/datasources/home_remote_datasource.dart';
 import '../../features/home/data/repositories/home_repository_impl.dart';
@@ -397,6 +408,35 @@ Future<void> setupInjector() async {
       deleteTapToRunScene: sl(),
       executeTapToRunScene: sl(),
       repository: sl(),
+    ),
+  );
+
+  // ========== Automation Feature ==========
+  // Data source
+  sl.registerLazySingleton<AutomationRemoteDataSource>(
+    () => AutomationRemoteDataSourceImpl(apiClient: sl<ApiClient>()),
+  );
+
+  // Repository
+  sl.registerLazySingleton<AutomationRepository>(
+    () => AutomationRepositoryImpl(remoteDataSource: sl()),
+  );
+
+  // Use cases
+  sl.registerLazySingleton(() => GetAutomations(sl()));
+  sl.registerLazySingleton(() => CreateAutomation(sl()));
+  sl.registerLazySingleton(() => UpdateAutomation(sl()));
+  sl.registerLazySingleton(() => DeleteAutomation(sl()));
+  sl.registerLazySingleton(() => ToggleAutomation(sl()));
+
+  // BLoC
+  sl.registerFactory(
+    () => AutomationBloc(
+      getAutomations: sl(),
+      createAutomation: sl(),
+      updateAutomation: sl(),
+      deleteAutomation: sl(),
+      toggleAutomation: sl(),
     ),
   );
 
