@@ -2,6 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:smart_curtain_app/core/theme/app_colors.dart';
 import 'package:smart_curtain_app/features/scene/domain/entities/schedule_condition_entity.dart';
 
+/// The `yyyyMMdd` date for a one-time schedule at [hour]:[minute], relative to
+/// [now]: today when that time is still ahead today, otherwise tomorrow. So a
+/// "once" scene created earlier in the day still fires the same day instead of
+/// always skipping to tomorrow.
+///
+/// Note: [now] is the device clock; the backend fires in the Home's timezone, so
+/// pass a home-local `now` if the device may be in a different zone.
+String oneTimeDateString(DateTime now, int hour, int minute) {
+  // Compare at minute granularity: the seconds/millis in `now` must not flip an
+  // on-the-current-minute pick (e.g. leaving the default time) to tomorrow.
+  final nowMinute =
+      DateTime(now.year, now.month, now.day, now.hour, now.minute);
+  final todayAt = DateTime(now.year, now.month, now.day, hour, minute);
+  final target = todayAt.isBefore(nowMinute)
+      ? todayAt.add(const Duration(days: 1))
+      : todayAt;
+  return '${target.year.toString().padLeft(4, '0')}'
+      '${target.month.toString().padLeft(2, '0')}'
+      '${target.day.toString().padLeft(2, '0')}';
+}
+
 class ScheduleConditionPage extends StatefulWidget {
   final ScheduleConditionEntity? existing;
 
@@ -72,12 +93,9 @@ class _ScheduleConditionPageState extends State<ScheduleConditionPage> {
 
     String? dateStr;
     if (_isOneTime) {
-      // Default to tomorrow for one-time
-      final tomorrow = DateTime.now().add(const Duration(days: 1));
-      final y = tomorrow.year.toString().padLeft(4, '0');
-      final m = tomorrow.month.toString().padLeft(2, '0');
-      final d = tomorrow.day.toString().padLeft(2, '0');
-      dateStr = '$y$m$d';
+      // Fire today if the chosen time is still ahead; otherwise tomorrow.
+      dateStr =
+          oneTimeDateString(DateTime.now(), _selectedHour, _selectedMinute);
     }
 
     final condition = ScheduleConditionEntity(
