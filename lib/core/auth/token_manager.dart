@@ -23,6 +23,19 @@ class TokenManager {
     await _storage.write(key: key, value: value);
   }
 
+  /// Reads [key] from secure storage, returning null instead of throwing when
+  /// the platform keystore can't decrypt (e.g. after an OS keystore change or
+  /// reboot). Without this, a decrypt exception bubbles up and is treated as a
+  /// dead session — logging the user out even though their refresh token is
+  /// still valid on the server.
+  Future<String?> _safeRead(String key) async {
+    try {
+      return await _storage.read(key: key);
+    } catch (_) {
+      return null;
+    }
+  }
+
   // Cache in memory
   String? _cachedToken;
   String? _cachedCustomerId;
@@ -78,9 +91,9 @@ class TokenManager {
     _cachedLastName = lastName;
   }
 
-  Future<String?> getEmail() async => await _storage.read(key: _emailKey);
-  Future<String?> getFirstName() async => await _storage.read(key: _firstNameKey);
-  Future<String?> getLastName() async => await _storage.read(key: _lastNameKey);
+  Future<String?> getEmail() async => await _safeRead(_emailKey);
+  Future<String?> getFirstName() async => await _safeRead(_firstNameKey);
+  Future<String?> getLastName() async => await _safeRead(_lastNameKey);
 
   String? getEmailSync() => _cachedEmail;
   String? getFirstNameSync() => _cachedFirstName;
@@ -96,17 +109,17 @@ class TokenManager {
 
   // Get token
   Future<String?> getToken() async {
-    return await _storage.read(key: _tokenKey);
+    return await _safeRead(_tokenKey);
   }
 
   // Get refresh token
   Future<String?> getRefreshToken() async {
-    return await _storage.read(key: _refreshTokenKey);
+    return await _safeRead(_refreshTokenKey);
   }
 
   // Get customerId
   Future<String?> getCustomerId() async {
-    return await _storage.read(key: _customerIdKey);
+    return await _safeRead(_customerIdKey);
   }
 
   // Get token sync
@@ -148,7 +161,7 @@ class TokenManager {
     _cachedEmail = await getEmail();
     _cachedFirstName = await getFirstName();
     _cachedLastName = await getLastName();
-    _cachedHomeId = await _storage.read(key: _homeIdKey);
+    _cachedHomeId = await _safeRead(_homeIdKey);
   }
 
   // Set cached token

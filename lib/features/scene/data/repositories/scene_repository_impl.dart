@@ -63,7 +63,9 @@ class SceneRepositoryImpl implements SceneRepository {
             'conditionType': 'SCHEDULE',
             'time': time,
             'loops': loops,
-            'timeZoneId': 'Asia/Ho_Chi_Minh',
+            // No timeZoneId: the backend derives the zone from home.timezone so
+            // the scene fires in the Home's local time. (Sending a hardcoded
+            // 'Asia/Ho_Chi_Minh' forced every scene to VN regardless of home.)
           },
         ],
         'conditionLogic': 'AND',

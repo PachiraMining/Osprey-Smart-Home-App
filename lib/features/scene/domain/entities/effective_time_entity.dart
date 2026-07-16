@@ -5,14 +5,15 @@ class EffectiveTimeEntity extends Equatable {
   final String? startTime; // "HH:mm" for CUSTOM
   final String? endTime; // "HH:mm" for CUSTOM
   final String? loops; // 7-char string for CUSTOM
-  final String timeZoneId;
+  // Null → backend derives the zone from home.timezone.
+  final String? timeZoneId;
 
   const EffectiveTimeEntity({
     required this.type,
     this.startTime,
     this.endTime,
     this.loops,
-    required this.timeZoneId,
+    this.timeZoneId,
   });
 
   bool get isAllDay => type == 'ALL_DAY';

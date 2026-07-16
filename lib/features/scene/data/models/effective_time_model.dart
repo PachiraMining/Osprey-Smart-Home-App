@@ -6,7 +6,7 @@ class EffectiveTimeModel extends EffectiveTimeEntity {
     super.startTime,
     super.endTime,
     super.loops,
-    required super.timeZoneId,
+    super.timeZoneId,
   });
 
   factory EffectiveTimeModel.fromJson(Map<String, dynamic> json) {
@@ -15,15 +15,16 @@ class EffectiveTimeModel extends EffectiveTimeEntity {
       startTime: json['start'] as String?,
       endTime: json['end'] as String?,
       loops: json['loops'] as String?,
-      timeZoneId: json['timeZoneId'] as String? ?? 'Asia/Ho_Chi_Minh',
+      timeZoneId: json['timeZoneId'] as String?,
     );
   }
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{
       'type': type,
-      'timeZoneId': timeZoneId,
     };
+    // Only send when explicitly overriding; otherwise backend uses home.timezone.
+    if (timeZoneId != null) map['timeZoneId'] = timeZoneId;
     if (startTime != null) map['start'] = startTime;
     if (endTime != null) map['end'] = endTime;
     if (loops != null) map['loops'] = loops;

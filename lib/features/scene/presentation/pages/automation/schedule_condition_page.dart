@@ -82,7 +82,9 @@ class _ScheduleConditionPageState extends State<ScheduleConditionPage> {
 
     final condition = ScheduleConditionEntity(
       conditionType: 'SCHEDULE',
-      timeZoneId: 'Asia/Ho_Chi_Minh',
+      // No timeZoneId: the backend derives the zone from home.timezone, so the
+      // automation fires in the Home's local time. (A hardcoded value here would
+      // override the home timezone in the backend's ScheduleCalculator.)
       loops: _loopsString,
       time: timeStr,
       date: dateStr,

@@ -2,14 +2,17 @@ import 'package:equatable/equatable.dart';
 
 class ScheduleConditionEntity extends Equatable {
   final String conditionType; // "SCHEDULE"
-  final String timeZoneId; // e.g. "Asia/Ho_Chi_Minh"
+  // Null → backend derives the zone from home.timezone (preferred). Only set to
+  // override a single scene's zone; a hardcoded value here would win over the
+  // home timezone in the backend's ScheduleCalculator priority.
+  final String? timeZoneId; // e.g. "Asia/Ho_Chi_Minh"
   final String loops; // 7-char string MON-SUN, "1"=active "0"=skip
   final String time; // "HH:mm" 24-hour format
   final String? date; // "yyyyMMdd" required when loops="0000000"
 
   const ScheduleConditionEntity({
     required this.conditionType,
-    required this.timeZoneId,
+    this.timeZoneId,
     required this.loops,
     required this.time,
     this.date,

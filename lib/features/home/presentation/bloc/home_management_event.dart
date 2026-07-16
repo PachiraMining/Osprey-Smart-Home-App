@@ -34,10 +34,14 @@ class SelectRoomEvent extends HomeManagementEvent {
 class CreateHomeEvent extends HomeManagementEvent {
   final String name;
   final String? geoName;
-  const CreateHomeEvent({required this.name, this.geoName});
+
+  /// IANA timezone id for the home. When null the bloc stamps the device's
+  /// current zone so the scheduler fires scenes in local time.
+  final String? timezone;
+  const CreateHomeEvent({required this.name, this.geoName, this.timezone});
 
   @override
-  List<Object?> get props => [name, geoName];
+  List<Object?> get props => [name, geoName, timezone];
 }
 
 /// Update an existing home
@@ -45,14 +49,19 @@ class UpdateHomeEvent extends HomeManagementEvent {
   final String homeId;
   final String name;
   final String? geoName;
+
+  /// IANA timezone id. When provided, the backend re-syncs every AUTOMATION
+  /// scene of the home to the new zone.
+  final String? timezone;
   const UpdateHomeEvent({
     required this.homeId,
     required this.name,
     this.geoName,
+    this.timezone,
   });
 
   @override
-  List<Object?> get props => [homeId, name, geoName];
+  List<Object?> get props => [homeId, name, geoName, timezone];
 }
 
 /// Delete a home

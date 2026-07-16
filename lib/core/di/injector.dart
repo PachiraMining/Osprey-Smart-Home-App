@@ -13,6 +13,7 @@ import '../../core/network/token_refresher.dart';
 import '../../core/auth/token_manager.dart';
 import '../../core/auth/session_manager.dart';
 import '../../core/auth/social_login_service.dart';
+import '../../core/time/device_timezone.dart';
 
 // Auth
 import '../../features/auth/data/datasources/auth_remote_datasource.dart';
@@ -126,7 +127,24 @@ final sl = GetIt.instance;
 Future<void> setupInjector() async {
   // ========== Core ==========
   // Secure Storage
-  sl.registerLazySingleton(() => const FlutterSecureStorage());
+  //
+  // Android: `encryptedSharedPreferences: true` uses AndroidX Security
+  // (EncryptedSharedPreferences) instead of the legacy KeyStore-per-value
+  // backend, which intermittently fails to decrypt after a reboot / OS keystore
+  // change — surfacing as a null read of the refresh token and silently logging
+  // the user out the next day even though the refresh token is still valid.
+  // iOS: `first_unlock` keeps the item readable across lock/unlock after the
+  // first unlock post-boot. Matches the options already used by BleSessionStore.
+  sl.registerLazySingleton(
+    () => const FlutterSecureStorage(
+      aOptions: AndroidOptions(encryptedSharedPreferences: true),
+      iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
+    ),
+  );
+
+  // Device timezone (IANA id) — used to stamp a Home's timezone so the
+  // scheduler fires scenes in the Home's local time.
+  sl.registerLazySingleton(() => const DeviceTimezone());
 
   // Device network store (SSID đã provision per device)
   sl.registerLazySingleton(() => DeviceNetworkStore(sl()));

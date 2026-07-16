@@ -2,8 +2,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/auth/token_manager.dart';
 import '../../../../core/di/injector.dart';
+import '../../../../core/time/device_timezone.dart';
 import '../../../../core/widget/home_widget_service.dart';
 import '../../data/datasources/home_remote_datasource.dart';
+import '../../domain/entities/home_entity.dart';
 import '../../domain/usecases/get_homes.dart';
 import '../../domain/usecases/create_home.dart';
 import '../../domain/usecases/update_home.dart';
@@ -91,9 +93,11 @@ class HomeManagementBloc
       (homes) async {
         var homeList = homes;
 
-        // Auto-create a default home when the user has none
+        // Auto-create a default home when the user has none — stamp the
+        // device timezone so its scheduler fires scenes in local time.
         if (homeList.isEmpty) {
-          final createResult = await createHome(name: 'My Home');
+          final tz = await sl<DeviceTimezone>().current();
+          final createResult = await createHome(name: 'My Home', timezone: tz);
           final created = createResult.fold(
             (failure) => null,
             (home) => home,
@@ -117,6 +121,10 @@ class HomeManagementBloc
 
         // Persist selection
         sl<TokenManager>().saveHomeId(selectedId);
+
+        // Backfill timezone for a home created before timezone support (null
+        // timezone → backend falls back to UTC → scenes fire at the wrong hour).
+        homeList = await _backfillTimezone(homeList, selectedId);
 
         emit(state.copyWith(
           homes: homeList,
@@ -167,7 +175,12 @@ class HomeManagementBloc
   ) async {
     emit(state.copyWith(mutationStatus: MutationStatus.loading));
 
-    final result = await createHome(name: event.name, geoName: event.geoName);
+    final tz = event.timezone ?? await sl<DeviceTimezone>().current();
+    final result = await createHome(
+      name: event.name,
+      geoName: event.geoName,
+      timezone: tz,
+    );
     result.fold(
       (failure) => emit(state.copyWith(
         mutationStatus: MutationStatus.error,
@@ -190,6 +203,7 @@ class HomeManagementBloc
       homeId: event.homeId,
       name: event.name,
       geoName: event.geoName,
+      timezone: event.timezone,
     );
     result.fold(
       (failure) => emit(state.copyWith(
@@ -200,6 +214,35 @@ class HomeManagementBloc
         emit(state.copyWith(mutationStatus: MutationStatus.success));
         add(const LoadHomesEvent());
       },
+    );
+  }
+
+  /// PUTs the device timezone onto [selectedId] when that home has none yet, so
+  /// existing users (whose home predates timezone support) get correct scene
+  /// scheduling without touching settings. Returns [homes] with the refreshed
+  /// entity swapped in; on any failure the list is returned unchanged.
+  Future<List<HomeEntity>> _backfillTimezone(
+    List<HomeEntity> homes,
+    String selectedId,
+  ) async {
+    final idx = homes.indexWhere((h) => h.id == selectedId);
+    if (idx == -1) return homes;
+    final home = homes[idx];
+    if ((home.timezone ?? '').isNotEmpty) return homes;
+
+    final tz = await sl<DeviceTimezone>().current();
+    if (tz == null) return homes; // detection failed — retry on next app open
+    final result = await updateHome(
+      homeId: home.id,
+      name: home.name,
+      geoName: home.geoName,
+      latitude: home.latitude,
+      longitude: home.longitude,
+      timezone: tz,
+    );
+    return result.fold(
+      (_) => homes,
+      (updated) => [...homes]..[idx] = updated,
     );
   }
 
