@@ -1,20 +1,17 @@
 import 'dart:io';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lottie/lottie.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../../../../core/di/injector.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../home/presentation/pages/add_device_page.dart' show RadarPainter;
 import '../../domain/entities/discovered_osprey_device.dart';
 import '../bloc/osprey_scan_bloc.dart';
 import '../bloc/osprey_scan_event.dart';
 import '../bloc/osprey_scan_state.dart';
 import 'osprey_pairing_page.dart';
-import 'api_debug_page.dart';
-import 'osprey_scan_debug_page.dart';
 
 /// Trang "Thêm thiết bị" Osprey — BLE scan filter theo Brand Service UUID,
 /// chỉ hiện thiết bị Osprey đang ở pairing mode (spec §8.2).
@@ -37,31 +34,11 @@ class _OspreyAddDeviceView extends StatefulWidget {
   State<_OspreyAddDeviceView> createState() => _OspreyAddDeviceViewState();
 }
 
-class _OspreyAddDeviceViewState extends State<_OspreyAddDeviceView>
-    with TickerProviderStateMixin {
-  late final AnimationController _radarController;
-  late final AnimationController _pulseController;
-
+class _OspreyAddDeviceViewState extends State<_OspreyAddDeviceView> {
   @override
   void initState() {
     super.initState();
-    _radarController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 3),
-    )..repeat();
-    _pulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 2),
-    )..repeat();
-
     WidgetsBinding.instance.addPostFrameCallback((_) => _requestAndScan());
-  }
-
-  @override
-  void dispose() {
-    _radarController.dispose();
-    _pulseController.dispose();
-    super.dispose();
   }
 
   Future<void> _requestAndScan() async {
@@ -135,34 +112,6 @@ class _OspreyAddDeviceViewState extends State<_OspreyAddDeviceView>
             color: AppColors.textPrimary,
           ),
         ),
-        actions: [
-          // Debug: gọi API thủ công (xem request/response thật)
-          IconButton(
-            tooltip: 'Debug API',
-            icon: const Icon(Icons.api_outlined, color: AppColors.textMuted),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const ApiDebugPage()),
-            ),
-          ),
-          // Debug: quét KHÔNG lọc để so sánh với nRF Connect
-          IconButton(
-            tooltip: 'BLE scan debug',
-            icon: const Icon(Icons.bug_report_outlined,
-                color: AppColors.textMuted),
-            onPressed: () {
-              final bloc = context.read<OspreyScanBloc>();
-              bloc.add(const StopOspreyScanEvent());
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (_) => const OspreyScanDebugPage()),
-              ).then((_) {
-                if (mounted) bloc.add(const StartOspreyScanEvent());
-              });
-            },
-          ),
-        ],
       ),
       body: BlocBuilder<OspreyScanBloc, OspreyScanState>(
         builder: (context, state) {
@@ -208,7 +157,7 @@ class _OspreyAddDeviceViewState extends State<_OspreyAddDeviceView>
       text = state.message;
     } else if (isScanning) {
       text = 'Searching for nearby Osprey devices. Make sure the device '
-          'is in pairing mode (hold the reset button for 5 seconds).';
+          'is in pairing mode.';
     } else {
       text = 'Scanning stopped.';
     }
@@ -241,7 +190,7 @@ class _OspreyAddDeviceViewState extends State<_OspreyAddDeviceView>
             child: Text(
               text,
               style: const TextStyle(
-                fontSize: 14,
+                fontSize: 12,
                 color: AppColors.textPrimary,
                 height: 1.5,
               ),
@@ -258,22 +207,12 @@ class _OspreyAddDeviceViewState extends State<_OspreyAddDeviceView>
       width: double.infinity,
       padding: const EdgeInsets.only(top: 10, bottom: 30),
       child: Center(
-        child: SizedBox(
+        child: Lottie.asset(
+          'assets/lottie/radar_scan.json',
           width: 220,
           height: 220,
-          child: AnimatedBuilder(
-            animation: Listenable.merge([_radarController, _pulseController]),
-            builder: (context, child) {
-              return CustomPaint(
-                painter: RadarPainter(
-                  sweepAngle: _radarController.value * 2 * pi,
-                  pulseValue: _pulseController.value,
-                  foundDevices: foundCount,
-                ),
-                size: const Size(220, 220),
-              );
-            },
-          ),
+          fit: BoxFit.contain,
+          repeat: true,
         ),
       ),
     );
