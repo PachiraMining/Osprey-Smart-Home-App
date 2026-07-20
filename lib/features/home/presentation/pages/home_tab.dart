@@ -1,5 +1,9 @@
+import 'package:flutter/cupertino.dart'
+    show CupertinoSliverRefreshControl, RefreshIndicatorMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:lottie/lottie.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
@@ -17,6 +21,7 @@ import '../../../ai/presentation/bloc/ai_suggestion_bloc.dart';
 import '../../../ai/presentation/bloc/voice_command_bloc.dart';
 import '../../../ai/presentation/bloc/weather_ai_bloc.dart';
 import '../../../ai/presentation/widgets/ai_suggestion_card.dart';
+import '../../../ai/presentation/widgets/weather_card.dart';
 import '../../../ai/presentation/widgets/voice_command_button.dart';
 import '../../../ai/presentation/widgets/weather_ai_banner.dart';
 import '../../../device/domain/usecases/send_device_command.dart';
@@ -127,6 +132,11 @@ class _HomeTabState extends State<HomeTab> {
       bloc.add(LoadHomeDevicesEvent(homeId));
       bloc.add(LoadRoomsEvent(homeId));
     }
+    // The weather cell now lives in the same pull — refresh it too.
+    context.read<WeatherAiBloc>().add(const RefreshWeather());
+    // Hold the glowing bulb long enough to be seen (events above are
+    // fire-and-forget; the list updates via bloc state when they land).
+    await Future.delayed(const Duration(milliseconds: 1000));
   }
 
   /// Long-press card thiết bị → menu hành động (pattern Tuya).
@@ -334,115 +344,81 @@ class _HomeTabState extends State<HomeTab> {
       listener: _onMutationResult,
       child: BlocBuilder<HomeManagementBloc, HomeManagementState>(
       builder: (context, state) {
-        final hour = DateTime.now().hour;
-        final greeting = hour < 12
-            ? 'Good morning'
-            : hour < 18
-                ? 'Good afternoon'
-                : 'Good evening';
+        // ONE scroll surface: pull-to-refresh bulb + weather cell + room chips
+        // + device list all live in the same CustomScrollView, so everything
+        // slides together (Tuya-style) and the bulb appears above the weather
+        // cell when pulling down.
+        return CustomScrollView(
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
+          ),
+          slivers: [
+            CupertinoSliverRefreshControl(
+              refreshTriggerPullDistance: 90,
+              refreshIndicatorExtent: 60,
+              onRefresh: _onRefresh,
+              builder: _buildBulbIndicator,
+            ),
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 16),
-
-            // Greeting + home selector
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+            SliverToBoxAdapter(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    greeting,
-                    style: AppTypography.bodyMedium.copyWith(
-                      color: AppColors.textSecondary,
-                      letterSpacing: 0.2,
-                    ),
-                  ),
                   const SizedBox(height: 4),
-                  GestureDetector(
-                    onTap: state.homes.isNotEmpty ? _openHomeSelector : null,
-                    child: Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            state.selectedHome?.name ?? 'My Home',
-                            style: AppTypography.headlineLarge.copyWith(
-                              color: AppColors.textPrimary,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Icon(
-                          Icons.unfold_more_rounded,
-                          color: AppColors.textMuted,
-                          size: 22,
-                        ),
-                      ],
-                    ),
+
+                  // Tuya-style outdoor weather cell
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    child: WeatherCard(),
                   ),
-                ],
-              ),
-            ),
 
-            const SizedBox(height: 18),
+                  const SizedBox(height: 16),
 
-            // Room filter chips
-            if (state.rooms.isNotEmpty)
-              SizedBox(
-                height: 38,
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Row(
-                    children: [
-                      _RoomChip(
-                        label: 'All',
-                        isSelected: state.selectedRoomId == null,
-                        onTap: () => context
-                            .read<HomeManagementBloc>()
-                            .add(const SelectRoomEvent(null)),
-                      ),
-                      ...state.rooms.map((room) => Padding(
-                            padding: const EdgeInsets.only(left: 8),
-                            child: _RoomChip(
-                              label: room.name,
-                              isSelected: state.selectedRoomId == room.id,
+                  // Room filter chips
+                  if (state.rooms.isNotEmpty)
+                    SizedBox(
+                      height: 38,
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Row(
+                          children: [
+                            _RoomChip(
+                              label: 'All',
+                              isSelected: state.selectedRoomId == null,
                               onTap: () => context
                                   .read<HomeManagementBloc>()
-                                  .add(SelectRoomEvent(room.id)),
+                                  .add(const SelectRoomEvent(null)),
                             ),
-                          )),
-                    ],
-                  ),
-                ),
-              ),
+                            ...state.rooms.map((room) => Padding(
+                                  padding: const EdgeInsets.only(left: 8),
+                                  child: _RoomChip(
+                                    label: room.name,
+                                    isSelected:
+                                        state.selectedRoomId == room.id,
+                                    onTap: () => context
+                                        .read<HomeManagementBloc>()
+                                        .add(SelectRoomEvent(room.id)),
+                                  ),
+                                )),
+                          ],
+                        ),
+                      ),
+                    ),
 
-            // AI: weather banner (visible only when WeatherLoaded state)
-            const WeatherAiBanner(),
+                  // AI: weather banner — ẩn theo yêu cầu (2026-07).
+                  // const WeatherAiBanner(),
 
-            // AI: pattern suggestion card (visible only when suggestions loaded)
-            const AiSuggestionCard(),
+                  // AI: pattern suggestion card
+                  const AiSuggestionCard(),
 
-            const SizedBox(height: 12),
-
-            // Device list
-            Expanded(
-              child: Stack(
-                children: [
-                  _buildDeviceContent(state),
-                  Positioned(
-                    right: 20,
-                    // Bottom nav is a floating pill: SafeArea + 12 pad + 68 height
-                    // ≈ 114px on iPhone with home indicator. Add 40 breathing room.
-                    bottom: MediaQuery.of(context).viewPadding.bottom + 130,
-                    child: VoiceCommandButton(onIntentReady: _onVoiceIntent),
-                  ),
+                  const SizedBox(height: 12),
                 ],
               ),
             ),
+
+            // Device list / status states (as slivers in the same scroll)
+            _buildDeviceSliver(state),
           ],
         );
       },
@@ -450,14 +426,45 @@ class _HomeTabState extends State<HomeTab> {
     );
   }
 
-  Widget _buildDeviceContent(HomeManagementState state) {
+  /// Pull-to-refresh indicator: Google's Noto animated-emoji light bulb
+  /// (Lottie, CC-BY). Pulling scrubs the first frames in; releasing loops the
+  /// full light-up animation while the refresh runs.
+  Widget _buildBulbIndicator(
+    BuildContext context,
+    RefreshIndicatorMode refreshState,
+    double pulledExtent,
+    double refreshTriggerPullDistance,
+    double refreshIndicatorExtent,
+  ) {
+    final t = (pulledExtent / refreshTriggerPullDistance).clamp(0.0, 1.0);
+    final active = refreshState == RefreshIndicatorMode.armed ||
+        refreshState == RefreshIndicatorMode.refresh ||
+        refreshState == RefreshIndicatorMode.done;
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 6),
+        child: Opacity(
+          opacity: active ? 1.0 : t,
+          child: _LottieBulb(playing: active, progress: t),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDeviceSliver(HomeManagementState state) {
     if (state.status == HomeStatus.loading ||
         state.status == HomeStatus.initial) {
-      return const Center(child: CircularProgressIndicator());
+      return const SliverFillRemaining(
+        hasScrollBody: false,
+        child: Center(child: CircularProgressIndicator()),
+      );
     }
 
     if (state.status == HomeStatus.error) {
-      return Center(
+      return SliverFillRemaining(
+        hasScrollBody: false,
+        child: Center(
         child: Padding(
           padding: const EdgeInsets.only(bottom: 120),
           child: Column(
@@ -482,42 +489,104 @@ class _HomeTabState extends State<HomeTab> {
             ],
           ),
         ),
+        ),
       );
     }
 
     final devices = state.filteredDevices;
     if (devices.isEmpty) {
-      return _BrandEmptyState(
-        icon: Icons.cottage_outlined,
-        title: 'No devices yet',
-        message:
-            'Tap the + button to add your first curtain to this home.',
+      return SliverFillRemaining(
+        hasScrollBody: false,
+        child: _BrandEmptyState(
+          icon: Icons.cottage_outlined,
+          title: 'No devices yet',
+          message:
+              'Tap the + button to add your first curtain to this home.',
+        ),
       );
     }
 
-    return RefreshIndicator(
-      color: AppColors.primary,
-      onRefresh: _onRefresh,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: ListView.builder(
-          itemCount: devices.length + 1,
-          itemBuilder: (context, index) {
-            if (index == devices.length) {
-              return const SizedBox(height: 120);
-            }
-            final device = devices[index];
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: _DeviceCard(
-                device: device,
-                onTap: () => _navigateToDevice(device),
-                onLongPress: () => _showDeviceActions(device),
-              ),
-            );
-          },
-        ),
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      sliver: SliverList.builder(
+        itemCount: devices.length + 1,
+        itemBuilder: (context, index) {
+          if (index == devices.length) {
+            return const SizedBox(height: 120);
+          }
+          final device = devices[index];
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: _DeviceCard(
+              device: device,
+              onTap: () => _navigateToDevice(device),
+              onLongPress: () => _showDeviceActions(device),
+            ),
+          );
+        },
       ),
+    );
+  }
+}
+
+/// Lottie light bulb for pull-to-refresh (Noto animated emoji 💡, Google,
+/// CC-BY 4.0 — assets/lottie/light_bulb.json).
+///
+/// While pulling ([playing] false) the animation is scrubbed to a fraction of
+/// [progress], so the bulb "wakes up" under the finger; while refreshing
+/// ([playing] true) the full light-up animation loops.
+class _LottieBulb extends StatefulWidget {
+  final bool playing;
+  final double progress;
+
+  const _LottieBulb({required this.playing, required this.progress});
+
+  @override
+  State<_LottieBulb> createState() => _LottieBulbState();
+}
+
+class _LottieBulbState extends State<_LottieBulb>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    // Placeholder; the real duration arrives in onLoaded.
+    duration: const Duration(milliseconds: 2400),
+  );
+
+  @override
+  void didUpdateWidget(covariant _LottieBulb oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _sync();
+  }
+
+  void _sync() {
+    if (widget.playing) {
+      if (!_controller.isAnimating) _controller.repeat();
+    } else {
+      _controller.stop();
+      // Scrub the intro (first ~35% of the animation) with the pull distance.
+      _controller.value = (widget.progress * 0.35).clamp(0.0, 1.0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Lottie.asset(
+      'assets/lottie/light_bulb.json',
+      controller: _controller,
+      width: 46,
+      height: 46,
+      fit: BoxFit.contain,
+      onLoaded: (composition) {
+        _controller.duration = composition.duration;
+        _sync();
+      },
     );
   }
 }
@@ -626,7 +695,7 @@ class _RoomChip extends StatelessWidget {
 
 /// Device card — outlined surface with status pill, distinct from typical
 /// shadowed Material cards.
-class _DeviceCard extends StatelessWidget {
+class _DeviceCard extends StatefulWidget {
   final HomeDeviceEntity device;
   final VoidCallback onTap;
   final VoidCallback? onLongPress;
@@ -638,6 +707,20 @@ class _DeviceCard extends StatelessWidget {
   });
 
   @override
+  State<_DeviceCard> createState() => _DeviceCardState();
+}
+
+class _DeviceCardState extends State<_DeviceCard> {
+  /// Whether the in-cell "Common Functions" quick controls are expanded.
+  bool _expanded = false;
+
+  HomeDeviceEntity get device => widget.device;
+
+  void _send(String command) {
+    GetIt.instance<SendDeviceCommand>()(device.deviceId, command);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final isOnline = device.isOnline ?? false;
 
@@ -645,8 +728,8 @@ class _DeviceCard extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         borderRadius: BorderRadius.circular(AppRadius.lg),
-        onTap: onTap,
-        onLongPress: onLongPress,
+        onTap: widget.onTap,
+        onLongPress: widget.onLongPress,
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -654,20 +737,32 @@ class _DeviceCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppRadius.lg),
             border: Border.all(color: AppColors.borderSubtle),
           ),
-          child: Row(
+          child: Column(
             children: [
-              // Device icon
+              Row(
+            children: [
+              // Device icon — curtain track product artwork (white tile like Tuya)
               Container(
                 width: 52,
                 height: 52,
                 decoration: BoxDecoration(
-                  color: AppColors.primarySubtle,
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
-                child: Icon(
-                  Icons.curtains_outlined,
-                  size: 28,
-                  color: AppColors.primary,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: Image.asset(
+                      'assets/icons/curtain_track.png',
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, __, ___) => Icon(
+                        Icons.curtains_outlined,
+                        size: 28,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(width: 14),
@@ -710,32 +805,165 @@ class _DeviceCard extends StatelessWidget {
                         ),
                       ],
                     ),
+                    // Curtain-track quick controls toggle (Tuya-style
+                    // "Common Functions") — online devices only.
+                    if (isOnline)
+                      GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () =>
+                            setState(() => _expanded = !_expanded),
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 6),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Common Functions',
+                                style: AppTypography.caption.copyWith(
+                                  color: AppColors.accentDark,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              AnimatedRotation(
+                                turns: _expanded ? 0.5 : 0,
+                                duration:
+                                    const Duration(milliseconds: 180),
+                                child: const Icon(
+                                  Icons.keyboard_arrow_down_rounded,
+                                  size: 17,
+                                  color: AppColors.accentDark,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),
               const SizedBox(width: 12),
 
-              // Power indicator
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: isOnline
-                      ? AppColors.primarySubtle
-                      : AppColors.surfaceMuted,
+              // Trailing: power indicator when online, BT-disconnected when not
+              if (isOnline)
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.primarySubtle,
+                  ),
+                  child: const Icon(
+                    Icons.power_settings_new_rounded,
+                    size: 22,
+                    color: AppColors.primary,
+                  ),
+                )
+              else
+                Container(
+                  width: 42,
+                  height: 42,
+                  padding: const EdgeInsets.all(9),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.surfaceMuted,
+                  ),
+                  child: SvgPicture.asset(
+                    'assets/icons/bluetooth_disconnect.svg',
+                    colorFilter: const ColorFilter.mode(
+                      AppColors.textMuted,
+                      BlendMode.srcIn,
+                    ),
+                  ),
                 ),
-                child: Icon(
-                  Icons.power_settings_new_rounded,
-                  size: 22,
-                  color: isOnline
-                      ? AppColors.primary
-                      : AppColors.textMuted,
+            ],
+          ),
+
+              // Expanded quick actions — open/pause/close without leaving Home.
+              if (isOnline && _expanded)
+                Padding(
+                  padding: const EdgeInsets.only(top: 14),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _QuickAction(
+                        label: 'Open',
+                        icon: Image.asset(
+                          'assets/icons/curtain_open.png',
+                          width: 22,
+                          height: 22,
+                          errorBuilder: (_, __, ___) => const Icon(
+                              Icons.keyboard_double_arrow_left,
+                              size: 22,
+                              color: AppColors.primary),
+                        ),
+                        onTap: () => _send('open'),
+                      ),
+                      _QuickAction(
+                        label: 'Pause',
+                        icon: const Icon(Icons.pause_rounded,
+                            size: 24, color: AppColors.primary),
+                        onTap: () => _send('stop'),
+                      ),
+                      _QuickAction(
+                        label: 'Close',
+                        icon: Image.asset(
+                          'assets/icons/curtain_close.png',
+                          width: 22,
+                          height: 22,
+                          errorBuilder: (_, __, ___) => const Icon(
+                              Icons.keyboard_double_arrow_right,
+                              size: 22,
+                              color: AppColors.primary),
+                        ),
+                        onTap: () => _send('close'),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Circular quick-action button + label used inside the device cell.
+class _QuickAction extends StatelessWidget {
+  final Widget icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const _QuickAction({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.primarySubtle,
+            ),
+            child: Center(child: icon),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            label,
+            style: AppTypography.caption
+                .copyWith(color: AppColors.textSecondary),
+          ),
+        ],
       ),
     );
   }

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/auth/token_manager.dart';
 import '../../../../core/di/injector.dart';
 import '../../../../core/time/device_timezone.dart';
+import '../../../../core/notifications/message_center.dart';
 import '../../../../core/widget/home_widget_service.dart';
 import '../../data/datasources/home_remote_datasource.dart';
 import '../../domain/entities/home_entity.dart';
@@ -318,6 +319,22 @@ class HomeManagementBloc
           }),
         );
         emit(state.copyWith(devices: enriched));
+
+        // Message Center: log online→offline transitions for this snapshot.
+        // Guarded so unit tests without DI keep working.
+        if (sl.isRegistered<MessageCenter>()) {
+          sl<MessageCenter>().recordDeviceSnapshot(
+          state.selectedHome?.name,
+          [
+            for (final d in enriched)
+              MessageDeviceStatus(
+                id: d.deviceId,
+                name: d.displayName,
+                online: d.isOnline ?? false,
+              ),
+          ],
+          );
+        }
 
         // Đẩy danh sách thiết bị lên home-screen widget
         // (iOS: Edit Widget chọn thiết bị, mặc định là thiết bị đầu tiên).

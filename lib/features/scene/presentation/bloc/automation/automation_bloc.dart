@@ -1,4 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../../../../core/di/injector.dart';
+import '../../../../../core/notifications/message_center.dart';
 import '../../../domain/entities/automation_scene_entity.dart';
 import '../../../domain/usecases/get_automations.dart';
 import '../../../domain/usecases/create_automation.dart';
@@ -65,6 +68,13 @@ class AutomationBloc extends Bloc<AutomationEvent, AutomationState> {
     result.fold(
       (failure) => emit(AutomationError(failure.message)),
       (_) {
+        if (sl.isRegistered<MessageCenter>()) {
+          sl<MessageCenter>().log(
+            type: AppMessageType.scene,
+            title: 'Automation notification',
+            body: 'Automation "${event.name}" was created.',
+          );
+        }
         emit(AutomationCreated());
         add(LoadAutomationsEvent(_homeId!));
       },
@@ -107,6 +117,21 @@ class AutomationBloc extends Bloc<AutomationEvent, AutomationState> {
     final updated =
         currentAutomations.where((a) => a.id != event.sceneId).toList();
     emit(AutomationLoaded(updated));
+
+    String deletedName() {
+      for (final a in currentAutomations) {
+        if (a.id == event.sceneId) return a.name;
+      }
+      return 'automation';
+    }
+
+    if (sl.isRegistered<MessageCenter>()) {
+      sl<MessageCenter>().log(
+        type: AppMessageType.scene,
+        title: 'Automation notification',
+        body: 'Automation "${deletedName()}" was deleted.',
+      );
+    }
 
     final result = await deleteAutomation(event.sceneId);
     result.fold(

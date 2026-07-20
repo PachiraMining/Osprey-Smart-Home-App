@@ -14,6 +14,7 @@ import '../../core/auth/token_manager.dart';
 import '../../core/auth/session_manager.dart';
 import '../../core/auth/social_login_service.dart';
 import '../../core/time/device_timezone.dart';
+import '../../core/notifications/message_center.dart';
 
 // Auth
 import '../../features/auth/data/datasources/auth_remote_datasource.dart';
@@ -156,6 +157,9 @@ Future<void> setupInjector() async {
   // Device timezone (IANA id) — used to stamp a Home's timezone so the
   // scheduler fires scenes in the Home's local time.
   sl.registerLazySingleton(() => const DeviceTimezone());
+
+  // In-app event feed for the Message Center screen
+  sl.registerLazySingleton(() => MessageCenter());
 
   // Device network store (SSID đã provision per device)
   sl.registerLazySingleton(() => DeviceNetworkStore(sl()));

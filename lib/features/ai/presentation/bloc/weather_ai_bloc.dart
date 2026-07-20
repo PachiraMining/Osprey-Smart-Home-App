@@ -47,10 +47,16 @@ class WeatherAiBloc extends Bloc<WeatherAiEvent, WeatherAiState> {
 
   WeatherAiBloc(this._get) : super(const WeatherInitial()) {
     on<RefreshWeather>((event, emit) async {
-      emit(const WeatherLoading());
+      // Data-preserving refresh: once weather has loaded, keep showing the
+      // previous snapshot while refetching (and even if the refetch fails),
+      // so the home-screen weather cell never blinks out on pull-to-refresh.
+      final hadData = state is WeatherLoaded;
+      if (!hadData) emit(const WeatherLoading());
       final result = await _get();
       result.fold(
-        (f) => emit(WeatherUnavailable(f.message)),
+        (f) {
+          if (!hadData) emit(WeatherUnavailable(f.message));
+        },
         (r) => emit(WeatherLoaded(r)),
       );
     });

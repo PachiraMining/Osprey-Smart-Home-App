@@ -1,6 +1,7 @@
 // home_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:smart_curtain_app/core/theme/app_colors.dart';
 import 'package:smart_curtain_app/core/theme/app_radius.dart';
 import 'package:smart_curtain_app/core/theme/liquid_glass.dart';
@@ -25,7 +26,14 @@ import 'package:smart_curtain_app/features/scene/presentation/bloc/tap_to_run/ta
 import 'package:smart_curtain_app/features/scene/presentation/bloc/tap_to_run/tap_to_run_event.dart';
 import 'package:smart_curtain_app/features/scene/presentation/bloc/tap_to_run/tap_to_run_state.dart';
 import 'package:smart_curtain_app/features/home/presentation/bloc/home_management_bloc.dart';
+import 'package:smart_curtain_app/features/home/presentation/bloc/home_management_event.dart';
 import 'package:smart_curtain_app/features/home/presentation/bloc/home_management_state.dart';
+import 'package:smart_curtain_app/features/home/presentation/pages/home_selector_sheet.dart';
+import 'package:smart_curtain_app/features/home/presentation/pages/home_management_page.dart';
+import 'package:smart_curtain_app/core/notifications/message_center.dart';
+import 'package:smart_curtain_app/features/home/presentation/pages/app_mall_page.dart';
+import 'package:smart_curtain_app/features/home/presentation/pages/message_center_page.dart';
+import 'package:smart_curtain_app/features/home/presentation/pages/placeholder_page.dart';
 import 'package:smart_curtain_app/features/home/presentation/pages/chat_tab.dart';
 import 'package:smart_curtain_app/features/home/presentation/pages/home_tab.dart'
     as home_tab;
@@ -34,7 +42,7 @@ import 'package:smart_curtain_app/features/scene/presentation/pages/tap_to_run/c
 import 'package:smart_curtain_app/features/scene/presentation/pages/tap_to_run/manage_scenes_page.dart';
 
 class HomePage extends StatefulWidget {
-  /// Tab mở đầu: 0 Home, 1 Chat, 2 Scenes, 3 Me. Sau đăng nhập vào thẳng Chat.
+  /// Tab mở đầu: 0 Home, 1 Scenes, 2 Chat, 3 Me. Sau đăng nhập vào thẳng Chat.
   final int initialIndex;
   const HomePage({super.key, this.initialIndex = 0});
   @override
@@ -44,8 +52,8 @@ class HomePage extends StatefulWidget {
 class HomePageState extends State<HomePage> {
   // Index các tab — giữ đồng bộ với _pages và _BrandBottomNav._items.
   static const int tabHome = 0;
-  static const int tabChat = 1;
-  static const int tabScenes = 2;
+  static const int tabScenes = 1;
+  static const int tabChat = 2;
   static const int tabMe = 3;
 
   late int currentIndex = widget.initialIndex;
@@ -55,14 +63,60 @@ class HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    // Lift the native splash only once Home has painted its first frame, so the
+    // hand-off is native splash → Home with no intermediate splash flash.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FlutterNativeSplash.remove();
+    });
     _pages = [
       const home_tab.HomeTab(),
+      const SceneTab(),
       ChatTab(
         onOpenScenes: () => setState(() => currentIndex = tabScenes),
       ),
-      const SceneTab(),
       const ProfileTab(),
     ];
+  }
+
+  /// Tappable home-name selector shown at the top-left edge of the Home and
+  /// Scenes tabs.
+  Widget _buildHomeGreeting(BuildContext context) {
+    final state = context.watch<HomeManagementBloc>().state;
+    return GestureDetector(
+      onTap: state.homes.isNotEmpty ? () => _openHomeSelector(context) : null,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Flexible(
+            child: Text(
+              state.selectedHome?.name ?? 'My Home',
+              style: AppTypography.headlineMedium
+                  .copyWith(color: AppColors.textPrimary),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(width: 4),
+          const Icon(Icons.unfold_more_rounded,
+              color: AppColors.textMuted, size: 20),
+        ],
+      ),
+    );
+  }
+
+  void _openHomeSelector(BuildContext context) {
+    final bloc = context.read<HomeManagementBloc>();
+    final state = bloc.state;
+    HomeSelectorDropdown.show(
+      context: context,
+      homes: state.homes,
+      selectedHomeId: state.selectedHomeId,
+      onSelect: (homeId) => bloc.add(SelectHomeEvent(homeId)),
+      onManageHome: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const HomeManagementPage()),
+      ),
+    );
   }
 
   PopupMenuEntry<String> _buildPopupItem(IconData icon, String title) {
@@ -163,31 +217,14 @@ class HomePageState extends State<HomePage> {
                     padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
                     child: Row(
                       children: [
-                        // Avatar - eagle logo with branded ring
-                        Container(
-                          width: 42,
-                          height: 42,
-                          padding: const EdgeInsets.all(2),
-                          decoration: BoxDecoration(
-                            color: AppColors.surface,
-                            borderRadius: BorderRadius.circular(AppRadius.sm),
-                            border: Border.all(
-                              color: AppColors.border,
-                              width: 1,
-                            ),
-                          ),
-                          child: ClipRRect(
-                            borderRadius:
-                                BorderRadius.circular(AppRadius.xs),
-                            child: Image.asset(
-                              'assets/eagle_logo.png',
-                              width: 38,
-                              height: 38,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                        const Spacer(),
+                        // "My Home" greeting + selector at the top-left edge on
+                        // the Home and Scenes tabs (where the brand icon used to
+                        // be); other tabs just push the action button right.
+                        if (currentIndex == tabHome ||
+                            currentIndex == tabScenes)
+                          Expanded(child: _buildHomeGreeting(context))
+                        else
+                          const Spacer(),
                         // Add button - blue circle on Home, black icon on Scene
                         if (currentIndex == tabScenes)
                           GestureDetector(
@@ -233,12 +270,12 @@ class HomePageState extends State<HomePage> {
                                   Icons.edit_square, 'Create Scene'),
                             ],
                             child: Container(
-                              width: 42,
-                              height: 42,
+                              // Tight circle: just wraps the 22px "+" glyph.
+                              width: 28,
+                              height: 28,
                               decoration: BoxDecoration(
                                 color: AppColors.primary,
-                                borderRadius:
-                                    BorderRadius.circular(AppRadius.md),
+                                shape: BoxShape.circle,
                                 boxShadow: [
                                   BoxShadow(
                                     color: AppColors.primary.withAlpha(50),
@@ -305,8 +342,8 @@ class _BrandBottomNav extends StatelessWidget {
 
   static const _items = [
     (Icons.cottage_outlined, Icons.cottage, 'Home'),
-    (Icons.chat_bubble_outline_rounded, Icons.chat_bubble_rounded, 'Chat'),
     (Icons.auto_awesome_outlined, Icons.auto_awesome, 'Scenes'),
+    (Icons.chat_bubble_outline_rounded, Icons.chat_bubble_rounded, 'Chat'),
     (Icons.person_outline_rounded, Icons.person_rounded, 'Me'),
   ];
 
@@ -1186,7 +1223,7 @@ class ProfileTab extends StatelessWidget {
                   ),
                   child: ClipOval(
                     child: Image.asset(
-                      'assets/eagle_logo.png',
+                      'assets/osprey_avatar.png',
                       width: 60,
                       height: 60,
                       fit: BoxFit.cover,
@@ -1301,6 +1338,67 @@ class ProfileTab extends StatelessWidget {
 
           const SizedBox(height: 16),
 
+          // Menu card: Home Management / Message Center / FAQ & Feedback / App Mall
+          Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Colors.white.withAlpha(180),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              children: [
+                _buildMenuRow(
+                  Icons.home_outlined,
+                  'Home Management',
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const HomeManagementPage()),
+                  ),
+                ),
+                _divider(),
+                AnimatedBuilder(
+                  animation: GetIt.instance<MessageCenter>()..ensureLoaded(),
+                  builder: (context, _) => _buildMenuRow(
+                    Icons.chat_outlined,
+                    'Message Center',
+                    hasNotification:
+                        GetIt.instance<MessageCenter>().unreadCount > 0,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const MessageCenterPage()),
+                    ),
+                  ),
+                ),
+                _divider(),
+                _buildMenuRow(
+                  Icons.help_outline,
+                  'FAQ & Feedback',
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const PlaceholderPage(
+                        title: 'FAQ & Feedback',
+                        icon: Icons.help_outline,
+                        description:
+                            'Help articles and feedback are coming soon.',
+                      ),
+                    ),
+                  ),
+                ),
+                _divider(),
+                _buildMenuRow(
+                  Icons.storefront_outlined,
+                  'App Mall',
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AppMallPage()),
+                  ),
+                ),
+              ],
+            ),
+          ),
 
           const SizedBox(height: 40),
         ],
@@ -1308,8 +1406,12 @@ class ProfileTab extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuRow(IconData icon, String title, {bool hasNotification = false}) {
-    return Padding(
+  Widget _buildMenuRow(IconData icon, String title,
+      {bool hasNotification = false, VoidCallback? onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
       child: Row(
         children: [
@@ -1333,6 +1435,7 @@ class ProfileTab extends StatelessWidget {
             ),
           Icon(Icons.chevron_right, color: Colors.grey.shade400, size: 22),
         ],
+      ),
       ),
     );
   }

@@ -1,4 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../../../../core/di/injector.dart';
+import '../../../../../core/notifications/message_center.dart';
 import '../../../domain/entities/tap_to_run_scene_entity.dart';
 import '../../../domain/repositories/tap_to_run_repository.dart';
 import '../../../domain/usecases/get_tap_to_run_scenes.dart';
@@ -133,15 +136,36 @@ class TapToRunBloc extends Bloc<TapToRunEvent, TapToRunState> {
       result = await executeTapToRunScene(event.sceneId);
     }
 
+    String sceneName() {
+      for (final s in currentScenes) {
+        if (s.id == event.sceneId) return s.name;
+      }
+      return 'scene';
+    }
+
+    void logFailure() {
+      if (!sl.isRegistered<MessageCenter>()) return;
+      sl<MessageCenter>().log(
+        type: AppMessageType.scene,
+        title: 'Tap-to-Run notification',
+        body:
+            'There is a task in ${sceneName()} that failed to launch.',
+      );
+    }
+
     result.fold(
-      (failure) => emit(TapToRunExecuteResult(
-        status: 'FAILURE',
-        details: failure.message,
-        scenes: currentScenes,
-      )),
+      (failure) {
+        logFailure();
+        emit(TapToRunExecuteResult(
+          status: 'FAILURE',
+          details: failure.message,
+          scenes: currentScenes,
+        ));
+      },
       (data) {
         final status = data['status'] as String? ?? 'FAILURE';
         final details = (data['executionDetails'] as Map<String, dynamic>?)?['details'] as String? ?? '';
+        if (status != 'SUCCESS') logFailure();
         emit(TapToRunExecuteResult(
           status: status,
           details: details,

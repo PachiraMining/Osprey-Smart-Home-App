@@ -30,8 +30,13 @@ class WeatherRepositoryImpl implements WeatherRepository {
         latitude: position.latitude,
         longitude: position.longitude,
       );
+      // Best-effort air quality for the home weather card (null on failure).
+      final pm25 = await _remote.fetchPm25(
+        latitude: position.latitude,
+        longitude: position.longitude,
+      );
 
-      final recommendation = _recommendFromSnapshot(snapshot);
+      final recommendation = _recommendFromSnapshot(snapshot, pm25);
       return Right(recommendation);
     } on ServerException catch (e) {
       return Left(ServerFailure('WEATHER_FAILED', message: e.message));
@@ -40,7 +45,7 @@ class WeatherRepositoryImpl implements WeatherRepository {
     }
   }
 
-  WeatherRecommendation _recommendFromSnapshot(WeatherSnapshot s) {
+  WeatherRecommendation _recommendFromSnapshot(WeatherSnapshot s, double? pm25) {
     int position;
     String reason;
     if (!s.isDay) {
@@ -64,6 +69,10 @@ class WeatherRepositoryImpl implements WeatherRepository {
       temperatureCelsius: s.temperatureCelsius,
       cloudCoverPercent: s.cloudCoverPercent,
       isDay: s.isDay,
+      humidityPercent: s.humidityPercent,
+      pressureHpa: s.pressureHpa,
+      windSpeedMs: s.windSpeedMs,
+      pm25: pm25,
     );
   }
 }

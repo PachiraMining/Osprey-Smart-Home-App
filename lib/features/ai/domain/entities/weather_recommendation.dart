@@ -16,15 +16,34 @@ class WeatherRecommendation extends Equatable {
   final int cloudCoverPercent;
   final bool isDay;
 
+  /// Extras for the home-screen weather card (null when unavailable).
+  final double? humidityPercent;
+  final double? pressureHpa;
+  final double? windSpeedMs;
+  final double? pm25;
+
   const WeatherRecommendation({
     required this.position,
     required this.reason,
     required this.temperatureCelsius,
     required this.cloudCoverPercent,
     required this.isDay,
+    this.humidityPercent,
+    this.pressureHpa,
+    this.windSpeedMs,
+    this.pm25,
   });
 
   @override
-  List<Object?> get props =>
-      [position, reason, temperatureCelsius, cloudCoverPercent, isDay];
+  List<Object?> get props => [
+        position,
+        reason,
+        temperatureCelsius,
+        cloudCoverPercent,
+        isDay,
+        humidityPercent,
+        pressureHpa,
+        windSpeedMs,
+        pm25,
+      ];
 }

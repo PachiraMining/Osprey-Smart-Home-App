@@ -149,7 +149,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                         ),
                         child: ClipOval(
                           child: Image.asset(
-                            'assets/eagle_logo.png',
+                            'assets/osprey_avatar.png',
                             width: 44,
                             height: 44,
                             fit: BoxFit.cover,

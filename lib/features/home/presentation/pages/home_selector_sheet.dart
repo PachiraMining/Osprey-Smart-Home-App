@@ -1,11 +1,16 @@
+import 'dart:ui' show ImageFilter;
+
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/home_entity.dart';
 
-/// Dropdown-style home selector that appears at the top of the screen,
-/// similar to the Tuya Smart app design.
+/// Tuya-style home selector: a frosted panel that drops down from the very top
+/// of the screen (behind the status bar), listing homes with a blue check on
+/// the selected one, and a solid-white rounded "Home Management" band at the
+/// bottom. The rest of the screen dims behind it.
 class HomeSelectorDropdown {
-  /// Shows a dropdown popup anchored near the top of the screen.
+  /// Shows the dropdown. Kept API-compatible with previous callers.
   static Future<void> show({
     required BuildContext context,
     required List<HomeEntity> homes,
@@ -13,12 +18,13 @@ class HomeSelectorDropdown {
     required void Function(String homeId) onSelect,
     required VoidCallback onManageHome,
   }) async {
-    await showModalBottomSheet(
+    await showGeneralDialog(
       context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      barrierColor: Colors.black.withAlpha(60),
-      builder: (ctx) => _HomeSelectorPopup(
+      barrierDismissible: true,
+      barrierLabel: 'home-selector',
+      barrierColor: Colors.black.withAlpha(80),
+      transitionDuration: const Duration(milliseconds: 240),
+      pageBuilder: (ctx, _, __) => _HomeSelectorPopup(
         homes: homes,
         selectedHomeId: selectedHomeId,
         onSelect: (id) {
@@ -30,6 +36,21 @@ class HomeSelectorDropdown {
           onManageHome();
         },
       ),
+      transitionBuilder: (ctx, animation, _, child) {
+        final curved = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+          reverseCurve: Curves.easeInCubic,
+        );
+        // Drop down from above the top edge, like the reference design.
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0, -1),
+            end: Offset.zero,
+          ).animate(curved),
+          child: child,
+        );
+      },
     );
   }
 }
@@ -51,41 +72,58 @@ class _HomeSelectorPopup extends StatelessWidget {
   Widget build(BuildContext context) {
     return Align(
       alignment: Alignment.topCenter,
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.only(top: 60, left: 16, right: 16),
-          child: Material(
-            color: Colors.white,
-            borderRadius: const BorderRadius.only(
-              bottomLeft: Radius.circular(16),
-              bottomRight: Radius.circular(16),
-              topLeft: Radius.circular(12),
-              topRight: Radius.circular(12),
-            ),
-            elevation: 8,
-            shadowColor: Colors.black.withAlpha(50),
-            child: ClipRRect(
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(16),
-                bottomRight: Radius.circular(16),
-                topLeft: Radius.circular(12),
-                topRight: Radius.circular(12),
-              ),
+      child: Material(
+        color: Colors.transparent,
+        child: ClipRRect(
+          borderRadius:
+              const BorderRadius.vertical(bottom: Radius.circular(24)),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            child: Container(
+              width: double.infinity,
+              // Frosted wash over the dimmed page — content behind stays
+              // faintly visible, like the reference.
+              color: Colors.white.withAlpha(200),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Home list
-                  ...homes.map((home) => _HomeRow(
-                        home: home,
-                        isSelected: home.id == selectedHomeId,
-                        onTap: () => onSelect(home.id),
-                      )),
+                  // Panel extends behind the status bar; content starts below.
+                  SafeArea(
+                    bottom: false,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const SizedBox(height: 8),
+                        // Home list — airy rows, blue check on the selected one.
+                        Flexible(
+                          child: SingleChildScrollView(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                for (final home in homes)
+                                  _HomeRow(
+                                    home: home,
+                                    isSelected: home.id == selectedHomeId,
+                                    onTap: () => onSelect(home.id),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                      ],
+                    ),
+                  ),
 
-                  // Divider
-                  const Divider(height: 1, thickness: 1),
-
-                  // Home Management row
-                  _ManageHomeRow(onTap: onManageHome),
+                  // Solid white rounded band — visually detached footer.
+                  Container(
+                    width: double.infinity,
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.all(Radius.circular(24)),
+                    ),
+                    child: _ManageHomeRow(onTap: onManageHome),
+                  ),
                 ],
               ),
             ),
@@ -112,33 +150,26 @@ class _HomeRow extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
         child: Row(
           children: [
-            // Checkmark or spacer for alignment
+            // Check gutter — keeps names aligned whether selected or not.
             SizedBox(
-              width: 28,
+              width: 40,
               child: isSelected
-                  ? const Icon(
-                      Icons.check,
-                      color: Color(0xFF1B4332),
-                      size: 20,
-                    )
+                  ? const Icon(Icons.check_rounded,
+                      color: AppColors.primary, size: 26)
                   : null,
             ),
-            const SizedBox(width: 4),
-
-            // Home name
             Expanded(
               child: Text(
                 home.name,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight:
-                      isSelected ? FontWeight.w600 : FontWeight.w400,
-                  color: isSelected
-                      ? const Color(0xFF1B4332)
-                      : Colors.black87,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 19,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black87,
                 ),
               ),
             ),
@@ -158,21 +189,20 @@ class _ManageHomeRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
+      borderRadius: const BorderRadius.all(Radius.circular(24)),
       child: const Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding: EdgeInsets.symmetric(horizontal: 24, vertical: 18),
         child: Row(
           children: [
-            Icon(
-              Icons.tune,
-              color: Colors.black54,
-              size: 22,
+            SizedBox(
+              width: 40,
+              child: Icon(Icons.tune_rounded, color: Colors.black87, size: 24),
             ),
-            SizedBox(width: 12),
             Text(
               'Home Management',
               style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w400,
+                fontSize: 17,
+                fontWeight: FontWeight.w500,
                 color: Colors.black87,
               ),
             ),
