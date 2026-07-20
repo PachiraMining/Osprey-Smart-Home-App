@@ -7,6 +7,8 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'package:home_widget/home_widget.dart';
 
+import 'package:flutter_native_splash/flutter_native_splash.dart';
+
 import 'core/config/app_config.dart';
 import 'core/di/injector.dart';
 import 'core/base/bloc_observer.dart';
@@ -33,7 +35,11 @@ import 'features/ai/presentation/bloc/voice_command_bloc.dart';
 import 'features/ai/presentation/bloc/weather_ai_bloc.dart';
 
 Future<void> _bootstrap() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  final binding = WidgetsFlutterBinding.ensureInitialized();
+  // Keep the native launch splash on-screen until the Flutter splash has painted
+  // its first frame (removed in SmartSplashScreen). Eliminates the blank flash in
+  // the native → Flutter hand-off so it reads as one continuous splash.
+  FlutterNativeSplash.preserve(widgetsBinding: binding);
   await setupInjector();
   Bloc.observer = SimpleBlocObserver();
 

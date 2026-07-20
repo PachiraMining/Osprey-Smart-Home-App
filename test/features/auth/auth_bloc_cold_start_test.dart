@@ -67,7 +67,7 @@ void main() {
       return build();
     },
     act: (bloc) => bloc.add(CheckAuthStatusEvent()),
-    expect: () => [isA<AuthSuccess>()],
+    expect: () => [isA<AuthLoading>(), isA<AuthSuccess>()],
     verify: (_) {
       verify(() => refresher.tryRefresh()).called(1);
       verifyNever(() => tm.clearTokens());
@@ -85,7 +85,7 @@ void main() {
       return build();
     },
     act: (bloc) => bloc.add(CheckAuthStatusEvent()),
-    expect: () => [isA<AuthSuccess>()],
+    expect: () => [isA<AuthLoading>(), isA<AuthSuccess>()],
     verify: (_) => verifyNever(() => tm.clearTokens()),
   );
 
@@ -98,7 +98,7 @@ void main() {
       return build();
     },
     act: (bloc) => bloc.add(CheckAuthStatusEvent()),
-    expect: () => [isA<AuthInitial>()],
+    expect: () => [isA<AuthLoading>(), isA<AuthInitial>()],
     verify: (_) => verify(() => tm.clearTokens()).called(1),
   );
 
@@ -110,7 +110,7 @@ void main() {
       return build();
     },
     act: (bloc) => bloc.add(CheckAuthStatusEvent()),
-    expect: () => [isA<AuthInitial>()],
+    expect: () => [isA<AuthLoading>(), isA<AuthInitial>()],
     verify: (_) {
       verifyNever(() => refresher.tryRefresh());
       verifyNever(() => tm.clearTokens());

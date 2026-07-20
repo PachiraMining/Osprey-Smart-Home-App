@@ -225,6 +225,7 @@ void main() {
       },
       act: (bloc) => bloc.add(CheckAuthStatusEvent()),
       expect: () => [
+        isA<AuthLoading>(),
         isA<AuthSuccess>().having((s) => s.token, 'token', tToken),
       ],
       verify: (_) {
@@ -244,7 +245,7 @@ void main() {
         return buildBloc();
       },
       act: (bloc) => bloc.add(CheckAuthStatusEvent()),
-      expect: () => [isA<AuthSuccess>()],
+      expect: () => [isA<AuthLoading>(), isA<AuthSuccess>()],
       verify: (_) {
         verify(() => tokenManager.saveCustomerId(tCustomerId)).called(1);
       },
@@ -261,7 +262,7 @@ void main() {
         return buildBloc();
       },
       act: (bloc) => bloc.add(CheckAuthStatusEvent()),
-      expect: () => [isA<AuthInitial>()],
+      expect: () => [isA<AuthLoading>(), isA<AuthInitial>()],
     );
 
     blocTest<AuthBloc, AuthState>(
@@ -271,7 +272,7 @@ void main() {
         return buildBloc();
       },
       act: (bloc) => bloc.add(CheckAuthStatusEvent()),
-      expect: () => [isA<AuthInitial>()],
+      expect: () => [isA<AuthLoading>(), isA<AuthInitial>()],
     );
 
     blocTest<AuthBloc, AuthState>(
@@ -291,6 +292,7 @@ void main() {
       },
       act: (bloc) => bloc.add(CheckAuthStatusEvent()),
       expect: () => [
+        isA<AuthLoading>(),
         isA<AuthSuccess>().having((s) => s.token, 'token', 'fresh-jwt'),
       ],
       verify: (_) {
@@ -312,7 +314,7 @@ void main() {
         return buildBloc();
       },
       act: (bloc) => bloc.add(CheckAuthStatusEvent()),
-      expect: () => [isA<AuthInitial>()],
+      expect: () => [isA<AuthLoading>(), isA<AuthInitial>()],
       verify: (_) {
         verify(() => tokenRefresher.tryRefresh()).called(1);
         verify(() => tokenManager.clearTokens()).called(1);

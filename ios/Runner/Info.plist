@@ -1,101 +1,103 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-<dict>
-	<key>CADisableMinimumFrameDurationOnPhone</key>
-	<true/>
-	<key>CFBundleDevelopmentRegion</key>
-	<string>$(DEVELOPMENT_LANGUAGE)</string>
-	<key>CFBundleDisplayName</key>
-	<string>osprey.life</string>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>CFBundleURLName</key>
-			<string>alexa-callback</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>osprey</string>
-			</array>
-		</dict>
-	</array>
-	<key>CFBundleExecutable</key>
-	<string>$(EXECUTABLE_NAME)</string>
-	<key>CFBundleIdentifier</key>
-	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
-	<key>CFBundleInfoDictionaryVersion</key>
-	<string>6.0</string>
-	<key>CFBundleName</key>
-	<string>osprey.life</string>
-	<key>CFBundlePackageType</key>
-	<string>APPL</string>
-	<key>CFBundleShortVersionString</key>
-	<string>$(FLUTTER_BUILD_NAME)</string>
-	<key>CFBundleSignature</key>
-	<string>????</string>
-	<key>CFBundleVersion</key>
-	<string>$(FLUTTER_BUILD_NUMBER)</string>
-	<key>LSRequiresIPhoneOS</key>
-	<true/>
-	<key>MinimumOSVersion</key>
-	<string>26.0</string>
-	<key>UIApplicationSceneManifest</key>
 	<dict>
-		<key>UIApplicationSupportsMultipleScenes</key>
-		<false/>
-		<key>UISceneConfigurations</key>
+		<key>CADisableMinimumFrameDurationOnPhone</key>
+		<true/>
+		<key>CFBundleDevelopmentRegion</key>
+		<string>$(DEVELOPMENT_LANGUAGE)</string>
+		<key>CFBundleDisplayName</key>
+		<string>osprey.life</string>
+		<key>CFBundleURLTypes</key>
+		<array>
+			<dict>
+				<key>CFBundleTypeRole</key>
+				<string>Editor</string>
+				<key>CFBundleURLName</key>
+				<string>alexa-callback</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>osprey</string>
+				</array>
+			</dict>
+		</array>
+		<key>CFBundleExecutable</key>
+		<string>$(EXECUTABLE_NAME)</string>
+		<key>CFBundleIdentifier</key>
+		<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+		<key>CFBundleInfoDictionaryVersion</key>
+		<string>6.0</string>
+		<key>CFBundleName</key>
+		<string>osprey.life</string>
+		<key>CFBundlePackageType</key>
+		<string>APPL</string>
+		<key>CFBundleShortVersionString</key>
+		<string>$(FLUTTER_BUILD_NAME)</string>
+		<key>CFBundleSignature</key>
+		<string>????</string>
+		<key>CFBundleVersion</key>
+		<string>$(FLUTTER_BUILD_NUMBER)</string>
+		<key>LSRequiresIPhoneOS</key>
+		<true/>
+		<key>MinimumOSVersion</key>
+		<string>26.0</string>
+		<key>UIApplicationSceneManifest</key>
 		<dict>
-			<key>UIWindowSceneSessionRoleApplication</key>
-			<array>
-				<dict>
-					<key>UISceneClassName</key>
-					<string>UIWindowScene</string>
-					<key>UISceneConfigurationName</key>
-					<string>flutter</string>
-					<key>UISceneDelegateClassName</key>
-					<string>FlutterSceneDelegate</string>
-					<key>UISceneStoryboardFile</key>
-					<string>Main</string>
-				</dict>
-			</array>
+			<key>UIApplicationSupportsMultipleScenes</key>
+			<false/>
+			<key>UISceneConfigurations</key>
+			<dict>
+				<key>UIWindowSceneSessionRoleApplication</key>
+				<array>
+					<dict>
+						<key>UISceneClassName</key>
+						<string>UIWindowScene</string>
+						<key>UISceneConfigurationName</key>
+						<string>flutter</string>
+						<key>UISceneDelegateClassName</key>
+						<string>FlutterSceneDelegate</string>
+						<key>UISceneStoryboardFile</key>
+						<string>Main</string>
+					</dict>
+				</array>
+			</dict>
 		</dict>
+		<key>UIApplicationSupportsIndirectInputEvents</key>
+		<true/>
+		<key>UILaunchStoryboardName</key>
+		<string>LaunchScreen</string>
+		<key>UIMainStoryboardFile</key>
+		<string>Main</string>
+		<key>NSBluetoothAlwaysUsageDescription</key>
+		<string>Osprey Life needs Bluetooth to discover and configure curtain devices.</string>
+		<key>NSBluetoothPeripheralUsageDescription</key>
+		<string>Osprey Life needs Bluetooth to communicate with curtain devices.</string>
+		<key>NSLocationWhenInUseUsageDescription</key>
+		<string>Osprey Life needs location access to scan for nearby curtain devices and provide weather-aware automation.</string>
+		<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+		<string>Osprey Life uses location only while you're using the app — to scan for nearby curtain devices over Bluetooth and to provide weather-aware suggestions. Background location is not required.</string>
+		<key>NSLocalNetworkUsageDescription</key>
+		<string>Osprey Life needs local network access to communicate with curtain devices.</string>
+		<key>NSCameraUsageDescription</key>
+		<string>Osprey Life needs camera access to scan QR codes for device setup.</string>
+		<key>NSMicrophoneUsageDescription</key>
+		<string>Osprey Life uses the microphone for AI voice commands to control your curtains.</string>
+		<key>NSSpeechRecognitionUsageDescription</key>
+		<string>Osprey Life uses speech recognition to understand voice commands for controlling your curtains.</string>
+		<key>UISupportedInterfaceOrientations</key>
+		<array>
+			<string>UIInterfaceOrientationPortrait</string>
+			<string>UIInterfaceOrientationLandscapeLeft</string>
+			<string>UIInterfaceOrientationLandscapeRight</string>
+		</array>
+		<key>UISupportedInterfaceOrientations~ipad</key>
+		<array>
+			<string>UIInterfaceOrientationPortrait</string>
+			<string>UIInterfaceOrientationPortraitUpsideDown</string>
+			<string>UIInterfaceOrientationLandscapeLeft</string>
+			<string>UIInterfaceOrientationLandscapeRight</string>
+		</array>
+		<key>UIStatusBarHidden</key>
+		<false/>
 	</dict>
-	<key>UIApplicationSupportsIndirectInputEvents</key>
-	<true/>
-	<key>UILaunchStoryboardName</key>
-	<string>LaunchScreen</string>
-	<key>UIMainStoryboardFile</key>
-	<string>Main</string>
-	<key>NSBluetoothAlwaysUsageDescription</key>
-	<string>Osprey Life needs Bluetooth to discover and configure curtain devices.</string>
-	<key>NSBluetoothPeripheralUsageDescription</key>
-	<string>Osprey Life needs Bluetooth to communicate with curtain devices.</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Osprey Life needs location access to scan for nearby curtain devices and provide weather-aware automation.</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Osprey Life uses location only while you're using the app — to scan for nearby curtain devices over Bluetooth and to provide weather-aware suggestions. Background location is not required.</string>
-	<key>NSLocalNetworkUsageDescription</key>
-	<string>Osprey Life needs local network access to communicate with curtain devices.</string>
-	<key>NSCameraUsageDescription</key>
-	<string>Osprey Life needs camera access to scan QR codes for device setup.</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>Osprey Life uses the microphone for AI voice commands to control your curtains.</string>
-	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>Osprey Life uses speech recognition to understand voice commands for controlling your curtains.</string>
-	<key>UISupportedInterfaceOrientations</key>
-	<array>
-		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
-	</array>
-	<key>UISupportedInterfaceOrientations~ipad</key>
-	<array>
-		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationPortraitUpsideDown</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
-	</array>
-</dict>
 </plist>

@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 
 import 'core/theme/app_colors.dart';
 import 'core/theme/app_radius.dart';
@@ -43,7 +44,7 @@ class _SmartSplashScreenState extends State<SmartSplashScreen>
 
     _logoController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 700),
     );
     _logoScale = Tween<double>(begin: 0.75, end: 1.0).animate(
       CurvedAnimation(parent: _logoController, curve: Curves.easeOutCubic),
@@ -94,6 +95,10 @@ class _SmartSplashScreenState extends State<SmartSplashScreen>
 
     context.read<AuthBloc>().add(CheckAuthStatusEvent());
 
+    // The native splash (splash 1) is the ONLY splash: it stays up while auth
+    // resolves, then we go straight to the destination. There is no animated
+    // Flutter splash for logged-in users — HomePage lifts the native splash the
+    // instant it has painted, so it reads as native splash → Home.
     _logoController.forward().then((_) async {
       await Future.delayed(const Duration(milliseconds: 200));
       if (!_navigated && mounted) {
@@ -125,7 +130,14 @@ class _SmartSplashScreenState extends State<SmartSplashScreen>
         if (!(ModalRoute.of(context)?.isCurrent ?? true)) return;
         if (state is AuthSuccess && !_navigated) {
           _navigated = true;
+          // Logged in → straight to Home. Native splash stays up through the
+          // push and HomePage removes it after its first frame → native → Home,
+          // no intermediate Flutter splash.
           Navigator.pushReplacementNamed(context, '/home');
+        } else if (state is AuthInitial && !_navigated) {
+          // Logged out → the welcome/login screen is the destination. Lift the
+          // native splash to reveal it (its content fades in — see below).
+          FlutterNativeSplash.remove();
         }
       },
       child: Scaffold(

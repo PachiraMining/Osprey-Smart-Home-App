@@ -137,6 +137,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     CheckAuthStatusEvent event,
     Emitter<AuthState> emit,
   ) async {
+    // A real transition so the splash can tell "resolved: logged out"
+    // (AuthLoading → AuthInitial) apart from the bloc's idle initial state.
+    emit(AuthLoading());
     try {
       final tokenMgr = tokenManager ?? sl<TokenManager>();
       var token = await tokenMgr.getToken();
