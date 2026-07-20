@@ -7,6 +7,8 @@ import 'package:permission_handler/permission_handler.dart';
 
 import '../../../../core/di/injector.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../home/presentation/bloc/home_management_bloc.dart';
+import '../../../home/presentation/bloc/home_management_event.dart';
 import '../../domain/entities/discovered_osprey_device.dart';
 import '../bloc/osprey_scan_bloc.dart';
 import '../bloc/osprey_scan_event.dart';
@@ -84,10 +86,19 @@ class _OspreyAddDeviceViewState extends State<_OspreyAddDeviceView> {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => OspreyPairingPage(device: device)),
-    ).then((_) {
-      if (mounted) {
-        context.read<OspreyScanBloc>().add(const StartOspreyScanEvent());
+    ).then((paired) {
+      if (!mounted) return;
+      // Pairing succeeded → refresh the home's devices right away so the new
+      // device is already in the list when the user lands back on Home.
+      if (paired == true) {
+        final hm = context.read<HomeManagementBloc>();
+        final homeId = hm.state.selectedHomeId;
+        if (homeId != null) {
+          hm.add(LoadHomeDevicesEvent(homeId));
+          hm.add(LoadRoomsEvent(homeId));
+        }
       }
+      context.read<OspreyScanBloc>().add(const StartOspreyScanEvent());
     });
   }
 

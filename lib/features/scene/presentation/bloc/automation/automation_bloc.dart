@@ -39,10 +39,16 @@ class AutomationBloc extends Bloc<AutomationEvent, AutomationState> {
     Emitter<AutomationState> emit,
   ) async {
     _homeId = event.homeId;
-    emit(AutomationLoading());
+    // Data-preserving refresh: once a list is on screen, refetch silently so
+    // post-mutation reloads and pull-refresh never flash a spinner; a failed
+    // refetch keeps the old list instead of dropping to an error screen.
+    final hadData = state is AutomationLoaded;
+    if (!hadData) emit(AutomationLoading());
     final result = await getAutomations(event.homeId);
     result.fold(
-      (failure) => emit(AutomationError(failure.message)),
+      (failure) {
+        if (!hadData) emit(AutomationError(failure.message));
+      },
       (automations) => emit(AutomationLoaded(automations)),
     );
   }

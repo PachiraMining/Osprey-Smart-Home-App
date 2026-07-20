@@ -43,10 +43,18 @@ class TapToRunBloc extends Bloc<TapToRunEvent, TapToRunState> {
     Emitter<TapToRunState> emit,
   ) async {
     _homeId = event.homeId;
-    emit(TapToRunLoading());
+    // Data-preserving refresh (see AutomationBloc): don't blank the grid/pills
+    // while refetching, and keep the old list if the refetch fails. Executing/
+    // ExecuteResult states also carry scenes, so they count as "has data".
+    final hadData = state is TapToRunLoaded ||
+        state is TapToRunExecuting ||
+        state is TapToRunExecuteResult;
+    if (!hadData) emit(TapToRunLoading());
     final result = await getTapToRunScenes(event.homeId);
     result.fold(
-      (failure) => emit(TapToRunError(failure.message)),
+      (failure) {
+        if (!hadData) emit(TapToRunError(failure.message));
+      },
       (scenes) => emit(TapToRunLoaded(scenes)),
     );
   }

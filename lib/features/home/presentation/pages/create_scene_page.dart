@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_curtain_app/features/home/presentation/pages/add_task_page.dart';
 import 'package:smart_curtain_app/features/home/presentation/pages/home_page.dart';
+import 'package:smart_curtain_app/features/home/presentation/bloc/home_management_bloc.dart';
+import 'package:smart_curtain_app/features/scene/presentation/bloc/automation/automation_bloc.dart';
+import 'package:smart_curtain_app/features/scene/presentation/bloc/automation/automation_event.dart';
 import 'package:smart_curtain_app/features/scene/presentation/bloc/scene_bloc.dart';
 import 'package:smart_curtain_app/features/scene/presentation/bloc/scene_event.dart';
 import 'package:smart_curtain_app/features/scene/presentation/bloc/scene_state.dart';
@@ -199,6 +202,15 @@ class _CreateScenePageState extends State<CreateScenePage> {
       builder: (_) => BlocListener<SceneBloc, SceneState>(
         listener: (context, state) {
           if (state is SceneCreated || state is SceneLoaded) {
+            // The Automation tab renders AutomationBloc — sync it here so the
+            // newly created scene appears without a manual pull-refresh.
+            final homeId =
+                context.read<HomeManagementBloc>().state.selectedHomeId;
+            if (homeId != null) {
+              context
+                  .read<AutomationBloc>()
+                  .add(LoadAutomationsEvent(homeId));
+            }
             Navigator.pop(context); // Close loading dialog
             Navigator.pop(context); // Close CreateScenePage
             // Switch to automation tab
