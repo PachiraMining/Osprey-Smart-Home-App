@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import '../../../../core/network/api_client.dart';
+import '../../../../core/network/api_endpoints.dart';
 import '../../../../core/error/exceptions.dart';
 import '../models/scene_model.dart';
 
@@ -19,7 +20,7 @@ class SceneRemoteDataSourceImpl implements SceneRemoteDataSource {
   Future<List<SceneModel>> getScenes(String homeId) async {
     try {
       final response = await apiClient.get(
-        '/api/smarthome/homes/$homeId/scenes',
+        ApiEndpoints.homeScenes(homeId),
         queryParameters: {'sceneType': 'AUTOMATION'},
       );
       final List<dynamic> data = response.data is List ? response.data : [];
@@ -36,7 +37,7 @@ class SceneRemoteDataSourceImpl implements SceneRemoteDataSource {
   Future<SceneModel> createScene(String homeId, Map<String, dynamic> data) async {
     try {
       final response = await apiClient.post(
-        '/api/smarthome/homes/$homeId/scenes',
+        ApiEndpoints.homeScenes(homeId),
         data: data,
       );
       return SceneModel.fromJson(response.data as Map<String, dynamic>);
@@ -50,7 +51,7 @@ class SceneRemoteDataSourceImpl implements SceneRemoteDataSource {
   @override
   Future<void> deleteScene(String sceneId) async {
     try {
-      await apiClient.delete('/api/smarthome/scenes/$sceneId');
+      await apiClient.delete(ApiEndpoints.scene(sceneId));
     } on DioException catch (e) {
       if (e.response?.statusCode == 401) throw UnauthorizedException();
       throw ServerException(message: 'Failed to delete scene: ${e.message}');
@@ -61,9 +62,9 @@ class SceneRemoteDataSourceImpl implements SceneRemoteDataSource {
   Future<void> toggleScene(String sceneId, bool enabled) async {
     try {
       if (enabled) {
-        await apiClient.put('/api/smarthome/scenes/$sceneId/enable');
+        await apiClient.put(ApiEndpoints.sceneEnable(sceneId));
       } else {
-        await apiClient.put('/api/smarthome/scenes/$sceneId/disable');
+        await apiClient.put(ApiEndpoints.sceneDisable(sceneId));
       }
     } on DioException catch (e) {
       if (e.response?.statusCode == 401) throw UnauthorizedException();

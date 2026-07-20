@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 
 import '../../../../core/auth/token_manager.dart';
 import '../../../../core/config/app_config.dart';
+import '../../../../core/network/api_endpoints.dart';
 
 class AlexaLinkingPage extends StatefulWidget {
   const AlexaLinkingPage({super.key});
@@ -47,7 +48,7 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
       _error = null;
     });
 
-    final url = '$_baseUrl/api/alexa/app-linking/status';
+    final url = '$_baseUrl${ApiEndpoints.alexaLinkStatus}';
 
     try {
       final response = await _client.get(
@@ -86,7 +87,7 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
 
     try {
       // Step 1: POST /start → get URLs and state from backend
-      final startUrl = '$_baseUrl/api/alexa/app-linking/start';
+      final startUrl = '$_baseUrl${ApiEndpoints.alexaLinkStart}';
       final startRes = await _client.post(
         Uri.parse(startUrl),
         headers: _headers,
@@ -123,7 +124,7 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
       }
 
       // Step 3: POST /complete → backend handles everything
-      final completeUrl = '$_baseUrl/api/alexa/app-linking/complete';
+      final completeUrl = '$_baseUrl${ApiEndpoints.alexaLinkComplete}';
       final completeRes = await _client.post(
         Uri.parse(completeUrl),
         headers: _headers,

@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import '../../../../core/network/api_client.dart';
+import '../../../../core/network/api_endpoints.dart';
 import '../../../../core/error/exceptions.dart';
 import '../models/automation_scene_model.dart';
 
@@ -25,7 +26,7 @@ class AutomationRemoteDataSourceImpl implements AutomationRemoteDataSource {
     try {
       print('🤖 [Automation] GET scenes for home=$homeId');
       final response = await apiClient.get(
-        '/api/smarthome/homes/$homeId/scenes',
+        ApiEndpoints.homeScenes(homeId),
         queryParameters: {'sceneType': 'AUTOMATION'},
       );
       final List<dynamic> data =
@@ -52,7 +53,7 @@ class AutomationRemoteDataSourceImpl implements AutomationRemoteDataSource {
     try {
       print('🤖 [Automation] GET detail for scene=$sceneId');
       final response =
-          await apiClient.get('/api/smarthome/scenes/$sceneId');
+          await apiClient.get(ApiEndpoints.scene(sceneId));
       print('🤖 [Automation] getDetail response: ${response.data}');
       return AutomationSceneModel.fromJson(
           response.data as Map<String, dynamic>);
@@ -71,7 +72,7 @@ class AutomationRemoteDataSourceImpl implements AutomationRemoteDataSource {
       print('🤖 [Automation] POST create for home=$homeId');
       print('🤖 [Automation] Body: $body');
       final response = await apiClient.post(
-        '/api/smarthome/homes/$homeId/scenes',
+        ApiEndpoints.homeScenes(homeId),
         data: body,
       );
       print('🤖 [Automation] createAutomation response: ${response.data}');
@@ -93,7 +94,7 @@ class AutomationRemoteDataSourceImpl implements AutomationRemoteDataSource {
       print('🤖 [Automation] PUT update scene=$sceneId');
       print('🤖 [Automation] Body: $body');
       final response = await apiClient.put(
-        '/api/smarthome/scenes/$sceneId',
+        ApiEndpoints.scene(sceneId),
         data: body,
       );
       print('🤖 [Automation] updateAutomation response: ${response.data}');
@@ -112,7 +113,7 @@ class AutomationRemoteDataSourceImpl implements AutomationRemoteDataSource {
   Future<void> deleteAutomation(String sceneId) async {
     try {
       print('🤖 [Automation] DELETE scene=$sceneId');
-      await apiClient.delete('/api/smarthome/scenes/$sceneId');
+      await apiClient.delete(ApiEndpoints.scene(sceneId));
       print('🤖 [Automation] deleteAutomation OK');
     } on DioException catch (e) {
       print('🔴 [Automation] delete DioError: ${e.response?.statusCode} ${e.message}');
@@ -126,7 +127,7 @@ class AutomationRemoteDataSourceImpl implements AutomationRemoteDataSource {
   Future<void> enableAutomation(String sceneId) async {
     try {
       print('🤖 [Automation] PUT enable scene=$sceneId');
-      await apiClient.put('/api/smarthome/scenes/$sceneId/enable');
+      await apiClient.put(ApiEndpoints.sceneEnable(sceneId));
       print('🤖 [Automation] enableAutomation OK');
     } on DioException catch (e) {
       print('🔴 [Automation] enable DioError: ${e.response?.statusCode} ${e.message}');
@@ -140,7 +141,7 @@ class AutomationRemoteDataSourceImpl implements AutomationRemoteDataSource {
   Future<void> disableAutomation(String sceneId) async {
     try {
       print('🤖 [Automation] PUT disable scene=$sceneId');
-      await apiClient.put('/api/smarthome/scenes/$sceneId/disable');
+      await apiClient.put(ApiEndpoints.sceneDisable(sceneId));
       print('🤖 [Automation] disableAutomation OK');
     } on DioException catch (e) {
       print('🔴 [Automation] disable DioError: ${e.response?.statusCode} ${e.message}');

@@ -9,6 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/auth/token_manager.dart';
 import '../../../../core/config/app_config.dart';
+import '../../../../core/network/api_endpoints.dart';
 
 class GoogleAssistantLinkingPage extends StatefulWidget {
   const GoogleAssistantLinkingPage({super.key});
@@ -68,7 +69,7 @@ class _GoogleAssistantLinkingPageState
       _error = null;
     });
 
-    final url = '$_baseUrl/api/google/app-linking/status';
+    final url = '$_baseUrl${ApiEndpoints.googleLinkStatus}';
 
     try {
       final response = await _client.get(
@@ -107,7 +108,7 @@ class _GoogleAssistantLinkingPageState
 
     try {
       // Step 1: POST /start → get URLs and state from backend
-      final startUrl = '$_baseUrl/api/google/app-linking/start';
+      final startUrl = '$_baseUrl${ApiEndpoints.googleLinkStart}';
       final startRes = await _client.post(
         Uri.parse(startUrl),
         headers: _headers,

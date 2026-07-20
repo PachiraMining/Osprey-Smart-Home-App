@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/network/api_client.dart';
+import '../../../../core/network/api_endpoints.dart';
 import '../models/auth_challenge_response_model.dart';
 import '../models/osprey_product_model.dart';
 import '../models/pairing_token_model.dart';
@@ -42,7 +43,7 @@ class PairingRemoteDataSourceImpl implements PairingRemoteDataSource {
   @override
   Future<List<OspreyProductModel>> getProducts() async {
     try {
-      final response = await apiClient.get('/api/smarthome/products');
+      final response = await apiClient.get(ApiEndpoints.products);
       final List<dynamic> data = response.data is List ? response.data : [];
       return data
           .map((json) =>
@@ -57,7 +58,7 @@ class PairingRemoteDataSourceImpl implements PairingRemoteDataSource {
   Future<OspreyProductModel?> getProductByHash(String hashHex) async {
     try {
       final response =
-          await apiClient.get('/api/smarthome/products/by-hash/$hashHex');
+          await apiClient.get(ApiEndpoints.productByHash(hashHex));
       return OspreyProductModel.fromJson(
           response.data as Map<String, dynamic>);
     } on DioException catch (e) {
@@ -73,7 +74,7 @@ class PairingRemoteDataSourceImpl implements PairingRemoteDataSource {
   }) async {
     try {
       final response = await apiClient.post(
-        '/api/smarthome/pairing/auth-challenge',
+        ApiEndpoints.pairingAuthChallenge,
         data: {
           'deviceUuid': deviceUuid,
           'nonceApp': nonceAppHex,
@@ -104,7 +105,7 @@ class PairingRemoteDataSourceImpl implements PairingRemoteDataSource {
   }) async {
     try {
       final response = await apiClient.post(
-        '/api/smarthome/pairing/token',
+        ApiEndpoints.pairingToken,
         data: {
           'deviceProfileId': {
             'entityType': 'DEVICE_PROFILE',
@@ -129,7 +130,7 @@ class PairingRemoteDataSourceImpl implements PairingRemoteDataSource {
   Future<PairingTokenModel> getPairingTokenStatus(String token) async {
     try {
       final response =
-          await apiClient.get('/api/smarthome/pairing/token/$token');
+          await apiClient.get(ApiEndpoints.pairingTokenStatus(token));
       return PairingTokenModel.fromJson(
           response.data as Map<String, dynamic>);
     } on DioException catch (e) {

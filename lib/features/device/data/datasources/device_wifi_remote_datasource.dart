@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 
 import '../../../../core/network/api_client.dart';
+import '../../../../core/network/api_endpoints.dart';
 import '../models/device_wifi_models.dart';
 
 /// Lỗi nghiệp vụ WiFi mà UI cần phân biệt để hiển thị toast/dialog đúng.
@@ -35,7 +36,7 @@ class DeviceWifiRemoteDataSource {
   /// Switch có thể mất 5-60s — set timeout rộng 90s theo spec.
   static const Duration _switchTimeout = Duration(seconds: 90);
 
-  String _base(String deviceId) => '/api/smarthome/devices/$deviceId';
+  String _base(String deviceId) => ApiEndpoints.smartHomeDevice(deviceId);
 
   // ─── 1. GET /network-info ────────────────────────────────────
   Future<DeviceNetworkInfo> getNetworkInfo(String deviceId) async {

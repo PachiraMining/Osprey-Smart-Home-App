@@ -2,6 +2,7 @@
 
 import '../../../../core/config/app_config.dart';
 import '../../../../core/network/api_client.dart';
+import '../../../../core/network/api_endpoints.dart';
 import '../models/login_response_model.dart';
 import '../models/user_response_model.dart';
 
@@ -13,7 +14,7 @@ class AuthRemoteDataSource {
   /// 401 "Invalid email or password" khi sai thông tin.
   Future<LoginResponseModel> login(String username, String password) async {
     final response = await apiClient.post(
-      '/api/noauth/smarthome/email/login',
+      ApiEndpoints.emailLogin,
       data: {
         'email': username,
         'password': password,
@@ -25,7 +26,7 @@ class AuthRemoteDataSource {
   }
 
   Future<UserResponseModel> getCurrentUser() async {
-    final response = await apiClient.get('/api/auth/user');
+    final response = await apiClient.get(ApiEndpoints.currentUser);
     return UserResponseModel.fromJson(response.data);
   }
 
@@ -33,7 +34,7 @@ class AuthRemoteDataSource {
   /// 400 "Email is already registered for this brand" nếu email đã có.
   Future<void> sendSignupVerificationCode(String email) async {
     await apiClient.post(
-      '/api/noauth/smarthome/email/send-otp',
+      ApiEndpoints.emailSendOtp,
       data: {'email': email, 'appKey': AppConfig.appKey},
     );
   }
@@ -48,7 +49,7 @@ class AuthRemoteDataSource {
     String? lastName,
   }) async {
     final response = await apiClient.post(
-      '/api/noauth/smarthome/email/signup',
+      ApiEndpoints.emailSignup,
       data: {
         'email': email,
         'otp': verificationCode,
@@ -65,25 +66,25 @@ class AuthRemoteDataSource {
   /// tồn tại) để tránh dò tài khoản.
   Future<void> requestPasswordReset(String email) async {
     await apiClient.post(
-      '/api/noauth/resetPasswordByEmail',
+      ApiEndpoints.resetPasswordByEmail,
       data: {'email': email},
     );
   }
 
   Future<Map<String, dynamic>> requestAccountDeletion({String? reason}) async {
     final response = await apiClient.post(
-      '/api/smarthome/auth/account/delete',
+      ApiEndpoints.accountDelete,
       data: {if (reason != null) 'reason': reason},
     );
     return response.data as Map<String, dynamic>;
   }
 
   Future<void> cancelAccountDeletion() async {
-    await apiClient.post('/api/smarthome/auth/account/delete/cancel');
+    await apiClient.post(ApiEndpoints.accountDeleteCancel);
   }
 
   Future<Map<String, dynamic>> getAccountDeletionStatus() async {
-    final response = await apiClient.get('/api/smarthome/auth/account/delete/status');
+    final response = await apiClient.get(ApiEndpoints.accountDeleteStatus);
     return response.data as Map<String, dynamic>;
   }
 }

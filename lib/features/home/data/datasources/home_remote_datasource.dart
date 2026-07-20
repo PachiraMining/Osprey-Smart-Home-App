@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import '../../../../core/network/api_client.dart';
+import '../../../../core/network/api_endpoints.dart';
 import '../../../../core/error/exceptions.dart';
 import '../models/home_model.dart';
 import '../models/home_device_model.dart';
@@ -55,7 +56,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
   @override
   Future<List<HomeModel>> getHomes() async {
     try {
-      final response = await apiClient.get('/api/smarthome/homes');
+      final response = await apiClient.get(ApiEndpoints.homes);
       final List<dynamic> data = response.data is List ? response.data : [];
       return data
           .map((json) => HomeModel.fromJson(json as Map<String, dynamic>))
@@ -71,7 +72,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
   @override
   Future<HomeModel> createHome(Map<String, dynamic> body) async {
     try {
-      final response = await apiClient.post('/api/smarthome/homes', data: body);
+      final response = await apiClient.post(ApiEndpoints.homes, data: body);
       return HomeModel.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
       if (e.response?.statusCode == 401) {
@@ -85,7 +86,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
   Future<HomeModel> updateHome(String homeId, Map<String, dynamic> body) async {
     try {
       final response = await apiClient.put(
-        '/api/smarthome/homes/$homeId',
+        ApiEndpoints.home(homeId),
         data: body,
       );
       return HomeModel.fromJson(response.data as Map<String, dynamic>);
@@ -100,7 +101,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
   @override
   Future<void> deleteHome(String homeId) async {
     try {
-      await apiClient.delete('/api/smarthome/homes/$homeId');
+      await apiClient.delete(ApiEndpoints.home(homeId));
     } on DioException catch (e) {
       if (e.response?.statusCode == 401) {
         throw UnauthorizedException();
@@ -112,7 +113,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
   @override
   Future<List<HomeDeviceModel>> getHomeDevices(String homeId) async {
     try {
-      final response = await apiClient.get('/api/smarthome/homes/$homeId/devices');
+      final response = await apiClient.get(ApiEndpoints.homeDevices(homeId));
       final List<dynamic> data = response.data is List ? response.data : [];
       final devices = data
           .map((json) => HomeDeviceModel.fromJson(json as Map<String, dynamic>))
@@ -130,7 +131,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
   @override
   Future<void> addDeviceToHome(String homeId, Map<String, dynamic> body) async {
     try {
-      await apiClient.post('/api/smarthome/homes/$homeId/devices', data: body);
+      await apiClient.post(ApiEndpoints.homeDevices(homeId), data: body);
     } on DioException catch (e) {
       if (e.response?.statusCode == 401) {
         throw UnauthorizedException();
@@ -147,7 +148,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
   ) async {
     try {
       await apiClient.put(
-        '/api/smarthome/homes/$homeId/devices/$deviceId',
+        ApiEndpoints.homeDevice(homeId, deviceId),
         data: body,
       );
     } on DioException catch (e) {
@@ -161,7 +162,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
   @override
   Future<void> removeDeviceFromHome(String homeId, String deviceId) async {
     try {
-      await apiClient.delete('/api/smarthome/homes/$homeId/devices/$deviceId');
+      await apiClient.delete(ApiEndpoints.homeDevice(homeId, deviceId));
     } on DioException catch (e) {
       throw _mapRemoveError(e, 'disconnect');
     }
@@ -172,7 +173,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
       String homeId, String deviceId) async {
     try {
       final response = await apiClient.post(
-        '/api/smarthome/homes/$homeId/devices/$deviceId/factory-reset',
+        ApiEndpoints.homeDeviceFactoryReset(homeId, deviceId),
       );
       final data = response.data;
       return FactoryResetResultModel.fromJson(
@@ -186,7 +187,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
   @override
   Future<List<RoomModel>> getRooms(String homeId) async {
     try {
-      final response = await apiClient.get('/api/smarthome/homes/$homeId/rooms');
+      final response = await apiClient.get(ApiEndpoints.homeRooms(homeId));
       final List<dynamic> data = response.data is List ? response.data : [];
       return data
           .map((json) => RoomModel.fromJson(json as Map<String, dynamic>))
@@ -203,7 +204,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
   Future<RoomModel> createRoom(String homeId, Map<String, dynamic> body) async {
     try {
       final response = await apiClient.post(
-        '/api/smarthome/homes/$homeId/rooms',
+        ApiEndpoints.homeRooms(homeId),
         data: body,
       );
       return RoomModel.fromJson(response.data as Map<String, dynamic>);
@@ -223,7 +224,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
   ) async {
     try {
       final response = await apiClient.put(
-        '/api/smarthome/homes/$homeId/rooms/$roomId',
+        ApiEndpoints.homeRoom(homeId, roomId),
         data: body,
       );
       return RoomModel.fromJson(response.data as Map<String, dynamic>);
@@ -238,7 +239,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
   @override
   Future<void> deleteRoom(String homeId, String roomId) async {
     try {
-      await apiClient.delete('/api/smarthome/homes/$homeId/rooms/$roomId');
+      await apiClient.delete(ApiEndpoints.homeRoom(homeId, roomId));
     } on DioException catch (e) {
       if (e.response?.statusCode == 401) {
         throw UnauthorizedException();
@@ -250,7 +251,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
   @override
   Future<Map<String, dynamic>> getDeviceInfo(String deviceId) async {
     try {
-      final response = await apiClient.get('/api/device/info/$deviceId');
+      final response = await apiClient.get(ApiEndpoints.deviceInfo(deviceId));
       return response.data as Map<String, dynamic>;
     } on DioException catch (e) {
       if (e.response?.statusCode == 401) {

@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import '../../../../core/network/api_client.dart';
+import '../../../../core/network/api_endpoints.dart';
 import '../../../../core/error/exceptions.dart';
 import '../models/tap_to_run_scene_model.dart';
 import '../models/data_point_model.dart';
@@ -25,7 +26,7 @@ class TapToRunRemoteDataSourceImpl implements TapToRunRemoteDataSource {
   Future<List<TapToRunSceneModel>> getScenes(String homeId) async {
     try {
       final response = await apiClient.get(
-        '/api/smarthome/homes/$homeId/scenes',
+        ApiEndpoints.homeScenes(homeId),
         queryParameters: {'sceneType': 'TAP_TO_RUN'},
       );
       final List<dynamic> data = response.data is List ? response.data : [];
@@ -47,7 +48,7 @@ class TapToRunRemoteDataSourceImpl implements TapToRunRemoteDataSource {
   @override
   Future<TapToRunSceneModel> getSceneDetail(String sceneId) async {
     try {
-      final response = await apiClient.get('/api/smarthome/scenes/$sceneId');
+      final response = await apiClient.get(ApiEndpoints.scene(sceneId));
       return TapToRunSceneModel.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
       if (e.response?.statusCode == 401) {
@@ -61,7 +62,7 @@ class TapToRunRemoteDataSourceImpl implements TapToRunRemoteDataSource {
   Future<TapToRunSceneModel> createScene(String homeId, Map<String, dynamic> body) async {
     try {
       final response = await apiClient.post(
-        '/api/smarthome/homes/$homeId/scenes',
+        ApiEndpoints.homeScenes(homeId),
         data: body,
       );
       return TapToRunSceneModel.fromJson(response.data as Map<String, dynamic>);
@@ -77,7 +78,7 @@ class TapToRunRemoteDataSourceImpl implements TapToRunRemoteDataSource {
   Future<TapToRunSceneModel> updateScene(String sceneId, Map<String, dynamic> body) async {
     try {
       final response = await apiClient.put(
-        '/api/smarthome/scenes/$sceneId',
+        ApiEndpoints.scene(sceneId),
         data: body,
       );
       return TapToRunSceneModel.fromJson(response.data as Map<String, dynamic>);
@@ -92,7 +93,7 @@ class TapToRunRemoteDataSourceImpl implements TapToRunRemoteDataSource {
   @override
   Future<void> deleteScene(String sceneId) async {
     try {
-      await apiClient.delete('/api/smarthome/scenes/$sceneId');
+      await apiClient.delete(ApiEndpoints.scene(sceneId));
     } on DioException catch (e) {
       if (e.response?.statusCode == 401) {
         throw UnauthorizedException();
@@ -104,7 +105,7 @@ class TapToRunRemoteDataSourceImpl implements TapToRunRemoteDataSource {
   @override
   Future<Map<String, dynamic>> executeScene(String sceneId) async {
     try {
-      final response = await apiClient.post('/api/smarthome/scenes/$sceneId/execute');
+      final response = await apiClient.post(ApiEndpoints.sceneExecute(sceneId));
       return response.data as Map<String, dynamic>;
     } on DioException catch (e) {
       if (e.response?.statusCode == 401) {
@@ -117,7 +118,7 @@ class TapToRunRemoteDataSourceImpl implements TapToRunRemoteDataSource {
   @override
   Future<void> enableScene(String sceneId) async {
     try {
-      await apiClient.put('/api/smarthome/scenes/$sceneId/enable');
+      await apiClient.put(ApiEndpoints.sceneEnable(sceneId));
     } on DioException catch (e) {
       if (e.response?.statusCode == 401) {
         throw UnauthorizedException();
@@ -129,7 +130,7 @@ class TapToRunRemoteDataSourceImpl implements TapToRunRemoteDataSource {
   @override
   Future<void> disableScene(String sceneId) async {
     try {
-      await apiClient.put('/api/smarthome/scenes/$sceneId/disable');
+      await apiClient.put(ApiEndpoints.sceneDisable(sceneId));
     } on DioException catch (e) {
       if (e.response?.statusCode == 401) {
         throw UnauthorizedException();
@@ -142,7 +143,7 @@ class TapToRunRemoteDataSourceImpl implements TapToRunRemoteDataSource {
   Future<List<DataPointModel>> getDeviceDataPoints(String deviceProfileId) async {
     try {
       final response = await apiClient.get(
-        '/api/smarthome/products/$deviceProfileId/datapoints',
+        ApiEndpoints.productDatapoints(deviceProfileId),
       );
       final List<dynamic> data = response.data is List ? response.data : [];
       return data

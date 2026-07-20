@@ -3,6 +3,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../../../core/error/exceptions.dart';
+import '../../../../core/network/api_endpoints.dart';
 import '../models/device_model.dart';
 
 abstract class DeviceRemoteDataSource {
@@ -42,7 +43,7 @@ class DeviceRemoteDataSourceImpl implements DeviceRemoteDataSource {
       }
 
       final url =
-          '$baseUrl/api/customer/$customerId/deviceInfos?pageSize=100&page=0&sortOrder=DESC';
+          '$baseUrl${ApiEndpoints.customerDeviceInfos(customerId)}?pageSize=100&page=0&sortOrder=DESC';
 
       final response = await client.get(Uri.parse(url), headers: _headers);
 
@@ -71,7 +72,7 @@ class DeviceRemoteDataSourceImpl implements DeviceRemoteDataSource {
   Future<void> deleteDevice(String deviceId) async {
     try {
       final response = await client.delete(
-        Uri.parse('$baseUrl/api/device/$deviceId'),
+        Uri.parse('$baseUrl${ApiEndpoints.device(deviceId)}'),
         headers: _headers,
       );
 

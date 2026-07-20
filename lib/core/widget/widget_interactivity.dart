@@ -7,6 +7,7 @@ import 'package:home_widget/home_widget.dart';
 import 'package:http/http.dart' as http;
 
 import '../config/app_config.dart';
+import '../network/api_endpoints.dart';
 
 /// Callback chạy NỀN khi bấm nút trên widget Android (home_widget spin một
 /// Flutter engine headless trong process app → đọc được secure storage,
@@ -39,7 +40,7 @@ Future<void> ospreyWidgetCallback(Uri? uri) async {
         .post(
           Uri.parse(
             '${AppConfig.thingsboardBaseUrl}'
-            '/api/smarthome/devices/$deviceId/commands',
+            '${ApiEndpoints.deviceCommands(deviceId)}',
           ),
           headers: {
             'Content-Type': 'application/json',

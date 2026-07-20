@@ -3,6 +3,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../../../core/error/exceptions.dart';
+import '../../../../core/network/api_endpoints.dart';
 
 abstract class DeviceControlDataSource {
   Future<void> sendCommand(String deviceId, String command);
@@ -45,7 +46,7 @@ class DeviceControlDataSourceImpl implements DeviceControlDataSource {
 
       // Gọi API
       final response = await client.post(
-        Uri.parse('$baseUrl/api/rpc/oneway/$deviceId'),
+        Uri.parse('$baseUrl${ApiEndpoints.rpcOneway(deviceId)}'),
         headers: _headers,
         body: body,
       );

@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import 'package:get_it/get_it.dart';
 import '../../../../core/auth/token_manager.dart';
 import '../../../../core/config/app_config.dart';
+import '../../../../core/network/api_endpoints.dart';
 import '../../../control/data/repositories/transport_router_impl.dart';
 import '../../../control/domain/entities/transport_state.dart';
 import '../../../control/domain/repositories/transport_router.dart';
@@ -107,7 +108,7 @@ class _CurtainControlPageState extends State<CurtainControlPage>
       if (_transport == TransportState.cloud) {
         try {
           final url =
-              '$_baseUrl/api/smarthome/devices/${widget.device.id}/commands';
+              '$_baseUrl${ApiEndpoints.deviceCommands(widget.device.id)}';
           final body = jsonEncode({'dpId': dpId, 'value': value});
           final response = await _client.post(
             Uri.parse(url),

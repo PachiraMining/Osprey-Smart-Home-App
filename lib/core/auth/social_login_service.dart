@@ -10,6 +10,7 @@ import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 import 'package:http/http.dart' as http;
 
 import '../config/app_config.dart';
+import '../network/api_endpoints.dart';
 
 /// Describes one OAuth2 provider returned by the ThingsBoard mobile API.
 class OAuth2ProviderInfo {
@@ -52,7 +53,7 @@ class SocialLoginService {
   Future<List<OAuth2ProviderInfo>> fetchAvailableProviders() async {
     final platform = Platform.isIOS ? 'IOS' : 'ANDROID';
     final uri = Uri.parse(
-      '${AppConfig.thingsboardBaseUrl}/api/noauth/mobile'
+      '${AppConfig.thingsboardBaseUrl}${ApiEndpoints.noauthMobile}'
       '?pkgName=${AppConfig.pkgName}&platform=$platform',
     );
 
