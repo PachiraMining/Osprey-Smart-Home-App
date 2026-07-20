@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../domain/entities/weather_recommendation.dart';
 import '../bloc/weather_ai_bloc.dart';
+import '../pages/weather_detail_page.dart';
 
 /// Tuya-style weather cell for the Home tab: big outdoor temperature with a
 /// condition icon, and a row of outdoor metrics (PM2.5 quality / humidity /
@@ -20,13 +21,20 @@ class WeatherCard extends StatelessWidget {
       builder: (context, state) {
         final w = state is WeatherLoaded ? state.recommendation : null;
         return GestureDetector(
-          onTap: state is WeatherUnavailable
-              ? () =>
-                  context.read<WeatherAiBloc>().add(const RefreshWeather())
-              : null,
+          onTap: () {
+            // Unavailable → retry silently on the way in; the detail page
+            // shows placeholders until data lands.
+            if (state is WeatherUnavailable) {
+              context.read<WeatherAiBloc>().add(const RefreshWeather());
+            }
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const WeatherDetailPage()),
+            );
+          },
           child: Container(
             width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
+            padding: const EdgeInsets.fromLTRB(16, 20, 16, 18),
             decoration: BoxDecoration(
               color: Colors.white.withAlpha(180),
               borderRadius: BorderRadius.circular(16),
@@ -51,7 +59,7 @@ class WeatherCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 20),
                 Row(
                   children: [
                     _Metric(

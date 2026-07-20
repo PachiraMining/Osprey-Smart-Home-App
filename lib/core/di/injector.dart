@@ -118,6 +118,7 @@ import '../../features/ai/data/datasources/foundation_models_datasource.dart';
 import '../../features/ai/data/datasources/speech_to_text_datasource.dart';
 import '../../features/ai/data/datasources/usage_pattern_local_datasource.dart';
 import '../../features/ai/data/datasources/weather_remote_datasource.dart';
+import '../../features/ai/data/weather_location_store.dart';
 import '../../features/ai/data/repositories/foundation_model_repository_impl.dart';
 import '../../features/ai/data/repositories/usage_pattern_repository_impl.dart';
 import '../../features/ai/data/repositories/weather_repository_impl.dart';
@@ -534,6 +535,7 @@ Future<void> setupInjector() async {
   sl.registerLazySingleton(() => SpeechToTextDataSource());
   sl.registerLazySingleton(() => UsagePatternLocalDataSource());
   sl.registerLazySingleton(() => WeatherRemoteDataSource(sl<http.Client>()));
+  sl.registerLazySingleton(() => WeatherLocationStore());
 
   // Repositories
   sl.registerLazySingleton<FoundationModelRepository>(
@@ -543,7 +545,7 @@ Future<void> setupInjector() async {
     () => UsagePatternRepositoryImpl(sl()),
   );
   sl.registerLazySingleton<WeatherRepository>(
-    () => WeatherRepositoryImpl(sl()),
+    () => WeatherRepositoryImpl(sl(), sl()),
   );
 
   // Use cases

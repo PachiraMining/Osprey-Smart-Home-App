@@ -6,34 +6,50 @@ import '../../../../core/error/failure.dart';
 import '../../domain/entities/weather_recommendation.dart';
 import '../../domain/repositories/weather_repository.dart';
 import '../datasources/weather_remote_datasource.dart';
+import '../weather_location_store.dart';
 
 class WeatherRepositoryImpl implements WeatherRepository {
   final WeatherRemoteDataSource _remote;
+  final WeatherLocationStore _locationStore;
 
-  WeatherRepositoryImpl(this._remote);
+  WeatherRepositoryImpl(this._remote, this._locationStore);
 
   @override
   Future<Either<Failure, WeatherRecommendation>> currentRecommendation() async {
     try {
-      final permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        final requested = await Geolocator.requestPermission();
-        if (requested == LocationPermission.denied ||
-            requested == LocationPermission.deniedForever) {
-          return const Left(
-            ServerFailure('LOC_DENIED', message: 'Location permission denied'),
-          );
+      final double latitude;
+      final double longitude;
+
+      // A manually switched location wins over GPS (and needs no permission).
+      final manual = await _locationStore.get();
+      if (manual != null) {
+        latitude = manual.latitude;
+        longitude = manual.longitude;
+      } else {
+        final permission = await Geolocator.checkPermission();
+        if (permission == LocationPermission.denied) {
+          final requested = await Geolocator.requestPermission();
+          if (requested == LocationPermission.denied ||
+              requested == LocationPermission.deniedForever) {
+            return const Left(
+              ServerFailure('LOC_DENIED',
+                  message: 'Location permission denied'),
+            );
+          }
         }
+        final position = await Geolocator.getCurrentPosition();
+        latitude = position.latitude;
+        longitude = position.longitude;
       }
-      final position = await Geolocator.getCurrentPosition();
+
       final snapshot = await _remote.fetchCurrent(
-        latitude: position.latitude,
-        longitude: position.longitude,
+        latitude: latitude,
+        longitude: longitude,
       );
       // Best-effort air quality for the home weather card (null on failure).
       final pm25 = await _remote.fetchPm25(
-        latitude: position.latitude,
-        longitude: position.longitude,
+        latitude: latitude,
+        longitude: longitude,
       );
 
       final recommendation = _recommendFromSnapshot(snapshot, pm25);
