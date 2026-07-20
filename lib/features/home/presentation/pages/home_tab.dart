@@ -1,11 +1,9 @@
-import 'package:flutter/cupertino.dart'
-    show CupertinoSliverRefreshControl, RefreshIndicatorMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:lottie/lottie.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/app_pull_refresh.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../bloc/home_management_bloc.dart';
@@ -22,6 +20,7 @@ import '../../../ai/presentation/bloc/voice_command_bloc.dart';
 import '../../../ai/presentation/bloc/weather_ai_bloc.dart';
 import '../../../ai/presentation/widgets/ai_suggestion_card.dart';
 import '../../../ai/presentation/widgets/weather_card.dart';
+import '../../../scene/presentation/widgets/tap_to_run_pills.dart';
 import '../../../ai/presentation/widgets/voice_command_button.dart';
 import '../../../ai/presentation/widgets/weather_ai_banner.dart';
 import '../../../device/domain/usecases/send_device_command.dart';
@@ -348,23 +347,16 @@ class _HomeTabState extends State<HomeTab> {
         // + device list all live in the same CustomScrollView, so everything
         // slides together (Tuya-style) and the bulb appears above the weather
         // cell when pulling down.
-        return CustomScrollView(
-          physics: const BouncingScrollPhysics(
-            parent: AlwaysScrollableScrollPhysics(),
-          ),
+        return AppPullRefresh(
+          onRefresh: _onRefresh,
+          child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
-            CupertinoSliverRefreshControl(
-              refreshTriggerPullDistance: 90,
-              refreshIndicatorExtent: 60,
-              onRefresh: _onRefresh,
-              builder: _buildBulbIndicator,
-            ),
-
             SliverToBoxAdapter(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 9),
 
                   // Tuya-style outdoor weather cell
                   const Padding(
@@ -372,7 +364,12 @@ class _HomeTabState extends State<HomeTab> {
                     child: WeatherCard(),
                   ),
 
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
+
+                  // Tap-to-Run quick-run pills (Tuya-style, scene colors)
+                  const TapToRunPills(),
+
+                  const SizedBox(height: 14),
 
                   // Room filter chips
                   if (state.rooms.isNotEmpty)
@@ -420,34 +417,9 @@ class _HomeTabState extends State<HomeTab> {
             // Device list / status states (as slivers in the same scroll)
             _buildDeviceSliver(state),
           ],
+          ),
         );
       },
-      ),
-    );
-  }
-
-  /// Pull-to-refresh indicator: Google's Noto animated-emoji light bulb
-  /// (Lottie, CC-BY). Pulling scrubs the first frames in; releasing loops the
-  /// full light-up animation while the refresh runs.
-  Widget _buildBulbIndicator(
-    BuildContext context,
-    RefreshIndicatorMode refreshState,
-    double pulledExtent,
-    double refreshTriggerPullDistance,
-    double refreshIndicatorExtent,
-  ) {
-    final t = (pulledExtent / refreshTriggerPullDistance).clamp(0.0, 1.0);
-    final active = refreshState == RefreshIndicatorMode.armed ||
-        refreshState == RefreshIndicatorMode.refresh ||
-        refreshState == RefreshIndicatorMode.done;
-    return Align(
-      alignment: Alignment.bottomCenter,
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: 6),
-        child: Opacity(
-          opacity: active ? 1.0 : t,
-          child: _LottieBulb(playing: active, progress: t),
-        ),
       ),
     );
   }
@@ -529,68 +501,6 @@ class _HomeTabState extends State<HomeTab> {
   }
 }
 
-/// Lottie light bulb for pull-to-refresh (Noto animated emoji 💡, Google,
-/// CC-BY 4.0 — assets/lottie/light_bulb.json).
-///
-/// While pulling ([playing] false) the animation is scrubbed to a fraction of
-/// [progress], so the bulb "wakes up" under the finger; while refreshing
-/// ([playing] true) the full light-up animation loops.
-class _LottieBulb extends StatefulWidget {
-  final bool playing;
-  final double progress;
-
-  const _LottieBulb({required this.playing, required this.progress});
-
-  @override
-  State<_LottieBulb> createState() => _LottieBulbState();
-}
-
-class _LottieBulbState extends State<_LottieBulb>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller = AnimationController(
-    vsync: this,
-    // Placeholder; the real duration arrives in onLoaded.
-    duration: const Duration(milliseconds: 2400),
-  );
-
-  @override
-  void didUpdateWidget(covariant _LottieBulb oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    _sync();
-  }
-
-  void _sync() {
-    if (widget.playing) {
-      if (!_controller.isAnimating) _controller.repeat();
-    } else {
-      _controller.stop();
-      // Scrub the intro (first ~35% of the animation) with the pull distance.
-      _controller.value = (widget.progress * 0.35).clamp(0.0, 1.0);
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Lottie.asset(
-      'assets/lottie/light_bulb.json',
-      controller: _controller,
-      width: 46,
-      height: 46,
-      fit: BoxFit.contain,
-      onLoaded: (composition) {
-        _controller.duration = composition.duration;
-        _sync();
-      },
-    );
-  }
-}
-
 /// Branded empty state used across tabs — generous spacing, soft serif vibe.
 class _BrandEmptyState extends StatelessWidget {
   final IconData icon;
@@ -654,39 +564,21 @@ class _RoomChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(AppRadius.pill),
-          onTap: onTap,
-          child: Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
-            decoration: BoxDecoration(
-              color: isSelected
-                  ? AppColors.primary
-                  : AppColors.surface,
-              borderRadius: BorderRadius.circular(AppRadius.pill),
-              border: Border.all(
-                color: isSelected
-                    ? AppColors.primary
-                    : AppColors.borderSubtle,
-                width: 1,
-              ),
-            ),
-            child: Text(
-              label,
-              style: AppTypography.labelMedium.copyWith(
-                color: isSelected
-                    ? AppColors.textInverse
-                    : AppColors.textSecondary,
-                fontWeight:
-                    isSelected ? FontWeight.w700 : FontWeight.w500,
-              ),
-            ),
+    // Text-only tab, styled like the Automation / Tap-to-Run header: no
+    // background, no border — the selected room is simply bold black.
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+        child: AnimatedDefaultTextStyle(
+          duration: const Duration(milliseconds: 150),
+          style: TextStyle(
+            fontSize: isSelected ? 16 : 14,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w400,
+            color: isSelected ? Colors.black87 : Colors.grey,
           ),
+          child: Text(label),
         ),
       ),
     );
@@ -780,31 +672,6 @@ class _DeviceCardState extends State<_DeviceCard> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Container(
-                          width: 6,
-                          height: 6,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: isOnline
-                                ? AppColors.statusOnline
-                                : AppColors.statusOffline,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          isOnline ? 'Online' : 'Offline',
-                          style: AppTypography.caption.copyWith(
-                            color: isOnline
-                                ? AppColors.statusOnline
-                                : AppColors.textMuted,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
                     // Curtain-track quick controls toggle (Tuya-style
                     // "Common Functions") — online devices only.
                     if (isOnline)
@@ -859,19 +726,17 @@ class _DeviceCardState extends State<_DeviceCard> {
                   ),
                 )
               else
-                Container(
+                SizedBox(
                   width: 42,
                   height: 42,
-                  padding: const EdgeInsets.all(9),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.surfaceMuted,
-                  ),
-                  child: SvgPicture.asset(
-                    'assets/icons/bluetooth_disconnect.svg',
-                    colorFilter: const ColorFilter.mode(
-                      AppColors.textMuted,
-                      BlendMode.srcIn,
+                  child: Padding(
+                    padding: const EdgeInsets.all(9),
+                    child: SvgPicture.asset(
+                      'assets/icons/bluetooth_disconnect.svg',
+                      colorFilter: const ColorFilter.mode(
+                        AppColors.textMuted,
+                        BlendMode.srcIn,
+                      ),
                     ),
                   ),
                 ),

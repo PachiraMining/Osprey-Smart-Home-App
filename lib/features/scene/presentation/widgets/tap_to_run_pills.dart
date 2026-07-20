@@ -1,0 +1,97 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../../../core/theme/scene_style.dart';
+import '../../../home/presentation/bloc/home_management_bloc.dart';
+import '../../domain/entities/tap_to_run_scene_entity.dart';
+import '../bloc/tap_to_run/tap_to_run_bloc.dart';
+import '../bloc/tap_to_run/tap_to_run_event.dart';
+import '../bloc/tap_to_run/tap_to_run_state.dart';
+
+/// Horizontal strip of Tap-to-Run quick-run pills for the Home tab (Tuya
+/// style): each pill carries its scene's color and runs the scene on tap.
+/// Renders nothing while there are no scenes.
+class TapToRunPills extends StatefulWidget {
+  const TapToRunPills({super.key});
+
+  @override
+  State<TapToRunPills> createState() => _TapToRunPillsState();
+}
+
+class _TapToRunPillsState extends State<TapToRunPills> {
+  @override
+  void initState() {
+    super.initState();
+    // The Scene tab normally loads these; kick a load here too so the pills
+    // appear even if the user never opened that tab this session.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final bloc = context.read<TapToRunBloc>();
+      final homeId = context.read<HomeManagementBloc>().state.selectedHomeId;
+      if (bloc.state is TapToRunInitial && homeId != null) {
+        bloc.add(LoadTapToRunScenesEvent(homeId));
+      }
+    });
+  }
+
+  List<TapToRunSceneEntity> _scenesOf(TapToRunState state) => switch (state) {
+        TapToRunLoaded(:final scenes) => scenes,
+        TapToRunExecuting(:final scenes) => scenes,
+        TapToRunExecuteResult(:final scenes) => scenes,
+        _ => const <TapToRunSceneEntity>[],
+      };
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<TapToRunBloc, TapToRunState>(
+      builder: (context, state) {
+        final scenes = _scenesOf(state);
+        if (scenes.isEmpty) return const SizedBox.shrink();
+        return SizedBox(
+          height: 40,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            itemCount: scenes.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 10),
+            itemBuilder: (context, index) {
+              final scene = scenes[index];
+              final (color, _) = SceneStyle.decode(scene.icon, scene.id);
+              return GestureDetector(
+                onTap: () {
+                  context
+                      .read<TapToRunBloc>()
+                      .add(ExecuteTapToRunSceneEvent(scene.id));
+                  ScaffoldMessenger.of(context)
+                    ..clearSnackBars()
+                    ..showSnackBar(
+                      SnackBar(
+                        content: Text('Running "${scene.name}"…'),
+                        duration: const Duration(seconds: 1),
+                      ),
+                    );
+                },
+                child: Container(
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: BorderRadius.circular(22),
+                  ),
+                  child: Text(
+                    scene.name,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+}

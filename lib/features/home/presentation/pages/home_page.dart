@@ -30,10 +30,12 @@ import 'package:smart_curtain_app/features/home/presentation/bloc/home_managemen
 import 'package:smart_curtain_app/features/home/presentation/bloc/home_management_state.dart';
 import 'package:smart_curtain_app/features/home/presentation/pages/home_selector_sheet.dart';
 import 'package:smart_curtain_app/features/home/presentation/pages/home_management_page.dart';
+import 'package:smart_curtain_app/core/widgets/app_pull_refresh.dart';
+import 'package:smart_curtain_app/core/theme/scene_style.dart';
 import 'package:smart_curtain_app/core/notifications/message_center.dart';
 import 'package:smart_curtain_app/features/home/presentation/pages/app_mall_page.dart';
+import 'package:smart_curtain_app/features/home/presentation/pages/in_app_web_page.dart';
 import 'package:smart_curtain_app/features/home/presentation/pages/message_center_page.dart';
-import 'package:smart_curtain_app/features/home/presentation/pages/placeholder_page.dart';
 import 'package:smart_curtain_app/features/home/presentation/pages/chat_tab.dart';
 import 'package:smart_curtain_app/features/home/presentation/pages/home_tab.dart'
     as home_tab;
@@ -331,6 +333,34 @@ class HomePageState extends State<HomePage> {
 }
 
 /// Floating pill bottom navigation — distinct from the typical Material flat bar.
+/// White rounded tile used in the automation card's illustration row
+/// (clock trigger, device artwork, scene tag, ...).
+class _AutomationTile extends StatelessWidget {
+  final Widget child;
+
+  const _AutomationTile({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 46,
+      height: 46,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(10),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Center(child: child),
+    );
+  }
+}
+
 class _BrandBottomNav extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
@@ -352,12 +382,12 @@ class _BrandBottomNav extends StatelessWidget {
     return SafeArea(
       top: false,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
         child: LiquidGlass(
           radius: AppRadius.xl,
           fillColor: AppColors.glassFillStrong,
           child: SizedBox(
-          height: 68,
+          height: 53,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: List.generate(_items.length, (i) {
@@ -370,7 +400,7 @@ class _BrandBottomNav extends StatelessWidget {
                   highlightColor: AppColors.primary.withAlpha(10),
                   onTap: () => onTap(i),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    padding: const EdgeInsets.symmetric(vertical: 2),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -378,7 +408,7 @@ class _BrandBottomNav extends StatelessWidget {
                           duration: const Duration(milliseconds: 220),
                           curve: Curves.easeOut,
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 14, vertical: 6),
+                              horizontal: 13, vertical: 4),
                           decoration: BoxDecoration(
                             color: selected
                                 ? AppColors.primarySubtle
@@ -388,13 +418,13 @@ class _BrandBottomNav extends StatelessWidget {
                           ),
                           child: Icon(
                             selected ? filled : outlined,
-                            size: 22,
+                            size: 20,
                             color: selected
                                 ? AppColors.primary
                                 : AppColors.textMuted,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 2),
                         Text(
                           label,
                           style: AppTypography.labelSmall.copyWith(
@@ -402,6 +432,7 @@ class _BrandBottomNav extends StatelessWidget {
                                 ? AppColors.primary
                                 : AppColors.textMuted,
                             fontSize: 10,
+                            height: 1.0,
                           ),
                         ),
                       ],
@@ -727,9 +758,10 @@ class _SceneTabState extends State<SceneTab> {
   }
 
   Widget _buildTapToRunList(BuildContext context, List<TapToRunSceneEntity> scenes, TapToRunState state) {
-    return RefreshIndicator(
+    return AppPullRefresh(
       onRefresh: () async {
         _loadTapToRunScenes();
+        await Future.delayed(const Duration(milliseconds: 800));
       },
       child: GridView.builder(
         padding: const EdgeInsets.only(bottom: 100),
@@ -890,8 +922,11 @@ class _SceneTabState extends State<SceneTab> {
 
   Widget _buildAutomationList(
       BuildContext context, List<AutomationSceneEntity> automations) {
-    return RefreshIndicator(
-      onRefresh: () async => _loadAutomationScenes(),
+    return AppPullRefresh(
+      onRefresh: () async {
+        _loadAutomationScenes();
+        await Future.delayed(const Duration(milliseconds: 800));
+      },
       child: ListView.separated(
         padding: const EdgeInsets.only(bottom: 100),
         itemCount: automations.length,
@@ -940,51 +975,76 @@ class _SceneTabState extends State<SceneTab> {
               behavior: HitTestBehavior.opaque,
               onTap: () => _openAutomationDetail(automation),
               child: Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.fromLTRB(20, 18, 14, 14),
                 decoration: BoxDecoration(
                   color: Colors.white.withAlpha(200),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(20),
                 ),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CircleAvatar(
-                      radius: 20,
-                      backgroundColor: AppColors.primary.withAlpha(30),
-                      child: const Icon(Icons.access_time,
-                          color: AppColors.primary),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            automation.name,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
+                    // Name pinned to the top-left corner + chevron top-right.
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                automation.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 19,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              const SizedBox(height: 5),
+                              Text(
+                                '${automation.actions.length} tasks',
+                                style: TextStyle(
+                                  fontSize: 13.5,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            _automationSubtitle(automation),
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                        Icon(Icons.chevron_right,
+                            color: Colors.grey.shade400, size: 24),
+                      ],
                     ),
-                    Switch(
-                      value: automation.enabled,
-                      onChanged: (v) {
-                        context
-                            .read<AutomationBloc>()
-                            .add(ToggleAutomationEvent(automation.id, v));
-                      },
-                      activeThumbColor: AppColors.surface,
-                      activeTrackColor: AppColors.primary,
+
+                    // Breathing room — the Tuya card is roughly double height.
+                    const SizedBox(height: 34),
+
+                    // Illustration: trigger (clock) → action tiles, + toggle.
+                    Row(
+                      children: [
+                        const _AutomationTile(
+                          child: Icon(Icons.watch_later,
+                              size: 28, color: Color(0xFF42A5F5)),
+                        ),
+                        Padding(
+                          padding:
+                              const EdgeInsets.symmetric(horizontal: 6),
+                          child: Icon(Icons.arrow_right_alt_rounded,
+                              size: 24, color: Colors.grey.shade400),
+                        ),
+                        ..._automationActionTiles(automation),
+                        const Spacer(),
+                        Switch(
+                          value: automation.enabled,
+                          onChanged: (v) {
+                            context.read<AutomationBloc>().add(
+                                ToggleAutomationEvent(automation.id, v));
+                          },
+                          activeThumbColor: AppColors.surface,
+                          activeTrackColor: AppColors.primary,
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -996,15 +1056,58 @@ class _SceneTabState extends State<SceneTab> {
     );
   }
 
-  /// One-line summary of an automation for the list card: first schedule +
-  /// action count. Mirrors the Tap-to-Run card density.
-  String _automationSubtitle(AutomationSceneEntity automation) {
-    final schedule = automation.conditions.isNotEmpty
-        ? automation.conditions.first.displayText
-        : 'No schedule';
-    final count = automation.actions.length;
-    final actionLabel = count == 1 ? '1 action' : '$count actions';
-    return '$schedule • $actionLabel';
+  /// Action tiles for the automation card illustration row: curtain-track
+  /// artwork per device action, tag for scene runs, hourglass for delays.
+  /// Caps at 3 tiles with a "+n" overflow chip.
+  List<Widget> _automationActionTiles(AutomationSceneEntity automation) {
+    final tiles = <Widget>[];
+    var shown = 0;
+    for (final action in automation.actions) {
+      if (shown == 3) break;
+      final Widget child;
+      switch (action.actionType) {
+        case 'DEVICE_CONTROL':
+          child = Padding(
+            padding: const EdgeInsets.all(5),
+            child: Image.asset(
+              'assets/icons/curtain_track.png',
+              fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) => const Icon(
+                  Icons.curtains_outlined,
+                  size: 22,
+                  color: AppColors.primary),
+            ),
+          );
+        case 'SCENE_RUN':
+          child = const Icon(Icons.sell,
+              size: 22, color: Color(0xFF2BB673));
+        case 'DELAY':
+          child = const Icon(Icons.hourglass_bottom,
+              size: 22, color: AppColors.primary);
+        default:
+          child = Icon(Icons.settings_remote_outlined,
+              size: 22, color: Colors.grey.shade500);
+      }
+      tiles.add(Padding(
+        padding: EdgeInsets.only(left: shown == 0 ? 0 : 6),
+        child: _AutomationTile(child: child),
+      ));
+      shown++;
+    }
+    final rest = automation.actions.length - shown;
+    if (rest > 0) {
+      tiles.add(Padding(
+        padding: const EdgeInsets.only(left: 6),
+        child: _AutomationTile(
+          child: Text('+$rest',
+              style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey.shade600)),
+        ),
+      ));
+    }
+    return tiles;
   }
 }
 
@@ -1019,25 +1122,11 @@ class _TapToRunCard extends StatelessWidget {
     required this.onMore,
   });
 
-  /// Decode "#RRGGBB|codePoint" → (Color, IconData), with defaults.
-  static (Color, IconData) _decodeStyle(String? iconStr) {
-    const defaultColor = Color(0xFFD46B6B);
-    const defaultIcon = Icons.play_arrow_rounded;
-    if (iconStr == null || !iconStr.contains('|')) return (defaultColor, defaultIcon);
-    try {
-      final parts = iconStr.split('|');
-      final hex = parts[0].replaceFirst('#', '');
-      final color = Color(int.parse('FF$hex', radix: 16));
-      final icon = IconData(int.parse(parts[1]), fontFamily: 'MaterialIcons');
-      return (color, icon);
-    } catch (_) {
-      return (defaultColor, defaultIcon);
-    }
-  }
+
 
   @override
   Widget build(BuildContext context) {
-    final (cardColor, cardIcon) = _decodeStyle(scene.icon);
+    final (cardColor, cardIcon) = SceneStyle.decode(scene.icon, scene.id);
     final lighterColor = Color.lerp(cardColor, Colors.white, 0.15)!;
 
     return GestureDetector(
@@ -1378,11 +1467,9 @@ class ProfileTab extends StatelessWidget {
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const PlaceholderPage(
+                      builder: (_) => const InAppWebPage(
                         title: 'FAQ & Feedback',
-                        icon: Icons.help_outline,
-                        description:
-                            'Help articles and feedback are coming soon.',
+                        url: 'https://osprey.life/pages/contact',
                       ),
                     ),
                   ),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/widgets/app_pull_refresh.dart';
+
 import '../../../../core/di/injector.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../data/datasources/device_wifi_remote_datasource.dart';
@@ -335,7 +337,7 @@ class _DeviceNetworkPageState extends State<DeviceNetworkPage> {
     if (_loading) {
       return const Center(child: CircularProgressIndicator());
     }
-    return RefreshIndicator(
+    return AppPullRefresh(
       onRefresh: _load,
       child: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),

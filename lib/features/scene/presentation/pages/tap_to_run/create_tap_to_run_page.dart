@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_curtain_app/features/scene/domain/entities/tap_to_run_scene_entity.dart';
@@ -54,6 +56,9 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
       _decodeStyleIcon(widget.existingScene!.icon);
     } else {
       _nameController.text = 'Scene Name';
+      // New scenes get a random palette color (persisted in scene.icon on
+      // save, so the card keeps this exact color on every reload).
+      _selectedColor = _sceneColors[Random().nextInt(_sceneColors.length)];
     }
   }
 

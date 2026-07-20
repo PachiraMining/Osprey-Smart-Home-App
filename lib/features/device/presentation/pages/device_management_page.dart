@@ -1,6 +1,8 @@
 // lib/features/device/presentation/pages/device_management_page.dart
 
 import 'package:flutter/material.dart';
+
+import '../../../../core/widgets/app_pull_refresh.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_curtain_app/features/device/presentation/bloc/device_bloc.dart';
 import 'package:smart_curtain_app/features/device/presentation/bloc/device_event.dart';
@@ -88,7 +90,7 @@ class _DeviceManagementPageState extends State<DeviceManagementPage> {
                     return _buildEmptyState();
                   }
 
-                  return RefreshIndicator(
+                  return AppPullRefresh(
                     onRefresh: () async {
                       context.read<DeviceBloc>().add(RefreshDevicesEvent());
                       await Future.delayed(const Duration(seconds: 1));

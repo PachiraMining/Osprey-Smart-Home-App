@@ -69,12 +69,12 @@ void main() {
       expect(resolveActionDeviceName(action, devices), 'Kitchen Fan');
     });
 
-    test('falls back to "Device" when the id is unknown', () {
+    test('falls back to the product name when the id is unknown', () {
       const action = SceneActionEntity(
         actionType: 'DEVICE_CONTROL',
         entityId: 'ghost',
       );
-      expect(resolveActionDeviceName(action, devices), 'Device');
+      expect(resolveActionDeviceName(action, devices), 'Curtain Track');
     });
   });
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_curtain_app/core/theme/app_colors.dart';
 import 'package:smart_curtain_app/features/home/presentation/bloc/home_management_bloc.dart';
+import 'package:smart_curtain_app/features/home/presentation/bloc/home_management_event.dart';
 import 'package:smart_curtain_app/features/scene/domain/entities/automation_scene_entity.dart';
 import 'package:smart_curtain_app/features/scene/domain/entities/scene_action_entity.dart';
 import 'package:smart_curtain_app/features/scene/domain/entities/schedule_condition_entity.dart';
@@ -26,9 +27,14 @@ String resolveActionDeviceName(
   final inMemory = action.deviceName;
   if (inMemory != null && inMemory.isNotEmpty) return inMemory;
   for (final d in devices) {
-    if (d.deviceId == action.entityId) return d.displayName;
+    // entityId is normally the TB deviceId, but older records may carry the
+    // home-device row id — accept both.
+    if (d.deviceId == action.entityId || d.id == action.entityId) {
+      return d.displayName;
+    }
   }
-  return 'Device';
+  // Last resort: name the product line rather than a generic "Device".
+  return 'Curtain Track';
 }
 
 class AutomationDetailPage extends StatefulWidget {
@@ -60,6 +66,14 @@ class _AutomationDetailPageState extends State<AutomationDetailPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final hm = context.read<HomeManagementBloc>();
+      final homeId = hm.state.selectedHomeId;
+      if (hm.state.devices.isEmpty && homeId != null) {
+        hm.add(LoadHomeDevicesEvent(homeId));
+      }
+    });
     final a = widget.automation;
     if (a != null) {
       // Edit mode
@@ -1144,8 +1158,19 @@ class _ActionRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final devices = context.read<HomeManagementBloc>().state.devices;
+    final devices = context.watch<HomeManagementBloc>().state.devices;
     final (icon, iconColor, title, subtitle) = _resolveDisplay(devices);
+    final Widget leading = action.actionType == 'DEVICE_CONTROL'
+        ? Padding(
+            padding: const EdgeInsets.all(5),
+            child: Image.asset(
+              'assets/icons/curtain_track.png',
+              fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) =>
+                  Icon(icon, size: 22, color: iconColor),
+            ),
+          )
+        : Icon(icon, size: 22, color: iconColor);
     return Dismissible(
       key: Key('action_${action.actionType}_$index'),
       direction: DismissDirection.endToStart,
@@ -1167,10 +1192,12 @@ class _ActionRow extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: AppColors.surfaceMuted,
+                  color: action.actionType == 'DEVICE_CONTROL'
+                      ? Colors.white
+                      : AppColors.surfaceMuted,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(icon, size: 22, color: iconColor),
+                child: leading,
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -1265,8 +1292,17 @@ class _AllDevicesPage extends StatelessWidget {
                         color: AppColors.surfaceMuted,
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: const Icon(Icons.devices_other,
-                          size: 24, color: AppColors.textSecondary),
+                      child: Padding(
+                        padding: const EdgeInsets.all(6),
+                        child: Image.asset(
+                          'assets/icons/curtain_track.png',
+                          fit: BoxFit.contain,
+                          errorBuilder: (_, __, ___) => const Icon(
+                              Icons.devices_other,
+                              size: 24,
+                              color: AppColors.textSecondary),
+                        ),
+                      ),
                     ),
                     const SizedBox(width: 14),
                     Expanded(
