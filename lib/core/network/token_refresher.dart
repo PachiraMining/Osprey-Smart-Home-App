@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 
 import '../auth/token_manager.dart';
@@ -53,7 +55,14 @@ class TokenRefresher {
 
   Future<bool> _doRefresh() async {
     final refreshToken = await _tokenManager.getRefreshToken();
-    if (refreshToken == null || refreshToken.isEmpty) return false;
+    // TEMP-AUTH-DIAG: reveal whether the refresh token survived cold start and
+    // its real server TTL (decoded exp). Remove once the next-day-logout cause
+    // is pinned down.
+    _diagToken('refresh-token(read)', refreshToken);
+    if (refreshToken == null || refreshToken.isEmpty) {
+      print('🔑[AUTH-DIAG] refresh ABORT: no refresh token in storage');
+      return false;
+    }
     try {
       final response = await _dio.post(
         _refreshPath,
@@ -62,6 +71,9 @@ class TokenRefresher {
       final data = response.data;
       final newToken = data is Map ? data['token'] as String? : null;
       final newRefresh = data is Map ? data['refreshToken'] as String? : null;
+      print('🔑[AUTH-DIAG] refresh POST $_refreshPath → status=${response.statusCode} '
+          'hasToken=${newToken != null && newToken.isNotEmpty} '
+          'hasNewRefresh=${newRefresh != null && newRefresh.isNotEmpty}');
       if (newToken == null || newToken.isEmpty) return false;
       await _tokenManager.saveTokens(
         token: newToken,
@@ -72,8 +84,50 @@ class TokenRefresher {
       _tokenManager.setCachedToken(newToken);
       _onRefreshed?.call(newToken);
       return true;
-    } catch (_) {
+    } catch (e) {
+      // TEMP-AUTH-DIAG: capture WHY the refresh was rejected (status + body).
+      if (e is DioException) {
+        print('🔑[AUTH-DIAG] refresh FAILED status=${e.response?.statusCode} '
+            'type=${e.type.name} body=${e.response?.data} msg=${e.message}');
+      } else {
+        print('🔑[AUTH-DIAG] refresh FAILED (non-Dio): $e');
+      }
       return false;
+    }
+  }
+
+  /// TEMP-AUTH-DIAG: decode a JWT's `exp`/`iat` and print its lifetime + how
+  /// long until it expires, so we can see the refresh token's real server TTL.
+  void _diagToken(String label, String? token) {
+    if (token == null || token.isEmpty) {
+      print('🔑[AUTH-DIAG] $label = <empty>');
+      return;
+    }
+    try {
+      final parts = token.split('.');
+      if (parts.length != 3) {
+        print('🔑[AUTH-DIAG] $label = not-a-jwt (len=${token.length})');
+        return;
+      }
+      var seg = parts[1].replaceAll('-', '+').replaceAll('_', '/');
+      seg = seg.padRight(seg.length + (4 - seg.length % 4) % 4, '=');
+      final payload = jsonDecode(utf8.decode(base64.decode(seg))) as Map;
+      final exp = payload['exp'];
+      final iat = payload['iat'];
+      final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      if (exp is num) {
+        final ttlDays = iat is num
+            ? ((exp - iat) / 86400).toStringAsFixed(2)
+            : '?';
+        final leftHours = ((exp - now) / 3600).toStringAsFixed(1);
+        print('🔑[AUTH-DIAG] $label exp=$exp iat=$iat '
+            'issuedTTL=${ttlDays}d expiresIn=${leftHours}h '
+            '(${exp < now ? "EXPIRED" : "valid"})');
+      } else {
+        print('🔑[AUTH-DIAG] $label has no numeric exp (keys=${payload.keys.toList()})');
+      }
+    } catch (e) {
+      print('🔑[AUTH-DIAG] $label decode-error: $e');
     }
   }
 }

@@ -141,20 +141,34 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final tokenMgr = tokenManager ?? sl<TokenManager>();
       var token = await tokenMgr.getToken();
 
-      if (token == null || token.isEmpty) {
-        emit(AuthInitial());
-        return;
-      }
+      final storedRefresh = await tokenMgr.getRefreshToken();
 
-      // Stale-session guard: if the stored access token is already expired,
-      // refresh it before entering the app. If refresh fails, the session is
-      // truly dead — wipe credentials and route to login instead of booting
-      // into a home screen where every request would 401.
-      if (JwtUtils.isExpired(token)) {
+      // TEMP-AUTH-DIAG: on every cold start, log both tokens' expiry so we can
+      // see (a) whether they survived storage and (b) their real server TTLs.
+      print('🔑[AUTH-DIAG] cold-start access=${_diagExp(token)} '
+          'refresh=${_diagExp(storedRefresh)}');
+
+      // The REFRESH token — not the access token — is what decides whether the
+      // session is still alive. The access token is short-lived (2.5h) and is
+      // *expected* to be missing or expired on a cold start the next day; on
+      // Android it can even read back null when EncryptedSharedPreferences hits
+      // a transient decrypt miss after the process is killed. In all of those
+      // cases we must recover through the refresh API rather than force a
+      // re-login. Only a genuinely absent refresh token, or a refresh the server
+      // rejects, means the session is truly over.
+      final accessUsable =
+          token != null && token.isNotEmpty && !JwtUtils.isExpired(token);
+
+      if (!accessUsable) {
+        final hasRefresh = storedRefresh != null && storedRefresh.isNotEmpty;
         final refresher = _resolveRefresher();
-        final refreshed = refresher != null && await refresher.tryRefresh();
+        final refreshed =
+            hasRefresh && refresher != null && await refresher.tryRefresh();
         if (!refreshed) {
-          await tokenMgr.clearTokens();
+          // Wipe credentials only when we actually held a refresh token that the
+          // server rejected — a transient storage read miss must not nuke
+          // recoverable tokens (the next launch may read them fine).
+          if (hasRefresh) await tokenMgr.clearTokens();
           emit(AuthInitial());
           return;
         }
@@ -188,6 +202,21 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     } catch (e) {
       emit(AuthInitial());
     }
+  }
+
+  /// TEMP-AUTH-DIAG: compact "<state> ttl=Xd left=Yh" for a JWT, so cold-start
+  /// logs show whether a token is expired and its real server lifetime.
+  String _diagExp(String? token) {
+    if (token == null || token.isEmpty) return '<empty>';
+    final p = JwtUtils.decodePayload(token);
+    if (p == null) return 'not-a-jwt';
+    final exp = p['exp'];
+    final iat = p['iat'];
+    if (exp is! num) return 'no-exp';
+    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    final ttl = iat is num ? ((exp - iat) / 86400).toStringAsFixed(2) : '?';
+    final left = ((exp - now) / 3600).toStringAsFixed(1);
+    return '${exp < now ? "EXPIRED" : "valid"}(ttl=${ttl}d,left=${left}h)';
   }
 
   /// Prefers the injected refresher (tests); falls back to the DI container.
