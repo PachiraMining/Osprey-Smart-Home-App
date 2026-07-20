@@ -64,7 +64,7 @@ class MqttService {
     String host = AppConfig.mqttHost,
     int port = AppConfig.mqttPort,
     int keepAliveSeconds = 60,
-    bool useTls = false,
+    bool useTls = AppConfig.mqttUseTls,
   })  : _clientIdPrefix = clientIdPrefix,
         _host = host,
         _port = port,

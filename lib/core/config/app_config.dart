@@ -1,9 +1,41 @@
 /// Centralized app configuration.
 /// Change these values per environment (dev/staging/prod).
 class AppConfig {
-  static const String thingsboardBaseUrl =
-      'https://performentmarketing.ddnsgeek.com';
-  static const String schedulerBaseUrl = 'https://performentmarketing.ddnsgeek.com';
+  /// TEST/staging domain — the one currently in use, and the default for every
+  /// build until the publish domain is provided.
+  static const String _testBaseUrl = 'https://performentmarketing.ddnsgeek.com';
+
+  /// PUBLISH/production domain. Overridable via
+  /// `--dart-define=PUBLISH_BASE_URL=https://<domain>` if it ever changes.
+  static const String _publishBaseUrl = String.fromEnvironment(
+    'PUBLISH_BASE_URL',
+    defaultValue: 'https://iot.osprey.life',
+  );
+
+  /// Which domain to target: `--dart-define=API_ENV=test|publish` (default test).
+  static const String apiEnv =
+      String.fromEnvironment('API_ENV', defaultValue: 'test');
+
+  static const bool _isPublish = apiEnv == 'publish';
+
+  /// REST API base URL. Switch domains at build time WITHOUT editing code:
+  ///   • test (default):    `flutter build apk`
+  ///   • publish:           `flutter build apk --dart-define=API_ENV=publish`
+  ///                          (→ https://iot.osprey.life)
+  ///   • ad-hoc override:   `--dart-define=BASE_URL=https://<any-domain>`
+  /// Host/scheme only — every path comes from `ApiEndpoints`.
+  static const String thingsboardBaseUrl = String.fromEnvironment(
+    'BASE_URL',
+    defaultValue: apiEnv == 'publish' ? _publishBaseUrl : _testBaseUrl,
+  );
+
+  /// Scheduler API base URL. Defaults to the same host as [thingsboardBaseUrl];
+  /// override separately with `--dart-define=SCHEDULER_BASE_URL=...` if it lives
+  /// on a different domain.
+  static const String schedulerBaseUrl = String.fromEnvironment(
+    'SCHEDULER_BASE_URL',
+    defaultValue: thingsboardBaseUrl,
+  );
 
   /// Endpoint that exchanges a refresh token for a fresh access token.
   /// ThingsBoard standard: `POST /api/auth/token` with `{"refreshToken": "..."}`
@@ -37,27 +69,40 @@ class AppConfig {
   /// Pass via --dart-define=SENTRY_DSN=<value> at build time. Empty disables Sentry.
   static const String sentryDsn = String.fromEnvironment('SENTRY_DSN');
 
-  /// MQTT broker host for ThingsBoard real-time telemetry.
-  /// Pass via --dart-define=MQTT_HOST=<host> (default: same host as ThingsBoard REST).
+  /// MQTT broker host for real-time telemetry. Publish uses `iot.osprey.life`
+  /// (TLS on 8883); test uses the ddnsgeek host (plain 1883). Override with
+  /// `--dart-define=MQTT_HOST=<host>`.
   static const String mqttHost = String.fromEnvironment(
     'MQTT_HOST',
-    defaultValue: 'performentmarketing.ddnsgeek.com',
+    defaultValue:
+        _isPublish ? 'iot.osprey.life' : 'performentmarketing.ddnsgeek.com',
   );
 
-  /// MQTT broker port. Default 1883 (plain), use 8883 for TLS.
+  /// MQTT broker port. Publish = 8883 (TLS/mqtts), test = 1883 (plain).
   static const int mqttPort =
-      int.fromEnvironment('MQTT_PORT', defaultValue: 1883);
+      int.fromEnvironment('MQTT_PORT', defaultValue: _isPublish ? 8883 : 1883);
+
+  /// Whether the MQTT client must use TLS. Publish broker is mqtts:// → true.
+  static const bool mqttUseTls =
+      bool.fromEnvironment('MQTT_TLS', defaultValue: _isPublish);
 
   /// MQTT URL gửi cho DEVICE qua BLE pairing (firmware connect tới đây).
   /// Firmware ≥ v1.0.15 tự chọn giao thức MQTTS theo scheme `ssl://`.
-  static const String deviceMqttUrl =
-      'ssl://performentmarketing.ddnsgeek.com';
+  static const String deviceMqttUrl = String.fromEnvironment(
+    'DEVICE_MQTT_URL',
+    defaultValue: _isPublish
+        ? 'ssl://iot.osprey.life:8883'
+        : 'ssl://performentmarketing.ddnsgeek.com',
+  );
 
   /// HTTP API base URL gửi cho DEVICE qua BLE pairing
   /// (firmware gọi /api/v1/provision + /pairing/device-callback).
   /// Firmware ≥ v1.0.15 tự chọn HTTPS theo scheme `https://`.
-  static const String deviceHttpApiBaseUrl =
-      'https://performentmarketing.ddnsgeek.com';
+  static const String deviceHttpApiBaseUrl = String.fromEnvironment(
+    'DEVICE_HTTP_API_BASE_URL',
+    defaultValue:
+        _isPublish ? 'https://iot.osprey.life' : 'https://performentmarketing.ddnsgeek.com',
+  );
 
   /// App key định danh brand ở các endpoint auth (email/phone/guest).
   ///
