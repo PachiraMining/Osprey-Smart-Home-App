@@ -138,8 +138,7 @@ class _OspreyAddDeviceViewState extends State<_OspreyAddDeviceView> {
             child: Column(
               children: [
                 _buildHeader(isScanning, state),
-                _buildRadar(devices.length),
-                if (devices.isNotEmpty) _buildDeviceList(devices),
+                _buildRadar(devices),
                 if (!isScanning)
                   Padding(
                     padding: const EdgeInsets.all(20),
@@ -212,107 +211,136 @@ class _OspreyAddDeviceViewState extends State<_OspreyAddDeviceView> {
     );
   }
 
-  Widget _buildRadar(int foundCount) {
+  /// Scan area (Tuya-style): a small radar sweep while nothing is found;
+  /// once devices appear the radar gives way to a grid of product avatars
+  /// that fade in — tap one to pair.
+  Widget _buildRadar(List<DiscoveredOspreyDevice> devices) {
     return Container(
       color: AppColors.surface,
       width: double.infinity,
-      padding: const EdgeInsets.only(top: 10, bottom: 30),
-      child: Center(
-        child: Lottie.asset(
-          'assets/lottie/radar_scan.json',
-          width: 220,
-          height: 220,
-          fit: BoxFit.contain,
-          repeat: true,
-        ),
+      constraints: const BoxConstraints(minHeight: 230),
+      padding: const EdgeInsets.only(top: 10, bottom: 18),
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 350),
+        child: devices.isEmpty
+            ? Center(
+                key: const ValueKey('radar'),
+                child: Lottie.asset(
+                  'assets/lottie/blue_radar.lottie',
+                  width: 190,
+                  height: 190,
+                  fit: BoxFit.contain,
+                  repeat: true,
+                  decoder: _dotLottieDecoder,
+                ),
+              )
+            : Align(
+                key: const ValueKey('found'),
+                alignment: Alignment.topLeft,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 24, vertical: 8),
+                  child: Wrap(
+                    spacing: 22,
+                    runSpacing: 16,
+                    children: [
+                      for (final d in devices)
+                        _FoundDevice(
+                          key: ValueKey(d.remoteId),
+                          device: d,
+                          onTap: () => _openPairing(d),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
       ),
     );
   }
 
-  Widget _buildDeviceList(List<DiscoveredOspreyDevice> devices) {
-    return Container(
-      color: AppColors.surface,
-      margin: const EdgeInsets.only(top: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-            child: Text(
-              'Devices found (${devices.length})',
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
-              ),
-            ),
-          ),
-          ...devices.map((d) => _DeviceTile(
-                device: d,
-                onTap: () => _openPairing(d),
-              )),
-          const SizedBox(height: 8),
-        ],
-      ),
-    );
+  /// dotLottie (.lottie) = zip: pick the real animation json, NOT
+  /// manifest.json (parsing the manifest trips lottie's
+  /// startFrame == endFrame assertion). Images resolve from the archive.
+  static Future<LottieComposition?> _dotLottieDecoder(List<int> bytes) {
+    return LottieComposition.decodeZip(bytes, filePicker: (files) {
+      return files.firstWhere(
+        (f) => f.name.startsWith('animations/') && f.name.endsWith('.json'),
+      );
+    });
   }
+
+
 }
 
-class _DeviceTile extends StatelessWidget {
+/// Found-device avatar (Tuya style): circular bordered chip with the
+/// product artwork and the name below; fades/scales in when it first
+/// appears. Tap to start pairing.
+class _FoundDevice extends StatelessWidget {
   final DiscoveredOspreyDevice device;
   final VoidCallback onTap;
 
-  const _DeviceTile({required this.device, required this.onTap});
+  const _FoundDevice({super.key, required this.device, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    final strongSignal = device.rssi > -70;
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-      leading: Container(
-        width: 48,
-        height: 48,
-        decoration: BoxDecoration(
-          color: AppColors.primarySubtle,
-          borderRadius: BorderRadius.circular(12),
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: const Duration(milliseconds: 450),
+      curve: Curves.easeOutCubic,
+      builder: (context, t, child) => Opacity(
+        opacity: t,
+        child: Transform.scale(scale: 0.85 + 0.15 * t, child: child),
+      ),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: SizedBox(
+          width: 84,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 76,
+                height: 76,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.borderSubtle, width: 1.5),
+                ),
+                child: Image.asset(
+                  'assets/icons/curtain_track.png',
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => const Icon(
+                      Icons.curtains_outlined,
+                      size: 28,
+                      color: AppColors.primary),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                device.displayName,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 12.5,
+                  height: 1.2,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              Text(
+                device.macSuffix,
+                maxLines: 1,
+                style: const TextStyle(
+                  fontSize: 10.5,
+                  color: AppColors.textMuted,
+                ),
+              ),
+            ],
+          ),
         ),
-        child: const Icon(Icons.curtains_outlined,
-            size: 24, color: AppColors.primary),
       ),
-      title: Text(
-        device.displayName,
-        style: const TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w600,
-          color: AppColors.textPrimary,
-        ),
-      ),
-      subtitle: Row(
-        children: [
-          // MAC suffix giúp user phân biệt device của mình với hàng xóm
-          Text(
-            device.macSuffix,
-            style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
-          ),
-          const SizedBox(width: 10),
-          Icon(
-            Icons.signal_cellular_alt,
-            size: 14,
-            color: strongSignal ? AppColors.success : AppColors.warning,
-          ),
-          const SizedBox(width: 4),
-          Text(
-            '${device.rssi} dBm',
-            style: TextStyle(
-              fontSize: 12,
-              color: strongSignal ? AppColors.success : AppColors.warning,
-            ),
-          ),
-        ],
-      ),
-      trailing:
-          const Icon(Icons.chevron_right, color: AppColors.textMuted, size: 22),
-      onTap: onTap,
     );
   }
 }
