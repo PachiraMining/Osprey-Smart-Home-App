@@ -43,6 +43,8 @@ class ApiEndpoints {
       '/api/smarthome/scenes/$sceneId/disable';
   static String sceneExecute(String sceneId) =>
       '/api/smarthome/scenes/$sceneId/execute';
+  static String sceneLogs(String sceneId) =>
+      '/api/smarthome/scenes/$sceneId/logs';
   static String productDatapoints(String deviceProfileId) =>
       '/api/smarthome/products/$deviceProfileId/datapoints';
 

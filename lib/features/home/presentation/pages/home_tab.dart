@@ -1002,34 +1002,39 @@ class _DeviceCardState extends State<_DeviceCard> {
               ),
               const SizedBox(width: 12),
 
-              // Trailing: power indicator when online, BT-disconnected when not
-              if (isOnline)
+              // Trailing:
+              //  • Curtain track → no on/off (controlled via Common Functions);
+              //    offline shows a yellow "Offline" label instead.
+              //  • Other devices (socket…) → power button, green when on /
+              //    grey when off.
+              if (device.isCurtainTrack)
+                (isOnline
+                    ? const SizedBox.shrink()
+                    : const Text(
+                        'Offline',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFFF5A623),
+                        ),
+                      ))
+              else
                 Container(
                   width: 42,
                   height: 42,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: AppColors.primarySubtle,
+                    color: (isOnline
+                            ? const Color(0xFF2ECC71)
+                            : AppColors.textMuted)
+                        .withAlpha(28),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.power_settings_new_rounded,
                     size: 22,
-                    color: AppColors.primary,
-                  ),
-                )
-              else
-                SizedBox(
-                  width: 42,
-                  height: 42,
-                  child: Padding(
-                    padding: const EdgeInsets.all(9),
-                    child: SvgPicture.asset(
-                      'assets/icons/bluetooth_disconnect.svg',
-                      colorFilter: const ColorFilter.mode(
-                        AppColors.textMuted,
-                        BlendMode.srcIn,
-                      ),
-                    ),
+                    color: isOnline
+                        ? const Color(0xFF2ECC71)
+                        : AppColors.textMuted,
                   ),
                 ),
             ],
@@ -1164,11 +1169,25 @@ class _PositionBar extends StatelessWidget {
             width: double.infinity,
             child: Stack(
               children: [
+                // Unfilled track.
                 Container(
                   height: _barHeight,
                   decoration: BoxDecoration(
                     color: const Color(0xFFDCEBFA),
                     borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                // Filled portion: 0 → selected %, up to the handle centre.
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: handleX + _handleWidth / 2,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                   ),
                 ),
                 Positioned(

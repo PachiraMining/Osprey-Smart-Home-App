@@ -1,5 +1,6 @@
 // lib/core/di/injector.dart
 
+import '../../features/scene/data/scene_logs_service.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -348,6 +349,7 @@ Future<void> setupInjector() async {
 
   // Device Control Use Case
   sl.registerLazySingleton(() => SendDeviceCommand(sl()));
+  sl.registerLazySingleton(() => SceneLogsService(sl<ApiClient>()));
   sl.registerLazySingleton(() => GetDeviceStatus(sl<DeviceControlDataSource>()));
   sl.registerLazySingleton(() => SendDpCommand(sl<DeviceControlDataSource>()));
 

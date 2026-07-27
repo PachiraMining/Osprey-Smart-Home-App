@@ -44,6 +44,7 @@ import 'package:smart_curtain_app/features/home/presentation/pages/home_tab.dart
 import 'package:smart_curtain_app/features/scene/domain/entities/tap_to_run_scene_entity.dart';
 import 'package:smart_curtain_app/features/scene/presentation/pages/tap_to_run/create_tap_to_run_page.dart';
 import 'package:smart_curtain_app/features/scene/presentation/pages/tap_to_run/manage_scenes_page.dart';
+import 'package:smart_curtain_app/features/scene/presentation/pages/scene_logs_page.dart';
 
 class HomePage extends StatefulWidget {
   /// Tab mở đầu: 0 Home, 1 Scenes, 2 Chat, 3 Me. Sau đăng nhập vào thẳng Chat.
@@ -75,9 +76,7 @@ class HomePageState extends State<HomePage> {
     _pages = [
       const home_tab.HomeTab(),
       const SceneTab(),
-      ChatTab(
-        onOpenScenes: () => setState(() => currentIndex = tabScenes),
-      ),
+      ChatTab(onOpenScenes: () => setState(() => currentIndex = tabScenes)),
       const ProfileTab(),
     ];
   }
@@ -94,15 +93,19 @@ class HomePageState extends State<HomePage> {
           Flexible(
             child: Text(
               state.selectedHome?.name ?? 'My Home',
-              style: AppTypography.headlineMedium
-                  .copyWith(color: AppColors.textPrimary),
+              style: AppTypography.headlineMedium.copyWith(
+                color: AppColors.textPrimary,
+              ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
           ),
           const SizedBox(width: 4),
-          const Icon(Icons.unfold_more_rounded,
-              color: AppColors.textMuted, size: 20),
+          const Icon(
+            Icons.unfold_more_rounded,
+            color: AppColors.textMuted,
+            size: 20,
+          ),
         ],
       ),
     );
@@ -266,10 +269,10 @@ class HomePageState extends State<HomePage> {
                           PopupMenuButton<String>(
                             offset: const Offset(0, 50),
                             shape: RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.circular(AppRadius.lg),
+                              borderRadius: BorderRadius.circular(AppRadius.lg),
                               side: const BorderSide(
-                                  color: AppColors.borderSubtle),
+                                color: AppColors.borderSubtle,
+                              ),
                             ),
                             color: AppColors.surface,
                             elevation: 0,
@@ -278,9 +281,13 @@ class HomePageState extends State<HomePage> {
                                 _onMenuSelected(context, value),
                             itemBuilder: (_) => [
                               _buildPopupItem(
-                                  Icons.devices_other_outlined, 'Add Device'),
+                                Icons.devices_other_outlined,
+                                'Add Device',
+                              ),
                               _buildPopupItem(
-                                  Icons.edit_square, 'Create Scene'),
+                                Icons.edit_square,
+                                'Create Scene',
+                              ),
                             ],
                             child: Container(
                               // Tight circle: just wraps the 22px "+" glyph.
@@ -320,7 +327,8 @@ class HomePageState extends State<HomePage> {
           // Renders on top of all content; ignores touches.
           BlocBuilder<VoiceCommandBloc, VoiceCommandState>(
             builder: (context, vState) {
-              final glowing = vState is VoiceListening || vState is VoiceParsing;
+              final glowing =
+                  vState is VoiceListening || vState is VoiceParsing;
               return Positioned.fill(
                 child: IgnorePointer(
                   child: AuroraGlow(
@@ -376,10 +384,7 @@ class _BrandBottomNav extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
 
-  const _BrandBottomNav({
-    required this.currentIndex,
-    required this.onTap,
-  });
+  const _BrandBottomNav({required this.currentIndex, required this.onTap});
 
   static const _items = [
     (Icons.cottage_outlined, Icons.cottage, 'Home'),
@@ -398,61 +403,64 @@ class _BrandBottomNav extends StatelessWidget {
           radius: AppRadius.xl,
           fillColor: AppColors.glassFillStrong,
           child: SizedBox(
-          height: 53,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: List.generate(_items.length, (i) {
-              final selected = currentIndex == i;
-              final (outlined, filled, label) = _items[i];
-              return Expanded(
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(AppRadius.lg),
-                  splashColor: AppColors.primary.withAlpha(15),
-                  highlightColor: AppColors.primary.withAlpha(10),
-                  onTap: () => onTap(i),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 2),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        AnimatedContainer(
-                          duration: const Duration(milliseconds: 220),
-                          curve: Curves.easeOut,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 13, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: selected
-                                ? AppColors.primarySubtle
-                                : Colors.transparent,
-                            borderRadius:
-                                BorderRadius.circular(AppRadius.pill),
+            height: 53,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: List.generate(_items.length, (i) {
+                final selected = currentIndex == i;
+                final (outlined, filled, label) = _items[i];
+                return Expanded(
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(AppRadius.lg),
+                    splashColor: AppColors.primary.withAlpha(15),
+                    highlightColor: AppColors.primary.withAlpha(10),
+                    onTap: () => onTap(i),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 2),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          AnimatedContainer(
+                            duration: const Duration(milliseconds: 220),
+                            curve: Curves.easeOut,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 13,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: selected
+                                  ? AppColors.primarySubtle
+                                  : Colors.transparent,
+                              borderRadius: BorderRadius.circular(
+                                AppRadius.pill,
+                              ),
+                            ),
+                            child: Icon(
+                              selected ? filled : outlined,
+                              size: 20,
+                              color: selected
+                                  ? AppColors.primary
+                                  : AppColors.textMuted,
+                            ),
                           ),
-                          child: Icon(
-                            selected ? filled : outlined,
-                            size: 20,
-                            color: selected
-                                ? AppColors.primary
-                                : AppColors.textMuted,
+                          const SizedBox(height: 2),
+                          Text(
+                            label,
+                            style: AppTypography.labelSmall.copyWith(
+                              color: selected
+                                  ? AppColors.primary
+                                  : AppColors.textMuted,
+                              fontSize: 10,
+                              height: 1.0,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          label,
-                          style: AppTypography.labelSmall.copyWith(
-                            color: selected
-                                ? AppColors.primary
-                                : AppColors.textMuted,
-                            fontSize: 10,
-                            height: 1.0,
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              );
-            }),
-          ),
+                );
+              }),
+            ),
           ),
         ),
       ),
@@ -501,11 +509,12 @@ class _SceneTabState extends State<SceneTab> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return BlocListener<HomeManagementBloc, HomeManagementState>(
-      listenWhen: (prev, curr) => prev.selectedHomeId != curr.selectedHomeId && curr.status == HomeStatus.loaded,
+      listenWhen: (prev, curr) =>
+          prev.selectedHomeId != curr.selectedHomeId &&
+          curr.status == HomeStatus.loaded,
       listener: (context, state) {
         _loadAutomationScenes();
         _loadTapToRunScenes();
@@ -526,8 +535,12 @@ class _SceneTabState extends State<SceneTab> {
                     'Automation',
                     style: TextStyle(
                       fontSize: _selectedSubTab == 0 ? 16 : 14,
-                      fontWeight: _selectedSubTab == 0 ? FontWeight.bold : FontWeight.w400,
-                      color: _selectedSubTab == 0 ? Colors.black87 : Colors.grey,
+                      fontWeight: _selectedSubTab == 0
+                          ? FontWeight.bold
+                          : FontWeight.w400,
+                      color: _selectedSubTab == 0
+                          ? Colors.black87
+                          : Colors.grey,
                     ),
                   ),
                 ),
@@ -538,22 +551,44 @@ class _SceneTabState extends State<SceneTab> {
                     'Tap-to-Run',
                     style: TextStyle(
                       fontSize: _selectedSubTab == 1 ? 16 : 14,
-                      fontWeight: _selectedSubTab == 1 ? FontWeight.bold : FontWeight.w400,
-                      color: _selectedSubTab == 1 ? Colors.black87 : Colors.grey,
+                      fontWeight: _selectedSubTab == 1
+                          ? FontWeight.bold
+                          : FontWeight.w400,
+                      color: _selectedSubTab == 1
+                          ? Colors.black87
+                          : Colors.grey,
                     ),
                   ),
                 ),
                 const Spacer(),
                 PopupMenuButton<String>(
                   offset: const Offset(0, 36),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   color: Colors.white,
                   elevation: 4,
                   onSelected: (value) {
                     if (value == 'manage') {
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const ManageScenesPage()));
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const ManageScenesPage(),
+                        ),
+                      );
                     } else if (value == 'logs') {
-                      // TODO: navigate to scene logs
+                      final homeId = context
+                          .read<HomeManagementBloc>()
+                          .state
+                          .selectedHomeId;
+                      if (homeId != null) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => SceneLogsPage(homeId: homeId),
+                          ),
+                        );
+                      }
                     }
                   },
                   itemBuilder: (_) => [
@@ -562,7 +597,11 @@ class _SceneTabState extends State<SceneTab> {
                       height: 44,
                       child: Row(
                         children: [
-                          Icon(Icons.sort, size: 20, color: Colors.grey.shade700),
+                          Icon(
+                            Icons.sort,
+                            size: 20,
+                            color: Colors.grey.shade700,
+                          ),
                           const SizedBox(width: 12),
                           const Text('Manage', style: TextStyle(fontSize: 15)),
                         ],
@@ -573,14 +612,22 @@ class _SceneTabState extends State<SceneTab> {
                       height: 44,
                       child: Row(
                         children: [
-                          Icon(Icons.article_outlined, size: 20, color: Colors.grey.shade700),
+                          Icon(
+                            Icons.article_outlined,
+                            size: 20,
+                            color: Colors.grey.shade700,
+                          ),
                           const SizedBox(width: 12),
                           const Text('Logs', style: TextStyle(fontSize: 15)),
                         ],
                       ),
                     ),
                   ],
-                  child: Icon(Icons.more_horiz, size: 22, color: Colors.grey.shade600),
+                  child: Icon(
+                    Icons.more_horiz,
+                    size: 22,
+                    color: Colors.grey.shade600,
+                  ),
                 ),
               ],
             ),
@@ -631,7 +678,9 @@ class _SceneTabState extends State<SceneTab> {
   /// Opens the rich automation editor. Pass an existing automation to edit, or
   /// null to create a new one. On return the AutomationBloc has already
   /// refreshed the list (it dispatches LoadAutomationsEvent after create/update).
-  Future<void> _openAutomationDetail([AutomationSceneEntity? automation]) async {
+  Future<void> _openAutomationDetail([
+    AutomationSceneEntity? automation,
+  ]) async {
     await Navigator.push(
       context,
       MaterialPageRoute(
@@ -644,11 +693,7 @@ class _SceneTabState extends State<SceneTab> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(
-          Icons.sync,
-          size: 64,
-          color: Colors.grey.shade300,
-        ),
+        Icon(Icons.sync, size: 64, color: Colors.grey.shade300),
         const SizedBox(height: 24),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 30),
@@ -720,10 +765,10 @@ class _SceneTabState extends State<SceneTab> {
         final scenes = state is TapToRunLoaded
             ? state.scenes
             : state is TapToRunExecuting
-                ? state.scenes
-                : state is TapToRunExecuteResult
-                    ? state.scenes
-                    : <TapToRunSceneEntity>[];
+            ? state.scenes
+            : state is TapToRunExecuteResult
+            ? state.scenes
+            : <TapToRunSceneEntity>[];
 
         if (scenes.isEmpty) {
           return _buildEmptyTapToRun();
@@ -745,7 +790,11 @@ class _SceneTabState extends State<SceneTab> {
           child: Text(
             'Create a Tap-to-Run scene to control your devices quickly with a single tap.',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 15, color: Colors.grey.shade500, height: 1.5),
+            style: TextStyle(
+              fontSize: 15,
+              color: Colors.grey.shade500,
+              height: 1.5,
+            ),
           ),
         ),
         const SizedBox(height: 24),
@@ -757,10 +806,15 @@ class _SceneTabState extends State<SceneTab> {
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
               elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+              ),
             ),
             onPressed: () => _navigateToCreateTapToRun(),
-            child: const Text('Create Scene', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+            child: const Text(
+              'Create Scene',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
           ),
         ),
         const Spacer(),
@@ -768,7 +822,11 @@ class _SceneTabState extends State<SceneTab> {
     );
   }
 
-  Widget _buildTapToRunList(BuildContext context, List<TapToRunSceneEntity> scenes, TapToRunState state) {
+  Widget _buildTapToRunList(
+    BuildContext context,
+    List<TapToRunSceneEntity> scenes,
+    TapToRunState state,
+  ) {
     return AppPullRefresh(
       onRefresh: () async {
         _loadTapToRunScenes();
@@ -780,7 +838,8 @@ class _SceneTabState extends State<SceneTab> {
           crossAxisCount: 2,
           crossAxisSpacing: 12,
           mainAxisSpacing: 12,
-          childAspectRatio: 1.1,
+          // Cell height cut to ~2/3, then nudged +~5px (ratio 1.65 → 1.58).
+          childAspectRatio: 1.4,
         ),
         itemCount: scenes.length,
         itemBuilder: (context, index) {
@@ -788,7 +847,9 @@ class _SceneTabState extends State<SceneTab> {
           return _TapToRunCard(
             scene: scene,
             onTap: () {
-              context.read<TapToRunBloc>().add(ExecuteTapToRunSceneEvent(scene.id));
+              context.read<TapToRunBloc>().add(
+                ExecuteTapToRunSceneEvent(scene.id),
+              );
             },
             onMore: () => _navigateToEditTapToRun(scene),
           );
@@ -797,17 +858,20 @@ class _SceneTabState extends State<SceneTab> {
     );
   }
 
-  Future<void> _showExecuteResultDialog(BuildContext context, TapToRunExecuteResult state) async {
+  Future<void> _showExecuteResultDialog(
+    BuildContext context,
+    TapToRunExecuteResult state,
+  ) async {
     // Find the scene that was executed
-    final scene = state.scenes.isNotEmpty
-        ? state.scenes.first
-        : null;
+    final scene = state.scenes.isNotEmpty ? state.scenes.first : null;
     final sceneName = scene?.name ?? 'Scene';
     final actions = scene?.actions ?? [];
 
     // Build device name lookup from HomeManagementBloc
     final homeState = context.read<HomeManagementBloc>().state;
-    final deviceMap = {for (final d in homeState.devices) d.deviceId: d.displayName};
+    final deviceMap = {
+      for (final d in homeState.devices) d.deviceId: d.displayName,
+    };
 
     await showDialog(
       context: context,
@@ -821,13 +885,19 @@ class _SceneTabState extends State<SceneTab> {
               padding: const EdgeInsets.fromLTRB(24, 20, 24, 12),
               child: Text(
                 sceneName,
-                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
             // Error message if failed
             if (state.status == 'FAILURE' && actions.isEmpty)
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
                 child: Text(
                   state.details.isNotEmpty ? state.details : 'Execution failed',
                   style: TextStyle(fontSize: 15, color: Colors.red.shade400),
@@ -841,7 +911,10 @@ class _SceneTabState extends State<SceneTab> {
                 String subtitle;
                 switch (action.actionType) {
                   case 'DEVICE_CONTROL':
-                    title = action.deviceName ?? deviceMap[action.entityId] ?? 'Device';
+                    title =
+                        action.deviceName ??
+                        deviceMap[action.entityId] ??
+                        'Device';
                     final dp = action.executorProperty;
                     subtitle = action.functionName != null
                         ? '${action.functionName} : ${dp?['dpValue']}'
@@ -860,7 +933,10 @@ class _SceneTabState extends State<SceneTab> {
                 }
                 final isSuccess = state.status == 'SUCCESS';
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 10,
+                  ),
                   child: Row(
                     children: [
                       Container(
@@ -870,16 +946,32 @@ class _SceneTabState extends State<SceneTab> {
                           color: Colors.grey.shade100,
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Icon(Icons.devices_other, size: 20, color: Colors.grey.shade500),
+                        child: Icon(
+                          Icons.devices_other,
+                          size: 20,
+                          color: Colors.grey.shade500,
+                        ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+                            Text(
+                              title,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
                             if (subtitle.isNotEmpty)
-                              Text(subtitle, style: TextStyle(fontSize: 13, color: Colors.grey.shade500)),
+                              Text(
+                                subtitle,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey.shade500,
+                                ),
+                              ),
                           ],
                         ),
                       ),
@@ -901,7 +993,11 @@ class _SceneTabState extends State<SceneTab> {
                 onPressed: () => Navigator.pop(ctx),
                 child: const Text(
                   'OK',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black87),
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
                 ),
               ),
             ),
@@ -924,7 +1020,9 @@ class _SceneTabState extends State<SceneTab> {
   void _navigateToEditTapToRun(TapToRunSceneEntity scene) async {
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => CreateTapToRunPage(existingScene: scene)),
+      MaterialPageRoute(
+        builder: (_) => CreateTapToRunPage(existingScene: scene),
+      ),
     );
     if (result == true && mounted) {
       _loadTapToRunScenes();
@@ -932,7 +1030,9 @@ class _SceneTabState extends State<SceneTab> {
   }
 
   Widget _buildAutomationList(
-      BuildContext context, List<AutomationSceneEntity> automations) {
+    BuildContext context,
+    List<AutomationSceneEntity> automations,
+  ) {
     return AppPullRefresh(
       onRefresh: () async {
         _loadAutomationScenes();
@@ -967,9 +1067,9 @@ class _SceneTabState extends State<SceneTab> {
               );
             },
             onDismissed: (_) {
-              context
-                  .read<AutomationBloc>()
-                  .add(DeleteAutomationEvent(automation.id));
+              context.read<AutomationBloc>().add(
+                DeleteAutomationEvent(automation.id),
+              );
             },
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
@@ -1012,8 +1112,11 @@ class _SceneTabState extends State<SceneTab> {
                             ],
                           ),
                         ),
-                        Icon(Icons.chevron_right,
-                            color: Colors.grey.shade400, size: 24),
+                        Icon(
+                          Icons.chevron_right,
+                          color: Colors.grey.shade400,
+                          size: 24,
+                        ),
                       ],
                     ),
 
@@ -1024,31 +1127,37 @@ class _SceneTabState extends State<SceneTab> {
                     Row(
                       children: [
                         const _AutomationTile(
-                          child: Icon(Icons.watch_later,
-                              size: 28, color: Color(0xFF42A5F5)),
+                          child: Icon(
+                            Icons.watch_later,
+                            size: 28,
+                            color: Color(0xFF42A5F5),
+                          ),
                         ),
                         Padding(
-                          padding:
-                              const EdgeInsets.symmetric(horizontal: 6),
-                          child: Icon(Icons.arrow_right_alt_rounded,
-                              size: 24, color: Colors.grey.shade400),
+                          padding: const EdgeInsets.symmetric(horizontal: 6),
+                          child: Icon(
+                            Icons.arrow_right_alt_rounded,
+                            size: 24,
+                            color: Colors.grey.shade400,
+                          ),
                         ),
                         ..._automationActionTiles(
                           automation,
-                          context
-                              .read<HomeManagementBloc>()
-                              .state
-                              .devices,
+                          context.read<HomeManagementBloc>().state.devices,
                         ),
                         const Spacer(),
-                        Switch(
-                          value: automation.enabled,
-                          onChanged: (v) {
-                            context.read<AutomationBloc>().add(
-                                ToggleAutomationEvent(automation.id, v));
-                          },
-                          activeThumbColor: AppColors.surface,
-                          activeTrackColor: AppColors.primary,
+                        Transform.scale(
+                          scale: 0.82,
+                          child: Switch(
+                            value: automation.enabled,
+                            onChanged: (v) {
+                              context.read<AutomationBloc>().add(
+                                ToggleAutomationEvent(automation.id, v),
+                              );
+                            },
+                            activeThumbColor: Colors.white,
+                            activeTrackColor: const Color(0xFF2ECC71),
+                          ),
                         ),
                       ],
                     ),
@@ -1066,7 +1175,9 @@ class _SceneTabState extends State<SceneTab> {
   /// artwork per device action, tag for scene runs, hourglass for delays.
   /// Caps at 3 tiles with a "+n" overflow chip.
   List<Widget> _automationActionTiles(
-      AutomationSceneEntity automation, List<HomeDeviceEntity> devices) {
+    AutomationSceneEntity automation,
+    List<HomeDeviceEntity> devices,
+  ) {
     bool isCurtain(String? entityId) {
       for (final d in devices) {
         if (d.deviceId == entityId || d.id == entityId) {
@@ -1090,41 +1201,57 @@ class _SceneTabState extends State<SceneTab> {
                     'assets/icons/curtain_track.png',
                     fit: BoxFit.contain,
                     errorBuilder: (_, __, ___) => const Icon(
-                        Icons.curtains_outlined,
-                        size: 22,
-                        color: AppColors.primary),
+                      Icons.curtains_outlined,
+                      size: 22,
+                      color: AppColors.primary,
+                    ),
                   ),
                 )
-              : const Icon(Icons.devices_other,
-                  size: 22, color: AppColors.textSecondary);
+              : const Icon(
+                  Icons.devices_other,
+                  size: 22,
+                  color: AppColors.textSecondary,
+                );
         case 'SCENE_RUN':
-          child = const Icon(Icons.sell,
-              size: 22, color: Color(0xFF2BB673));
+          child = const Icon(Icons.sell, size: 22, color: Color(0xFF2BB673));
         case 'DELAY':
-          child = const Icon(Icons.hourglass_bottom,
-              size: 22, color: AppColors.primary);
+          child = const Icon(
+            Icons.hourglass_bottom,
+            size: 22,
+            color: AppColors.primary,
+          );
         default:
-          child = Icon(Icons.settings_remote_outlined,
-              size: 22, color: Colors.grey.shade500);
+          child = Icon(
+            Icons.settings_remote_outlined,
+            size: 22,
+            color: Colors.grey.shade500,
+          );
       }
-      tiles.add(Padding(
-        padding: EdgeInsets.only(left: shown == 0 ? 0 : 6),
-        child: _AutomationTile(child: child),
-      ));
+      tiles.add(
+        Padding(
+          padding: EdgeInsets.only(left: shown == 0 ? 0 : 6),
+          child: _AutomationTile(child: child),
+        ),
+      );
       shown++;
     }
     final rest = automation.actions.length - shown;
     if (rest > 0) {
-      tiles.add(Padding(
-        padding: const EdgeInsets.only(left: 6),
-        child: _AutomationTile(
-          child: Text('+$rest',
+      tiles.add(
+        Padding(
+          padding: const EdgeInsets.only(left: 6),
+          child: _AutomationTile(
+            child: Text(
+              '+$rest',
               style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.grey.shade600)),
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade600,
+              ),
+            ),
+          ),
         ),
-      ));
+      );
     }
     return tiles;
   }
@@ -1132,16 +1259,14 @@ class _SceneTabState extends State<SceneTab> {
 
 class _TapToRunCard extends StatelessWidget {
   final TapToRunSceneEntity scene;
-  final VoidCallback onTap;     // tap body → execute
-  final VoidCallback onMore;    // tap "..." → edit
+  final VoidCallback onTap; // tap body → execute
+  final VoidCallback onMore; // tap "..." → edit
 
   const _TapToRunCard({
     required this.scene,
     required this.onTap,
     required this.onMore,
   });
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -1187,7 +1312,11 @@ class _TapToRunCard extends StatelessWidget {
                       color: Colors.white.withAlpha(40),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.more_horiz, color: Colors.white, size: 18),
+                    child: const Icon(
+                      Icons.more_horiz,
+                      color: Colors.white,
+                      size: 18,
+                    ),
                   ),
                 ),
               ],
@@ -1237,7 +1366,11 @@ class MallTab extends StatelessWidget {
             alignment: Alignment.topRight,
             child: Padding(
               padding: const EdgeInsets.only(right: 16, top: 8),
-              child: Icon(Icons.more_horiz, size: 24, color: Colors.grey.shade400),
+              child: Icon(
+                Icons.more_horiz,
+                size: 24,
+                color: Colors.grey.shade400,
+              ),
             ),
           ),
           const Spacer(flex: 2),
@@ -1264,10 +1397,7 @@ class MallTab extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             'HOME_PAGE_NOT_DESIGN',
-            style: TextStyle(
-              fontSize: 13,
-              color: Colors.grey.shade400,
-            ),
+            style: TextStyle(fontSize: 13, color: Colors.grey.shade400),
           ),
           const Spacer(flex: 3),
         ],
@@ -1303,7 +1433,11 @@ class ProfileTab extends StatelessWidget {
                     MaterialPageRoute(builder: (_) => const SettingsPage()),
                   );
                 },
-                child: Icon(Icons.settings_outlined, size: 24, color: Colors.grey.shade700),
+                child: Icon(
+                  Icons.settings_outlined,
+                  size: 24,
+                  color: Colors.grey.shade700,
+                ),
               ),
             ],
           ),
@@ -1337,7 +1471,11 @@ class ProfileTab extends StatelessWidget {
                     ),
                   ),
                 ),
-                Icon(Icons.chevron_right, color: Colors.grey.shade400, size: 28),
+                Icon(
+                  Icons.chevron_right,
+                  color: Colors.grey.shade400,
+                  size: 28,
+                ),
               ],
             ),
           ),
@@ -1371,7 +1509,9 @@ class ProfileTab extends StatelessWidget {
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => const AlexaLinkingPage()),
+                            MaterialPageRoute(
+                              builder: (_) => const AlexaLinkingPage(),
+                            ),
                           );
                         },
                         child: Column(
@@ -1384,7 +1524,10 @@ class ProfileTab extends StatelessWidget {
                             const SizedBox(height: 8),
                             const Text(
                               'Alexa',
-                              style: TextStyle(fontSize: 14, color: Colors.black87),
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.black87,
+                              ),
                             ),
                           ],
                         ),
@@ -1396,8 +1539,9 @@ class ProfileTab extends StatelessWidget {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (_) =>
-                                    const GoogleAssistantLinkingPage()),
+                              builder: (_) =>
+                                  const GoogleAssistantLinkingPage(),
+                            ),
                           );
                         },
                         child: Column(
@@ -1410,7 +1554,10 @@ class ProfileTab extends StatelessWidget {
                             const SizedBox(height: 8),
                             const Text(
                               'Google Assistant',
-                              style: TextStyle(fontSize: 14, color: Colors.black87),
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.black87,
+                              ),
                             ),
                           ],
                         ),
@@ -1439,7 +1586,8 @@ class ProfileTab extends StatelessWidget {
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (_) => const HomeManagementPage()),
+                      builder: (_) => const HomeManagementPage(),
+                    ),
                   ),
                 ),
                 _divider(),
@@ -1453,7 +1601,8 @@ class ProfileTab extends StatelessWidget {
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (_) => const MessageCenterPage()),
+                        builder: (_) => const MessageCenterPage(),
+                      ),
                     ),
                   ),
                 ),
@@ -1490,36 +1639,43 @@ class ProfileTab extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuRow(IconData icon, String title,
-      {bool hasNotification = false, VoidCallback? onTap}) {
+  Widget _buildMenuRow(
+    IconData icon,
+    String title, {
+    bool hasNotification = false,
+    VoidCallback? onTap,
+  }) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-      child: Row(
-        children: [
-          Icon(icon, size: 24, color: Colors.black87),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Text(
-              title,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-            ),
-          ),
-          if (hasNotification)
-            Container(
-              width: 8,
-              height: 8,
-              margin: const EdgeInsets.only(right: 8),
-              decoration: const BoxDecoration(
-                color: Colors.red,
-                shape: BoxShape.circle,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+        child: Row(
+          children: [
+            Icon(icon, size: 24, color: Colors.black87),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
-          Icon(Icons.chevron_right, color: Colors.grey.shade400, size: 22),
-        ],
-      ),
+            if (hasNotification)
+              Container(
+                width: 8,
+                height: 8,
+                margin: const EdgeInsets.only(right: 8),
+                decoration: const BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            Icon(Icons.chevron_right, color: Colors.grey.shade400, size: 22),
+          ],
+        ),
       ),
     );
   }
