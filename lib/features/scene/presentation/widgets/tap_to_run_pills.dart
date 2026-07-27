@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/widgets/app_popup.dart';
 
 import '../../../../core/theme/scene_style.dart';
 import '../../../home/presentation/bloc/home_management_bloc.dart';
@@ -28,10 +29,41 @@ class _TapToRunPillsState extends State<TapToRunPills> {
       if (!mounted) return;
       final bloc = context.read<TapToRunBloc>();
       final homeId = context.read<HomeManagementBloc>().state.selectedHomeId;
-      if (bloc.state is TapToRunInitial && homeId != null) {
+      if (homeId != null) {
         bloc.add(LoadTapToRunScenesEvent(homeId));
       }
     });
+  }
+
+  /// Chạy scene với popup custom (AppPopup) y hệt Common Functions: loading trong
+  /// lúc gửi → ✓ success (tự đóng) hoặc ✗ error. Kết quả về qua bloc state
+  /// nên await trên stream thay vì Future.
+  Future<void> _runScene(
+      BuildContext context, TapToRunSceneEntity scene) async {
+    final bloc = context.read<TapToRunBloc>();
+    AppPopup.loading(context, title: 'Running', message: scene.name);
+    bloc.add(ExecuteTapToRunSceneEvent(scene.id));
+    final result = await bloc.stream
+        .firstWhere((s) => s is TapToRunExecuteResult)
+        .timeout(
+          const Duration(seconds: 15),
+          onTimeout: () => const TapToRunExecuteResult(
+            status: 'FAILURE',
+            details: 'timeout',
+            scenes: [],
+          ),
+        ) as TapToRunExecuteResult;
+    if (!context.mounted) return;
+    Navigator.of(context, rootNavigator: true).pop(); // đóng loading
+    final success = result.status == 'SUCCESS';
+    if (success) {
+      AppPopup.success(context,
+          title: 'Done', message: '"${scene.name}" executed');
+    } else {
+      AppPopup.error(context,
+          title: 'Failed',
+          message: 'Could not run "${scene.name}". Please try again.');
+    }
   }
 
   List<TapToRunSceneEntity> _scenesOf(TapToRunState state) => switch (state) {
@@ -58,19 +90,7 @@ class _TapToRunPillsState extends State<TapToRunPills> {
               final scene = scenes[index];
               final (color, _) = SceneStyle.decode(scene.icon, scene.id);
               return GestureDetector(
-                onTap: () {
-                  context
-                      .read<TapToRunBloc>()
-                      .add(ExecuteTapToRunSceneEvent(scene.id));
-                  ScaffoldMessenger.of(context)
-                    ..clearSnackBars()
-                    ..showSnackBar(
-                      SnackBar(
-                        content: Text('Running "${scene.name}"…'),
-                        duration: const Duration(seconds: 1),
-                      ),
-                    );
-                },
+                onTap: () => _runScene(context, scene),
                 child: Container(
                   alignment: Alignment.center,
                   padding: const EdgeInsets.symmetric(horizontal: 20),

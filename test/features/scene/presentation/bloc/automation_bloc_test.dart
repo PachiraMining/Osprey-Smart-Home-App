@@ -1,6 +1,7 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hydrated_bloc/hydrated_bloc.dart';
 
 import 'package:smart_curtain_app/core/error/failure.dart';
 import 'package:smart_curtain_app/features/scene/domain/entities/automation_scene_entity.dart';
@@ -101,7 +102,28 @@ const _action = SceneActionEntity(
   executorProperty: {'dpId': 1, 'dpValue': 'on'},
 );
 
+/// Minimal in-memory HydratedStorage so blocs using HydratedMixin can
+/// `hydrate()` in tests (empty store → no restored state → normal behaviour).
+class _InMemoryStorage implements Storage {
+  final Map<String, dynamic> _box = {};
+  @override
+  dynamic read(String key) => _box[key];
+  @override
+  Future<void> write(String key, dynamic value) async => _box[key] = value;
+  @override
+  Future<void> delete(String key) async => _box.remove(key);
+  @override
+  Future<void> clear() async => _box.clear();
+  @override
+  Future<void> close() async {}
+}
+
 void main() {
+  setUpAll(() {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    HydratedBloc.storage = _InMemoryStorage();
+  });
+
   group('AutomationBloc', () {
     blocTest<AutomationBloc, AutomationState>(
       'LoadAutomationsEvent emits [Loading, Loaded]',

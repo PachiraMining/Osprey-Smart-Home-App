@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:smart_curtain_app/core/auth/token_manager.dart';
+import 'package:smart_curtain_app/core/widgets/email_avatar.dart';
 
 import '../../domain/entities/home_entity.dart';
 import '../../domain/usecases/get_homes.dart';
@@ -102,7 +103,6 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
   Widget build(BuildContext context) {
     final tokenManager = GetIt.instance<TokenManager>();
     final displayName = tokenManager.getDisplayName();
-    final firstLetter = displayName.isNotEmpty ? displayName[0].toUpperCase() : 'U';
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F5F0),
@@ -140,31 +140,10 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                         style: TextStyle(fontSize: 16, color: Colors.black87),
                       ),
                       const Spacer(),
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                        ),
-                        child: ClipOval(
-                          child: Image.asset(
-                            'assets/osprey_avatar.png',
-                            width: 44,
-                            height: 44,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Center(
-                              child: Text(
-                                firstLetter,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
+                      EmailAvatar(
+                        email: tokenManager.getEmailSync(),
+                        fallback: displayName,
+                        size: 44,
                       ),
                       const SizedBox(width: 8),
                       Icon(Icons.chevron_right, color: Colors.grey.shade400, size: 20),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/app_dialog.dart';
 import '../../../home/presentation/bloc/home_management_bloc.dart';
 import '../../../home/presentation/bloc/home_management_event.dart';
 import '../../../home/presentation/bloc/home_management_state.dart';
@@ -87,54 +88,30 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
   }
 
   Future<void> _confirmDisconnect() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Disconnect device?'),
-        content: Text(
+    final confirmed = await AppDialog.confirm(
+      context,
+      title: 'Disconnect device?',
+      message:
           '"$_displayName" will be removed from your home and automatically '
           'return to pairing mode in about 1-2 minutes.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: AppColors.warning),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Disconnect'),
-          ),
-        ],
-      ),
+      confirmText: 'Disconnect',
+      destructive: true,
     );
-    if (confirmed != true || !mounted) return;
+    if (!confirmed || !mounted) return;
     _dispatchRemoval(factoryReset: false);
   }
 
   Future<void> _confirmFactoryReset() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Erase device data?'),
-        content: Text(
+    final confirmed = await AppDialog.confirm(
+      context,
+      title: 'Erase device data?',
+      message:
           'All data for "$_displayName" will be erased and CANNOT be '
           'recovered. Are you sure?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: AppColors.error),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+      confirmText: 'Delete',
+      destructive: true,
     );
-    if (confirmed != true || !mounted) return;
+    if (!confirmed || !mounted) return;
     _dispatchRemoval(factoryReset: true);
   }
 

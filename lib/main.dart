@@ -9,6 +9,9 @@ import 'package:home_widget/home_widget.dart';
 
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 
+import 'package:hydrated_bloc/hydrated_bloc.dart';
+import 'package:path_provider/path_provider.dart';
+
 import 'core/config/app_config.dart';
 import 'core/di/injector.dart';
 import 'core/base/bloc_observer.dart';
@@ -21,7 +24,6 @@ import 'features/auth/presentation/bloc/auth_state.dart';
 import 'features/auth/presentation/pages/login_page.dart';
 import 'features/control/presentation/bloc/cloud_health_cubit.dart';
 import 'features/device/presentation/bloc/device_bloc.dart';
-import 'features/scene/presentation/bloc/scene_bloc.dart';
 import 'smart_splash.dart';
 import 'features/home/presentation/pages/home_page.dart';
 import 'features/device/presentation/bloc/device_event.dart';
@@ -29,6 +31,7 @@ import 'features/scene/presentation/bloc/tap_to_run/tap_to_run_bloc.dart';
 import 'features/scene/presentation/bloc/automation/automation_bloc.dart';
 import 'features/home/presentation/bloc/home_management_bloc.dart';
 import 'features/home/presentation/bloc/home_management_event.dart';
+import 'features/home/presentation/bloc/home_management_state.dart';
 import 'features/ai/presentation/bloc/ai_chat_bloc.dart';
 import 'features/ai/presentation/bloc/ai_suggestion_bloc.dart';
 import 'features/ai/presentation/bloc/voice_command_bloc.dart';
@@ -40,6 +43,11 @@ Future<void> _bootstrap() async {
   // its first frame (removed in SmartSplashScreen). Eliminates the blank flash in
   // the native → Flutter hand-off so it reads as one continuous splash.
   FlutterNativeSplash.preserve(widgetsBinding: binding);
+  // Persistent bloc cache (stale-while-revalidate): last-known Home/Automation/
+  // Tap-to-Run data is restored instantly on cold start, then revalidated.
+  HydratedBloc.storage = await HydratedStorage.build(
+    storageDirectory: await getApplicationDocumentsDirectory(),
+  );
   await setupInjector();
   Bloc.observer = SimpleBlocObserver();
 
@@ -147,20 +155,17 @@ class _SmartAppState extends State<SmartApp> {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(
-          create: (_) => GetIt.instance<HomeManagementBloc>()
-            ..add(const LoadHomesEvent()),
-        ),
+        // KHÔNG dispatch LoadHomesEvent ở provider create (từng gây double-load).
+        // Prefetch (tier 2) được bắn 1 lần ở BlocListener<AuthBloc> phía dưới,
+        // ngay khi có session hợp lệ; HomeTab.initState revalidate sau đó với
+        // re-entrancy guard nên không load trùng.
+        BlocProvider(create: (_) => GetIt.instance<HomeManagementBloc>()),
         BlocProvider(create: (_) => GetIt.instance<AuthBloc>()),
         // Thêm DeviceBloc vào đây để toàn app dùng chung được
         BlocProvider(
           create: (_) => GetIt.instance<DeviceBloc>()
             ..add(LoadDevicesEvent()), // tự động load luôn khi app khởi động
         ),
-        // KHÔNG dispatch LoadScenesEvent ở đây: lúc khởi động chưa login/
-        // chưa có homeId → SceneError kẹt ở nút Retry. SceneTab tự load
-        // khi đã có home (initState + listener selectedHomeId).
-        BlocProvider(create: (_) => GetIt.instance<SceneBloc>()),
         // AutomationBloc: rich schedule/condition automations shown in the Scene
         // tab. Provided above MaterialApp so pushed AutomationDetailPage routes
         // resolve the same instance (its _homeId set by the tab's load event).
@@ -181,10 +186,19 @@ class _SmartAppState extends State<SmartApp> {
       // the AuthBloc provider lookup is unambiguous.
       child: BlocListener<AuthBloc, AuthState>(
         listenWhen: (_, current) => current is AuthSuccess,
-        listener: (_, __) {
+        listener: (context, __) {
           _redirectingToLogin = false;
           if (GetIt.instance.isRegistered<SessionManager>()) {
             GetIt.instance<SessionManager>().reset();
+          }
+          // PREFETCH (tier 2): the moment we have a valid session — still on the
+          // splash — kick off the home data load so it is already in-flight (or
+          // done) by the time HomeTab paints, instead of starting only then.
+          // The bloc's re-entrancy guard makes HomeTab's later load a no-op if
+          // this one is still running.
+          final homeBloc = context.read<HomeManagementBloc>();
+          if (homeBloc.state.status != HomeStatus.loading) {
+            homeBloc.add(const LoadHomesEvent());
           }
         },
         child: MaterialApp(

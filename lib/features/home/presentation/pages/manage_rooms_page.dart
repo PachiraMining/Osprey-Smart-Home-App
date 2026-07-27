@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:smart_curtain_app/core/widgets/app_dialog.dart';
 
 import '../bloc/home_management_bloc.dart';
 import '../bloc/home_management_event.dart';
@@ -98,94 +99,44 @@ class ManageRoomsPage extends StatelessWidget {
   }
 
   Future<bool?> _confirmDelete(BuildContext context, String roomName) {
-    return showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Delete Room'),
-        content: Text('Are you sure you want to delete "$roomName"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+    return AppDialog.confirm(
+      context,
+      title: 'Delete Room',
+      message: 'Are you sure you want to delete "$roomName"?',
+      confirmText: 'Delete',
+      destructive: true,
     );
   }
 
-  void _showCreateDialog(BuildContext context) {
-    final controller = TextEditingController();
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Add Room'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          decoration: const InputDecoration(hintText: 'Room Name'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              final name = controller.text.trim();
-              if (name.isNotEmpty) {
-                context.read<HomeManagementBloc>().add(
-                      CreateRoomEvent(homeId: homeId, name: name),
-                    );
-              }
-              Navigator.of(ctx).pop();
-            },
-            child: const Text('Add'),
-          ),
-        ],
-      ),
+  Future<void> _showCreateDialog(BuildContext context) async {
+    final name = await AppDialog.prompt(
+      context,
+      title: 'Add Room',
+      hintText: 'Room Name',
+      confirmText: 'Add',
     );
+    if (name == null || !context.mounted) return;
+    context.read<HomeManagementBloc>().add(
+          CreateRoomEvent(homeId: homeId, name: name),
+        );
   }
 
-  void _showEditDialog(
-      BuildContext context, String roomId, String currentName) {
-    final controller = TextEditingController(text: currentName);
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Rename Room'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          decoration: const InputDecoration(hintText: 'Room Name'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              final name = controller.text.trim();
-              if (name.isNotEmpty) {
-                context.read<HomeManagementBloc>().add(
-                      UpdateRoomEvent(
-                        homeId: homeId,
-                        roomId: roomId,
-                        name: name,
-                      ),
-                    );
-              }
-              Navigator.of(ctx).pop();
-            },
-            child: const Text('Save'),
-          ),
-        ],
-      ),
+  Future<void> _showEditDialog(
+      BuildContext context, String roomId, String currentName) async {
+    final name = await AppDialog.prompt(
+      context,
+      title: 'Rename Room',
+      initialValue: currentName,
+      hintText: 'Room Name',
+      confirmText: 'Save',
     );
+    if (name == null || !context.mounted) return;
+    context.read<HomeManagementBloc>().add(
+          UpdateRoomEvent(
+            homeId: homeId,
+            roomId: roomId,
+            name: name,
+          ),
+        );
   }
 }

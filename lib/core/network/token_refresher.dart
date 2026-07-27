@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 
+import '../auth/auth_diag_log.dart';
 import '../auth/token_manager.dart';
 import '../config/app_config.dart';
 
@@ -74,7 +75,14 @@ class TokenRefresher {
       print('🔑[AUTH-DIAG] refresh POST $_refreshPath → status=${response.statusCode} '
           'hasToken=${newToken != null && newToken.isNotEmpty} '
           'hasNewRefresh=${newRefresh != null && newRefresh.isNotEmpty}');
-      if (newToken == null || newToken.isEmpty) return false;
+      if (newToken == null || newToken.isEmpty) {
+        await AuthDiagLog.instance.add('REFRESH',
+            'status=${response.statusCode} but response had NO token → treated as failure');
+        return false;
+      }
+      await AuthDiagLog.instance.add('REFRESH',
+          'OK status=${response.statusCode} '
+          'rotated=${newRefresh != null && newRefresh.isNotEmpty}');
       await _tokenManager.saveTokens(
         token: newToken,
         refreshToken: newRefresh == null || newRefresh.isEmpty
@@ -89,8 +97,27 @@ class TokenRefresher {
       if (e is DioException) {
         print('🔑[AUTH-DIAG] refresh FAILED status=${e.response?.statusCode} '
             'type=${e.type.name} body=${e.response?.data} msg=${e.message}');
+        final status = e.response?.statusCode;
+        // The crucial distinction for the "logged out for no reason" bug:
+        //   401 / 403  → the refresh token is genuinely dead (real logout)
+        //   timeout / connectionError / 5xx / no response → TRANSIENT; the
+        //   session is NOT actually over, we just could not reach the server.
+        final transient = e.response == null ||
+            (status != null && status >= 500) ||
+            e.type == DioExceptionType.connectionTimeout ||
+            e.type == DioExceptionType.receiveTimeout ||
+            e.type == DioExceptionType.sendTimeout ||
+            e.type == DioExceptionType.connectionError;
+        await AuthDiagLog.instance.add(
+            'REFRESH',
+            transient
+                ? 'TRANSIENT FAIL type=${e.type.name} status=$status '
+                    '→ session NOT really dead, network/server issue'
+                : 'REJECTED status=$status type=${e.type.name} '
+                    '→ refresh token dead (real logout)');
       } else {
         print('🔑[AUTH-DIAG] refresh FAILED (non-Dio): $e');
+        await AuthDiagLog.instance.add('REFRESH', 'FAILED (non-Dio): $e');
       }
       return false;
     }

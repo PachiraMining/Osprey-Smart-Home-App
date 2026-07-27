@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'token_manager.dart';
+import 'auth_diag_log.dart';
 
 /// Single source of truth for "the session is dead — send the user to login".
 ///
@@ -25,6 +26,9 @@ class SessionManager {
   Future<void> notifyExpired() async {
     if (_expired) return;
     _expired = true;
+    await AuthDiagLog.instance.add('LOGOUT',
+        'runtime: a request got 401 and token refresh was exhausted '
+        '(SessionManager.notifyExpired) → tokens cleared, redirect to login');
     await _tokenManager.clearTokens();
     if (!_controller.isClosed) _controller.add(null);
   }

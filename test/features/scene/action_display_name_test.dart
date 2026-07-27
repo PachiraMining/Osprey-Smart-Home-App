@@ -69,12 +69,14 @@ void main() {
       expect(resolveActionDeviceName(action, devices), 'Kitchen Fan');
     });
 
-    test('falls back to the product name when the id is unknown', () {
+    test('falls back to a neutral label when the id is unknown', () {
+      // With device-type detection, an unknown id must NOT claim to be a
+      // curtain track — it could be any product.
       const action = SceneActionEntity(
         actionType: 'DEVICE_CONTROL',
         entityId: 'ghost',
       );
-      expect(resolveActionDeviceName(action, devices), 'Curtain Track');
+      expect(resolveActionDeviceName(action, devices), 'Device');
     });
   });
 }

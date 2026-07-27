@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
-import 'package:quickalert/quickalert.dart';
+import 'package:smart_curtain_app/core/widgets/app_popup.dart';
+import 'package:smart_curtain_app/core/widgets/app_dialog.dart';
 
 import '../../../../core/auth/token_manager.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
@@ -22,13 +23,7 @@ class AccountSecurityPage extends StatelessWidget {
           Navigator.of(context).pushNamedAndRemoveUntil('/', (_) => false);
         }
         if (state is AuthFailure) {
-          QuickAlert.show(
-            context: context,
-            type: QuickAlertType.error,
-            title: 'Error',
-            text: state.message,
-            confirmBtnColor: const Color(0xFF1B4332),
-          );
+          AppPopup.error(context, title: 'Error', message: state.message);
         }
       },
       child: Scaffold(
@@ -136,59 +131,20 @@ class AccountSecurityPage extends StatelessWidget {
     );
   }
 
-  void _showDeleteAccountDialog(BuildContext context) {
-    final reasonController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Delete Account'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'After deletion:\n'
-              '\u2022 Your account will be deleted after 30 days\n'
-              '\u2022 All your devices and scenes will be removed\n'
-              '\u2022 You can cancel by logging in again within 30 days',
-              style: TextStyle(color: Colors.red, fontSize: 14, height: 1.5),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: reasonController,
-              decoration: InputDecoration(
-                labelText: 'Reason (optional)',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              maxLines: 2,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              final reason = reasonController.text.trim();
-              context.read<AuthBloc>().add(
-                DeleteAccountEvent(
-                  reason: reason.isEmpty ? null : reason,
-                ),
-              );
-            },
-            child: const Text(
-              'Delete',
-              style: TextStyle(color: Colors.red),
-            ),
-          ),
-        ],
-      ),
+  Future<void> _showDeleteAccountDialog(BuildContext context) async {
+    final result = await AppDialog.confirmWithInput(
+      context,
+      title: 'Delete Account',
+      message: 'After deletion:\n'
+          '\u2022 Your account will be deleted after 30 days\n'
+          '\u2022 All your devices and scenes will be removed\n'
+          '\u2022 You can cancel by logging in again within 30 days',
+      messageColor: Colors.red,
+      hintText: 'Reason (optional)',
+      confirmText: 'Delete',
+      destructive: true,
     );
+    if (!result.ok || !context.mounted) return;
+    context.read<AuthBloc>().add(DeleteAccountEvent(reason: result.text));
   }
 }

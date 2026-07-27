@@ -10,6 +10,7 @@ import 'package:get_it/get_it.dart';
 import '../../../../core/auth/token_manager.dart';
 import '../../../../core/config/app_config.dart';
 import '../../../../core/network/api_endpoints.dart';
+import 'package:smart_curtain_app/core/widgets/app_dialog.dart';
 import '../../../control/data/repositories/transport_router_impl.dart';
 import '../../../control/domain/entities/transport_state.dart';
 import '../../../control/domain/repositories/transport_router.dart';
@@ -195,35 +196,24 @@ class _CurtainControlPageState extends State<CurtainControlPage>
     return null;
   }
 
-  void _showRePairDialog() {
+  Future<void> _showRePairDialog() async {
     if (!mounted) return;
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Re-pair required'),
-        content: const Text(
+    final ok = await AppDialog.confirm(
+      context,
+      title: 'Re-pair required',
+      message:
           'Local Bluetooth control needs to be re-paired with this device. '
           'This usually happens after the app data was cleared or the device '
           'was factory reset.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Later'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const OspreyAddDevicePage(),
-                ),
-              );
-            },
-            child: const Text('Re-pair now'),
-          ),
-        ],
+      confirmText: 'Re-pair now',
+      cancelText: 'Later',
+    );
+    if (!ok) return;
+    if (!mounted) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const OspreyAddDevicePage(),
       ),
     );
   }

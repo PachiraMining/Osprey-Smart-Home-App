@@ -41,6 +41,9 @@ class ApiClient {
           if (token != null && token.isNotEmpty) {
             options.headers['X-Authorization'] = 'Bearer $token';
           }
+          // TEMP-NET-AUDIT: đếm call khi mở app (print → logcat). Gỡ sau.
+          // ignore: avoid_print
+          print('🌐 [NET] ${options.method} ${options.path}');
           _log('→ ${options.method} ${options.path}');
           handler.next(options);
         },

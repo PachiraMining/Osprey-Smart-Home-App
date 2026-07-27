@@ -3,7 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../../core/theme/app_colors.dart';
+
+import '../../../../core/widgets/app_dialog.dart';
+import '../../../../core/widgets/app_popup.dart';
 import '../../../../core/widgets/app_pull_refresh.dart';
+import '../../../../core/cache/hidden_device_store.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../bloc/home_management_bloc.dart';
@@ -12,6 +16,7 @@ import '../bloc/home_management_state.dart';
 import '../../domain/entities/home_device_entity.dart';
 import 'home_selector_sheet.dart';
 import 'manage_home_page.dart';
+import 'all_devices_manage_page.dart';
 import 'package:smart_curtain_app/features/device/domain/entities/device_entity.dart';
 import 'package:smart_curtain_app/features/device/presentation/pages/curtain_control_page.dart';
 import '../../../ai/domain/entities/voice_intent.dart';
@@ -39,11 +44,18 @@ class _HomeTabState extends State<HomeTab> {
   /// Set ngay trước khi dispatch event, BlocListener consume khi success.
   String? _pendingSuccessMessage;
 
+  /// Expander "Show invisible devices" mở hay đóng.
+  bool _showHidden = false;
+
   @override
   void initState() {
     super.initState();
+    HiddenDeviceStore.instance.ensureLoaded();
     final bloc = context.read<HomeManagementBloc>();
-    if (bloc.state.status == HomeStatus.initial) {
+    // Revalidate on mount even when hydrated cache restored a `loaded` state —
+    // the bloc's own re-entrancy guard blocks a concurrent load. This is the
+    // "revalidate" half of stale-while-revalidate.
+    if (bloc.state.status != HomeStatus.loading) {
       bloc.add(const LoadHomesEvent());
     }
     // Kick off AI features so cards/banners can populate as soon as data arrives.
@@ -197,28 +209,16 @@ class _HomeTabState extends State<HomeTab> {
 
   /// Nút 1 — Ngắt kết nối: confirm rồi DELETE.
   Future<void> _confirmDisconnect(HomeDeviceEntity device) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Disconnect device?'),
-        content: Text(
+    final confirmed = await AppDialog.confirm(
+      context,
+      title: 'Disconnect device?',
+      message:
           '"${device.displayName}" will be removed from your home and '
           'automatically return to pairing mode in about 1-2 minutes.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: AppColors.warning),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Disconnect'),
-          ),
-        ],
-      ),
+      confirmText: 'Disconnect',
+      destructive: true,
     );
-    if (confirmed != true || !mounted) return;
+    if (!confirmed || !mounted) return;
 
     final bloc = context.read<HomeManagementBloc>();
     final homeId = bloc.state.selectedHomeId;
@@ -234,28 +234,16 @@ class _HomeTabState extends State<HomeTab> {
 
   /// Nút 2 — Hủy liên kết và xóa dữ liệu: confirm (cảnh báo mạnh) rồi POST.
   Future<void> _confirmFactoryReset(HomeDeviceEntity device) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Erase device data?'),
-        content: Text(
+    final confirmed = await AppDialog.confirm(
+      context,
+      title: 'Erase device data?',
+      message:
           'All data for "${device.displayName}" will be erased and '
           'CANNOT be recovered. Are you sure?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: AppColors.error),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+      confirmText: 'Delete',
+      destructive: true,
     );
-    if (confirmed != true || !mounted) return;
+    if (!confirmed || !mounted) return;
 
     final bloc = context.read<HomeManagementBloc>();
     final homeId = bloc.state.selectedHomeId;
@@ -269,35 +257,14 @@ class _HomeTabState extends State<HomeTab> {
   }
 
   Future<void> _showRenameDeviceDialog(HomeDeviceEntity device) async {
-    final controller = TextEditingController(text: device.displayName);
-    final newName = await showDialog<String>(
-      context: context,
-      builder: (dialogCtx) => AlertDialog(
-        title: const Text('Rename device'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          maxLength: 50,
-          decoration: const InputDecoration(
-            labelText: 'Device name',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogCtx),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () =>
-                Navigator.pop(dialogCtx, controller.text.trim()),
-            child: const Text('Save'),
-          ),
-        ],
-      ),
+    final newName = await AppDialog.prompt(
+      context,
+      title: 'Rename device',
+      initialValue: device.displayName,
+      hintText: 'Device name',
+      confirmText: 'Save',
     );
-    controller.dispose();
-    if (newName == null || newName.isEmpty || !mounted) return;
+    if (newName == null || !mounted) return;
 
     final bloc = context.read<HomeManagementBloc>();
     final homeId = bloc.state.selectedHomeId;
@@ -322,22 +289,24 @@ class _HomeTabState extends State<HomeTab> {
     if (pending == null) return;
     if (state.mutationStatus == MutationStatus.success) {
       _pendingSuccessMessage = null;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(pending),
-        backgroundColor: AppColors.success,
-      ));
+      AppPopup.success(context, title: 'Done', message: pending);
     } else if (state.mutationStatus == MutationStatus.error) {
       _pendingSuccessMessage = null;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(state.errorMessage ?? 'Something went wrong, please try again'),
-        backgroundColor: AppColors.error,
-      ));
+      AppPopup.error(
+        context,
+        title: 'Failed',
+        message: _isNetworkError(state.errorMessage)
+            ? 'No connection. Check your internet and try again.'
+            : (state.errorMessage ?? 'Something went wrong, please try again'),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<HomeManagementBloc, HomeManagementState>(
+    return ListenableBuilder(
+      listenable: HiddenDeviceStore.instance,
+      builder: (context, _) => BlocListener<HomeManagementBloc, HomeManagementState>(
       listenWhen: (prev, curr) =>
           prev.mutationStatus != curr.mutationStatus,
       listener: _onMutationResult,
@@ -421,8 +390,34 @@ class _HomeTabState extends State<HomeTab> {
         );
       },
       ),
+    ),
     );
   }
+
+  /// True when [raw] looks like a "can't reach the server" network error
+  /// (host lookup / socket / timeout / connection) rather than a real backend
+  /// rejection — so we can show a clean, non-technical message instead of the
+  /// raw Dio/Socket string (which also leaks the internal host name).
+  bool _isNetworkError(String? raw) {
+    if (raw == null) return false;
+    final s = raw.toLowerCase();
+    return s.contains('failed host lookup') ||
+        s.contains('socketexception') ||
+        s.contains('connection error') ||
+        s.contains('connection errored') ||
+        s.contains('connection refused') ||
+        s.contains('connection closed') ||
+        s.contains('network is unreachable') ||
+        s.contains('timed out') ||
+        s.contains('timeout');
+  }
+
+  String _friendlyErrorTitle(String? raw) =>
+      _isNetworkError(raw) ? 'No connection' : 'Something went wrong';
+
+  String _friendlyErrorBody(String? raw) => _isNetworkError(raw)
+      ? 'Check your internet connection and try again.'
+      : 'We couldn\'t load your home. Please try again.';
 
   Widget _buildDeviceSliver(HomeManagementState state) {
     if (state.status == HomeStatus.loading ||
@@ -446,10 +441,20 @@ class _HomeTabState extends State<HomeTab> {
                   size: 56, color: AppColors.textDisabled),
               const SizedBox(height: 16),
               Text(
-                state.errorMessage ?? 'An error occurred',
-                style: AppTypography.bodyMedium
-                    .copyWith(color: AppColors.textSecondary),
+                _friendlyErrorTitle(state.errorMessage),
+                style: AppTypography.titleMedium
+                    .copyWith(color: AppColors.textPrimary),
                 textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 6),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Text(
+                  _friendlyErrorBody(state.errorMessage),
+                  style: AppTypography.bodyMedium
+                      .copyWith(color: AppColors.textSecondary),
+                  textAlign: TextAlign.center,
+                ),
               ),
               const SizedBox(height: 20),
               ElevatedButton(
@@ -465,8 +470,8 @@ class _HomeTabState extends State<HomeTab> {
       );
     }
 
-    final devices = state.filteredDevices;
-    if (devices.isEmpty) {
+    final all = state.filteredDevices;
+    if (all.isEmpty) {
       return SliverFillRemaining(
         hasScrollBody: false,
         child: _BrandEmptyState(
@@ -478,24 +483,80 @@ class _HomeTabState extends State<HomeTab> {
       );
     }
 
+    // Hidden devices are pulled out of the main list and tucked under a
+    // "Show invisible devices" expander at the bottom (local hide preference).
+    final hiddenIds = HiddenDeviceStore.instance.hiddenFor(state.selectedHomeId);
+    final visible =
+        all.where((d) => !hiddenIds.contains(d.deviceId)).toList();
+    final hidden = all.where((d) => hiddenIds.contains(d.deviceId)).toList();
+
+    final items = <Widget>[
+      for (final d in visible) _deviceTile(d),
+      if (hidden.isNotEmpty) _invisibleExpander(hidden.length),
+      if (hidden.isNotEmpty && _showHidden)
+        for (final d in hidden) _deviceTile(d),
+      const SizedBox(height: 120),
+    ];
+
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      sliver: SliverList.builder(
-        itemCount: devices.length + 1,
-        itemBuilder: (context, index) {
-          if (index == devices.length) {
-            return const SizedBox(height: 120);
+      sliver: SliverList(delegate: SliverChildListDelegate(items)),
+    );
+  }
+
+  Widget _deviceTile(HomeDeviceEntity device) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: _DeviceCard(
+        device: device,
+        // Offline devices can't be controlled — block the tap into the
+        // control page and tell the user why instead.
+        onTap: () {
+          if (device.isOnline ?? false) {
+            _navigateToDevice(device);
+          } else {
+            ScaffoldMessenger.of(context)
+              ..clearSnackBars()
+              ..showSnackBar(const SnackBar(
+                content: Text('Device is offline'),
+                duration: Duration(seconds: 2),
+              ));
           }
-          final device = devices[index];
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: _DeviceCard(
-              device: device,
-              onTap: () => _navigateToDevice(device),
-              onLongPress: () => _showDeviceActions(device),
-            ),
-          );
         },
+        onLongPress: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const AllDevicesManagePage()),
+        ),
+      ),
+    );
+  }
+
+  /// Bottom expander toggling the hidden-device section.
+  Widget _invisibleExpander(int count) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10, top: 2),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => setState(() => _showHidden = !_showHidden),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              _showHidden
+                  ? 'Hide invisible devices'
+                  : 'Show invisible devices ($count)',
+              style: AppTypography.labelMedium
+                  .copyWith(color: AppColors.textSecondary),
+            ),
+            const SizedBox(width: 4),
+            AnimatedRotation(
+              turns: _showHidden ? 0.5 : 0,
+              duration: const Duration(milliseconds: 200),
+              child: const Icon(Icons.keyboard_arrow_down,
+                  size: 20, color: AppColors.textSecondary),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -608,8 +669,28 @@ class _DeviceCardState extends State<_DeviceCard> {
 
   HomeDeviceEntity get device => widget.device;
 
-  void _send(String command) {
-    GetIt.instance<SendDeviceCommand>()(device.deviceId, command);
+  static const _successByCommand = {
+    'open': ('Opening', 'Curtain is opening'),
+    'stop': ('Paused', 'Curtain stopped'),
+    'close': ('Closing', 'Curtain is closing'),
+  };
+
+  Future<void> _send(String command) async {
+    // Popup custom giữa màn (AppPopup): loading khi gửi lệnh →
+    // success (tự đóng) hoặc error nếu server từ chối.
+    AppPopup.loading(context, title: 'Sending', message: device.displayName);
+    final result =
+        await GetIt.instance<SendDeviceCommand>()(device.deviceId, command);
+    if (!mounted) return;
+    Navigator.of(context, rootNavigator: true).pop(); // đóng loading
+    final ok = _successByCommand[command];
+    result.fold(
+      (failure) => AppPopup.error(context,
+          title: 'Failed',
+          message: 'Could not send the command. Please try again.'),
+      (_) => AppPopup.success(context,
+          title: ok?.$1 ?? 'Sent', message: ok?.$2 ?? device.displayName),
+    );
   }
 
   @override
@@ -623,37 +704,58 @@ class _DeviceCardState extends State<_DeviceCard> {
         onTap: widget.onTap,
         onLongPress: widget.onLongPress,
         child: Container(
-          padding: const EdgeInsets.all(16),
+          // Trong suốt hơn để lộ nền ảnh, cao hơn chút, viền nhạt hơn.
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
           decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(AppRadius.lg),
-            border: Border.all(color: AppColors.borderSubtle),
+            color: Colors.white.withAlpha(140),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.white.withAlpha(90), width: 0.5),
           ),
           child: Column(
             children: [
               Row(
             children: [
-              // Device icon — curtain track product artwork (white tile like Tuya)
+              // Device icon — curtain-track artwork CHỈ khi device profile là
+              // curtain track; loại khác dùng icon chung. Offline → làm mờ để
+              // báo thiết bị không điều khiển được.
               Container(
                 width: 52,
                 height: 52,
                 decoration: BoxDecoration(
+                  // Tile trắng ĐỤC luôn (không xuyên thấu) — kể cả khi offline.
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(AppRadius.md),
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withAlpha(18),
+                      blurRadius: 5,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                  child: Padding(
-                    padding: const EdgeInsets.all(4),
-                    child: Image.asset(
-                      'assets/icons/curtain_track.png',
-                      fit: BoxFit.contain,
-                      errorBuilder: (_, __, ___) => Icon(
-                        Icons.curtains_outlined,
-                        size: 28,
-                        color: AppColors.primary,
-                      ),
-                    ),
+                  borderRadius: BorderRadius.circular(8),
+                  // Offline → chỉ làm mờ ẢNH rèm bên trong, nền ô vẫn trắng đục.
+                  child: Opacity(
+                    opacity: isOnline ? 1.0 : 0.4,
+                    child: device.isCurtainTrack
+                        ? Padding(
+                            padding: const EdgeInsets.all(3),
+                            child: Image.asset(
+                              'assets/icons/curtain_track.png',
+                              fit: BoxFit.contain,
+                              errorBuilder: (_, __, ___) => Icon(
+                                Icons.curtains_outlined,
+                                size: 28,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          )
+                        : const Icon(
+                            Icons.devices_other,
+                            size: 26,
+                            color: AppColors.textSecondary,
+                          ),
                   ),
                 ),
               ),

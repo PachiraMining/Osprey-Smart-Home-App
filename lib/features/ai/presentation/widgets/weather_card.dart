@@ -36,8 +36,8 @@ class WeatherCard extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.fromLTRB(16, 20, 16, 18),
             decoration: BoxDecoration(
-              color: Colors.white.withAlpha(180),
-              borderRadius: BorderRadius.circular(16),
+              color: Colors.white.withAlpha(140),
+              borderRadius: BorderRadius.circular(8),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

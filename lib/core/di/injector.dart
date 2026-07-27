@@ -41,14 +41,6 @@ import '../../features/device/domain/repositories/device_control_repository.dart
 import '../../features/device/domain/usecases/send_device_command.dart';
 
 // Scene
-import '../../features/scene/data/datasources/scene_remote_datasource.dart';
-import '../../features/scene/data/repositories/scene_repository_impl.dart';
-import '../../features/scene/domain/repositories/scene_repository.dart';
-import '../../features/scene/domain/usecases/get_scenes.dart';
-import '../../features/scene/domain/usecases/create_scene.dart';
-import '../../features/scene/domain/usecases/delete_scene.dart';
-import '../../features/scene/domain/usecases/toggle_scene.dart';
-import '../../features/scene/presentation/bloc/scene_bloc.dart';
 
 // Tap-to-Run Scene
 import '../../features/scene/data/datasources/tap_to_run_remote_datasource.dart';
@@ -354,36 +346,6 @@ Future<void> setupInjector() async {
 
   // Device Control Use Case
   sl.registerLazySingleton(() => SendDeviceCommand(sl()));
-
-  // ========== Scene Feature ==========
-  // Data sources
-  sl.registerLazySingleton<SceneRemoteDataSource>(
-    () => SceneRemoteDataSourceImpl(apiClient: sl<ApiClient>()),
-  );
-
-  // Repositories
-  sl.registerLazySingleton<SceneRepository>(
-    () => SceneRepositoryImpl(
-      remoteDataSource: sl(),
-      getHomeId: () => sl<TokenManager>().getHomeIdSync() ?? '',
-    ),
-  );
-
-  // Use cases
-  sl.registerLazySingleton(() => GetScenes(sl()));
-  sl.registerLazySingleton(() => CreateScene(sl()));
-  sl.registerLazySingleton(() => DeleteScene(sl()));
-  sl.registerLazySingleton(() => ToggleScene(sl()));
-
-  // BLoC
-  sl.registerFactory(
-    () => SceneBloc(
-      getScenes: sl(),
-      createScene: sl(),
-      deleteScene: sl(),
-      toggleScene: sl(),
-    ),
-  );
 
   // ========== Tap-to-Run Scene Feature ==========
   // Data sources

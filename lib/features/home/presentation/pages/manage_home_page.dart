@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:smart_curtain_app/core/widgets/app_dialog.dart';
 
 import '../bloc/home_management_bloc.dart';
 import '../bloc/home_management_event.dart';
@@ -47,28 +48,16 @@ class _ManageHomePageState extends State<ManageHomePage> {
   }
 
   Future<void> _confirmDelete() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Delete Home'),
-        content: Text(
+    final confirmed = await AppDialog.confirm(
+      context,
+      title: 'Delete Home',
+      message:
           'Are you sure you want to delete "${widget.homeName}"? This action cannot be undone.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+      confirmText: 'Delete',
+      destructive: true,
     );
 
-    if (confirmed == true && mounted) {
+    if (confirmed && mounted) {
       context
           .read<HomeManagementBloc>()
           .add(DeleteHomeEvent(widget.homeId));

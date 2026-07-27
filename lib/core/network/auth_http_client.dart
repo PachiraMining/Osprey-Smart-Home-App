@@ -46,6 +46,10 @@ class AuthHttpClient extends http.BaseClient {
     // refresh (a finalized BaseRequest streams its body only once).
     final bodyBytes = await request.finalize().toBytes();
 
+    // TEMP-NET-AUDIT: đếm call khi mở app. Gỡ sau.
+    // ignore: avoid_print
+    print('🌐 [NET] ${request.method} ${request.url.host}${request.url.path}');
+
     final first = await _inner.send(_rebuild(request, bodyBytes));
 
     // Only step in for an expired-token 401 on our own backend. A 401 on a

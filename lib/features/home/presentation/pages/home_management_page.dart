@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:smart_curtain_app/core/widgets/app_dialog.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../bloc/home_management_bloc.dart';
@@ -115,52 +116,13 @@ class HomeManagementPage extends StatelessWidget {
 
   Future<void> _showCreateHomeDialog(BuildContext context) async {
     final bloc = context.read<HomeManagementBloc>();
-    final controller = TextEditingController();
-    final name = await showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          'Create a home',
-          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
-        ),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          textCapitalization: TextCapitalization.words,
-          decoration: InputDecoration(
-            hintText: 'Home name',
-            hintStyle: TextStyle(color: Colors.grey.shade400),
-            filled: true,
-            fillColor: Colors.grey.shade50,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child:
-                const Text('Cancel', style: TextStyle(color: Colors.black54)),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, controller.text.trim()),
-            child: const Text(
-              'Create',
-              style: TextStyle(
-                  color: AppColors.primary, fontWeight: FontWeight.w600),
-            ),
-          ),
-        ],
-      ),
+    final name = await AppDialog.prompt(
+      context,
+      title: 'Create a home',
+      hintText: 'Home name',
+      confirmText: 'Create',
     );
-    controller.dispose();
-    if (name == null || name.isEmpty) return;
+    if (name == null) return;
     // Timezone omitted → bloc stamps the device's IANA zone automatically.
     bloc.add(CreateHomeEvent(name: name));
   }

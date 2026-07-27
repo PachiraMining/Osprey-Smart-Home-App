@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:smart_curtain_app/core/auth/auth_diag_log.dart';
 import 'package:smart_curtain_app/features/auth/domain/usecases/login_usecase.dart';
 import 'package:smart_curtain_app/features/auth/data/models/login_request_model.dart';
 import 'package:smart_curtain_app/features/auth/data/datasources/auth_remote_datasource.dart';
@@ -60,6 +61,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         // Profile fetch failure is non-fatal; tokens are already saved.
       }
 
+      await AuthDiagLog.instance.add('LOGIN', 'email/password login ok');
       emit(AuthSuccess(token: event.token, refreshToken: event.refreshToken));
     } catch (e) {
       emit(AuthFailure('An error occurred: ${e.toString()}'));
@@ -150,6 +152,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       // see (a) whether they survived storage and (b) their real server TTLs.
       print('🔑[AUTH-DIAG] cold-start access=${_diagExp(token)} '
           'refresh=${_diagExp(storedRefresh)}');
+      await AuthDiagLog.instance.add('COLD_START',
+          'access=${_diagExp(token)} refresh=${_diagExp(storedRefresh)}');
 
       // The REFRESH token — not the access token — is what decides whether the
       // session is still alive. The access token is short-lived (2.5h) and is
@@ -171,12 +175,24 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           // Wipe credentials only when we actually held a refresh token that the
           // server rejected — a transient storage read miss must not nuke
           // recoverable tokens (the next launch may read them fine).
-          if (hasRefresh) await tokenMgr.clearTokens();
+          if (hasRefresh) {
+            await AuthDiagLog.instance.add('LOGOUT',
+                'cold-start: had refresh token but refresh did not succeed '
+                '(see REFRESH entry above for status) → tokens cleared');
+            await tokenMgr.clearTokens();
+          } else {
+            await AuthDiagLog.instance.add('NO_SESSION',
+                'cold-start: no refresh token present (never logged in, or '
+                'storage read miss — tokens NOT cleared)');
+          }
           emit(AuthInitial());
           return;
         }
         token = await tokenMgr.getToken();
         if (token == null || token.isEmpty) {
+          await AuthDiagLog.instance.add('LOGOUT',
+              'cold-start: refresh reported success but access token still '
+              'empty after save');
           emit(AuthInitial());
           return;
         }
@@ -201,8 +217,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         tokenMgr.setCachedCustomerId(customerId);
       }
 
+      await AuthDiagLog.instance.add('RESUME_OK',
+          'cold-start: session restored ${accessUsable ? '(access still valid)' : '(via refresh)'}');
       emit(AuthSuccess(token: token, refreshToken: refreshToken ?? ''));
     } catch (e) {
+      await AuthDiagLog.instance
+          .add('LOGOUT', 'cold-start: unexpected error → $e');
       emit(AuthInitial());
     }
   }
@@ -275,6 +295,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         // Profile fetch failure is non-fatal; tokens are already saved.
       }
 
+      await AuthDiagLog.instance.add('LOGIN', 'social login ok');
       emit(AuthSuccess(token: result.token, refreshToken: result.refreshToken));
     } on SocialLoginException catch (e) {
       emit(AuthFailure(e.message));

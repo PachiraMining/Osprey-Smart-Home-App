@@ -1,4 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hydrated_bloc/hydrated_bloc.dart';
+import '../../../../../core/cache/cache_serializers.dart';
 
 import '../../../../../core/di/injector.dart';
 import '../../../../../core/notifications/message_center.dart';
@@ -12,7 +14,8 @@ import '../../../domain/usecases/execute_tap_to_run_scene.dart';
 import 'tap_to_run_event.dart';
 import 'tap_to_run_state.dart';
 
-class TapToRunBloc extends Bloc<TapToRunEvent, TapToRunState> {
+class TapToRunBloc extends Bloc<TapToRunEvent, TapToRunState>
+    with HydratedMixin<TapToRunState> {
   final GetTapToRunScenes getTapToRunScenes;
   final CreateTapToRunScene createTapToRunScene;
   final UpdateTapToRunScene updateTapToRunScene;
@@ -36,6 +39,31 @@ class TapToRunBloc extends Bloc<TapToRunEvent, TapToRunState> {
     on<DeleteTapToRunSceneEvent>(_onDeleteScene);
     on<ExecuteTapToRunSceneEvent>(_onExecuteScene);
     on<ToggleTapToRunSceneEvent>(_onToggleScene);
+    hydrate();
+  }
+
+  @override
+  TapToRunState? fromJson(Map<String, dynamic> json) {
+    final list = (json['scenes'] as List?) ?? const [];
+    if (list.isEmpty) return null;
+    return TapToRunLoaded(
+      list
+          .whereType<Map>()
+          .map((e) => tapToRunFromJson(e.cast<String, dynamic>()))
+          .toList(),
+    );
+  }
+
+  @override
+  Map<String, dynamic>? toJson(TapToRunState state) {
+    final scenes = switch (state) {
+      TapToRunLoaded(:final scenes) => scenes,
+      TapToRunExecuting(:final scenes) => scenes,
+      TapToRunExecuteResult(:final scenes) => scenes,
+      _ => null,
+    };
+    if (scenes == null) return null; // don't persist loading/error/initial
+    return {'scenes': scenes.map(tapToRunToJson).toList()};
   }
 
   Future<void> _onLoadScenes(

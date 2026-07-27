@@ -5,6 +5,7 @@ import 'package:permission_handler/permission_handler.dart';
 
 import '../../../../core/di/injector.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/app_popup.dart';
 import '../../../device/data/device_network_store.dart';
 import '../../domain/entities/discovered_osprey_device.dart';
 import '../../domain/entities/pairing_progress.dart';
@@ -110,6 +111,32 @@ class _OspreyPairingViewState extends State<_OspreyPairingView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
+      // Nút Done to, ghim đáy — chỉ hiện khi đã pair xong (giống Tuya).
+      bottomNavigationBar: BlocBuilder<PairingBloc, PairingState>(
+        builder: (context, state) {
+          if (state is! PairingSuccess) return const SizedBox.shrink();
+          return SafeArea(
+            minimum: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+            child: SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                // Trả true để trang trước refresh danh sách thiết bị.
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Done',
+                    style: TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.w600)),
+              ),
+            ),
+          );
+        },
+      ),
       appBar: AppBar(
         backgroundColor: AppColors.surface,
         elevation: 0,
@@ -139,11 +166,10 @@ class _OspreyPairingViewState extends State<_OspreyPairingView> {
             // (firmware không báo SSID lên backend — đây là nguồn thật duy nhất).
             sl<DeviceNetworkStore>()
                 .saveSsid(state.deviceId, _ssidController.text.trim());
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Pairing successful! Device is ready.'),
-                backgroundColor: AppColors.success,
-              ),
+            AppPopup.success(
+              context,
+              title: 'Pairing successful',
+              message: 'Device is ready.',
             );
           }
         },
@@ -302,117 +328,167 @@ class _OspreyPairingViewState extends State<_OspreyPairingView> {
     );
   }
 
-  // ─── Progress stepper ──────────────────────────────────────
-  // Option 2: connect + đọc DEVICE_UUID trước (disarm watchdog), backend sau
-  static const _steps = [
-    (PairingStep.connecting, 'Connecting via Bluetooth'),
-    (PairingStep.requestingToken, 'Registering with server'),
-    (PairingStep.authenticating, 'Authenticating device'),
-    (PairingStep.sendingWifiCredentials, 'Sending WiFi credentials'),
-    (PairingStep.waitingForDevice, 'Waiting for device to come online'),
-  ];
+  /// Target fill (0–1) of the progress ring for each pairing step. The ring
+  /// grows as the 5 steps advance (Tuya-style) instead of spinning.
+  static double _progressFor(PairingStep step) {
+    switch (step) {
+      case PairingStep.connecting:
+        return 0.15;
+      case PairingStep.requestingToken:
+        return 0.35;
+      case PairingStep.authenticating:
+        return 0.55;
+      case PairingStep.sendingWifiCredentials:
+        return 0.72;
+      case PairingStep.waitingForDevice:
+        return 0.97; // creeps up slowly during the long device-online wait
+      default:
+        return 0.1;
+    }
+  }
 
+  /// Tuya-style result screen (single device). The 5-step pairing logic is
+  /// unchanged underneath — it just drives the DETERMINATE progress ring
+  /// (fills as steps advance) instead of an indeterminate spinner.
   Widget _buildProgress(PairingStep currentStep) {
-    final currentIndex =
-        _steps.indexWhere((s) => s.$1 == currentStep).clamp(0, _steps.length);
+    final target = _progressFor(currentStep);
+    // The "waiting for device" step can take up to ~90s → animate the ring
+    // slowly toward its target so it keeps visibly filling; other steps snap.
+    final duration = currentStep == PairingStep.waitingForDevice
+        ? const Duration(seconds: 60)
+        : const Duration(milliseconds: 500);
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 16),
-        ..._steps.asMap().entries.map((entry) {
-          final i = entry.key;
-          final (_, label) = entry.value;
-          final isDone = i < currentIndex;
-          final isCurrent = i == currentIndex;
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            child: Row(
+        const SizedBox(height: 8),
+        const Text(
+          '1 device(s) being added',
+          style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+        ),
+        const SizedBox(height: 12),
+        _resultCard(
+          done: false,
+          status: 'Being added',
+          trailing: TweenAnimationBuilder<double>(
+            tween: Tween<double>(begin: 0, end: target),
+            duration: duration,
+            curve: Curves.easeOut,
+            builder: (context, value, _) => SizedBox(
+              width: 26,
+              height: 26,
+              child: CircularProgressIndicator(
+                value: value,
+                strokeWidth: 3,
+                backgroundColor: AppColors.borderSubtle,
+                valueColor:
+                    const AlwaysStoppedAnimation<Color>(AppColors.primary),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Result cell shared by both states: product thumbnail (+ green check badge
+  /// when done), device name, status line, and an optional trailing widget.
+  Widget _resultCard({
+    required bool done,
+    required String status,
+    Widget? trailing,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 56,
+            height: 56,
+            child: Stack(
+              clipBehavior: Clip.none,
               children: [
-                if (isDone)
-                  const Icon(Icons.check_circle,
-                      color: AppColors.success, size: 26)
-                else if (isCurrent)
-                  const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2.5,
-                      valueColor:
-                          AlwaysStoppedAnimation<Color>(AppColors.primary),
+                Positioned.fill(
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: Image.asset(
+                      'assets/icons/curtain_track.png',
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, __, ___) => const Icon(
+                        Icons.curtains_outlined,
+                        size: 30,
+                        color: AppColors.primary,
+                      ),
                     ),
-                  )
-                else
-                  const Icon(Icons.radio_button_unchecked,
-                      color: AppColors.textDisabled, size: 26),
-                const SizedBox(width: 14),
+                  ),
+                ),
+                if (done)
+                  Positioned(
+                    top: -2,
+                    right: -2,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                      ),
+                      child: const Icon(Icons.check_circle,
+                          size: 22, color: AppColors.success),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight:
-                        isCurrent ? FontWeight.w600 : FontWeight.w400,
-                    color: isCurrent || isDone
-                        ? AppColors.textPrimary
-                        : AppColors.textMuted,
+                  widget.device.displayName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  status,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: AppColors.textMuted,
                   ),
                 ),
               ],
             ),
-          );
-        }),
-        const SizedBox(height: 20),
-        if (currentStep == PairingStep.waitingForDevice)
-          const Text(
-            'The device is restarting and connecting to WiFi — '
-            'this can take up to 90 seconds.',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 13, color: AppColors.textMuted),
           ),
-      ],
+          if (trailing != null) ...[
+            const SizedBox(width: 8),
+            trailing,
+          ],
+        ],
+      ),
     );
   }
 
   // ─── Success / failure ─────────────────────────────────────
   Widget _buildSuccess() {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 40),
-        Container(
-          width: 96,
-          height: 96,
-          decoration: const BoxDecoration(
-            color: AppColors.primarySubtle,
-            shape: BoxShape.circle,
-          ),
-          child:
-              const Icon(Icons.check_rounded, size: 56, color: AppColors.success),
-        ),
-        const SizedBox(height: 24),
-        const Text(
-          'Pairing successful!',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
-          ),
-        ),
         const SizedBox(height: 8),
-        Text(
-          '${widget.device.displayName} has been added to your home.',
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
+        const Text(
+          '1 device(s) added successfully',
+          style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
         ),
-        const SizedBox(height: 32),
-        FilledButton(
-          style: FilledButton.styleFrom(
-            backgroundColor: AppColors.primary,
-            padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
-          ),
-          // Trả true để trang trước refresh danh sách thiết bị
-          onPressed: () => Navigator.pop(context, true),
-          child: const Text('Done'),
-        ),
+        const SizedBox(height: 12),
+        _resultCard(done: true, status: 'Added successfully'),
       ],
     );
   }

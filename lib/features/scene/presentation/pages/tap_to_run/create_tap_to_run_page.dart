@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:smart_curtain_app/core/widgets/app_dialog.dart';
 import 'package:smart_curtain_app/features/scene/domain/entities/tap_to_run_scene_entity.dart';
 import 'package:smart_curtain_app/features/scene/domain/entities/scene_action_entity.dart';
 import 'package:smart_curtain_app/features/scene/presentation/bloc/tap_to_run/tap_to_run_bloc.dart';
@@ -162,31 +163,17 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
     );
   }
 
-  void _showNameEditDialog() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Scene Name'),
-        content: TextField(
-          controller: _nameController,
-          autofocus: true,
-          decoration: const InputDecoration(hintText: 'Enter scene name'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              setState(() {});
-            },
-            child: const Text('OK'),
-          ),
-        ],
-      ),
+  Future<void> _showNameEditDialog() async {
+    final name = await AppDialog.prompt(
+      context,
+      title: 'Scene Name',
+      initialValue: _nameController.text,
+      hintText: 'Enter scene name',
+      confirmText: 'OK',
     );
+    if (name != null) {
+      setState(() => _nameController.text = name);
+    }
   }
 
   void _showAddActionSheet() {
@@ -483,26 +470,22 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
                           // Delete
                           if (_isEditing)
                             GestureDetector(
-                              onTap: () {
+                              onTap: () async {
                                 Navigator.pop(ctx);
-                                showDialog(
-                                  context: context,
-                                  builder: (dlg) => AlertDialog(
-                                    title: const Text('Delete scene?'),
-                                    content: const Text('This action cannot be undone.'),
-                                    actions: [
-                                      TextButton(onPressed: () => Navigator.pop(dlg), child: const Text('Cancel')),
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.pop(dlg);
-                                          context.read<TapToRunBloc>().add(DeleteTapToRunSceneEvent(widget.existingScene!.id));
-                                          Navigator.pop(context);
-                                        },
-                                        child: const Text('Delete', style: TextStyle(color: Colors.red)),
-                                      ),
-                                    ],
-                                  ),
+                                final ok = await AppDialog.confirm(
+                                  context,
+                                  title: 'Delete scene?',
+                                  message: 'This action cannot be undone.',
+                                  confirmText: 'Delete',
+                                  destructive: true,
                                 );
+                                if (!ok) return;
+                                if (!mounted) return;
+                                context.read<TapToRunBloc>().add(
+                                      DeleteTapToRunSceneEvent(
+                                          widget.existingScene!.id),
+                                    );
+                                Navigator.pop(context);
                               },
                               child: Container(
                                 width: double.infinity,

@@ -29,29 +29,25 @@ class DeviceControlDataSourceImpl implements DeviceControlDataSource {
   @override
   Future<void> sendCommand(String deviceId, String command) async {
     try {
-      // Convert command to params
-      int params;
-      if (command == 'OPEN') {
-        params = 1; // Mở rèm
-      } else if (command == 'CLOSE') {
-        params = 0; // Đóng rèm
-      } else if (command == 'STOP') {
-        params = 2; // Dừng
-      } else {
-        params = 0;
-      }
+      // DP-command API chuẩn (cùng đường với curtain page + home widget):
+      //   dpId 1: 'open' | 'close' | 'stop'
+      //   dpId 2: phần trăm vị trí 0–100
+      // (Thay cho POST /api/rpc/oneway 'setRelayState' cũ — firmware Osprey
+      // không xử lý RPC đó, nên các nút quick-control trước đây không ăn.)
+      final percent = int.tryParse(command);
+      final body = jsonEncode(
+        percent != null
+            ? {'dpId': 2, 'value': percent.clamp(0, 100)}
+            : {'dpId': 1, 'value': command.toLowerCase()},
+      );
 
-      // Body theo format API của bạn
-      final body = jsonEncode({'method': 'setRelayState', 'params': params});
-
-      // Gọi API
       final response = await client.post(
-        Uri.parse('$baseUrl${ApiEndpoints.rpcOneway(deviceId)}'),
+        Uri.parse('$baseUrl${ApiEndpoints.deviceCommands(deviceId)}'),
         headers: _headers,
         body: body,
       );
 
-      if (response.statusCode == 200) {
+      if (response.statusCode >= 200 && response.statusCode < 300) {
         return;
       } else if (response.statusCode == 401) {
         throw UnauthorizedException();

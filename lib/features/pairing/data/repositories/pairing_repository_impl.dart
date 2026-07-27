@@ -149,6 +149,10 @@ class PairingRepositoryImpl implements PairingRepository {
                 'before adding a device');
       }
 
+      // TEMP-PAIR-TIMING: đo tổng thời gian pair → done để so sánh interval
+      // poll (log-only, gỡ sau khi chốt số liệu).
+      final pairTimer = Stopwatch()..start();
+
       // ── 1. Connect + READ DEVICE_UUID (disarm watchdog) ──────
       // Firmware watchdog 30s armed lúc connect, DISARM ngay khi app
       // READ char DEVICE_UUID — sau đó gọi backend bao lâu cũng được.
@@ -205,6 +209,9 @@ class PairingRepositoryImpl implements PairingRepository {
       // ── 5. Disconnect BLE, poll backend đến khi PAIRED ───────
       await bleDataSource.closeSession();
       yield const PairingProgress(PairingStep.waitingForDevice);
+      print('⏱ [PairTiming] BLE+credentials xong sau '
+          '${pairTimer.elapsedMilliseconds}ms — bắt đầu poll '
+          '(interval=${PairingConstants.pollInterval.inMilliseconds}ms)');
       final deviceId = await _pollUntilPaired(tokenResp.token);
 
       // ── 6. Persist BLE session material cho fallback control ─
@@ -223,6 +230,8 @@ class PairingRepositoryImpl implements PairingRepository {
         );
       }
 
+      print('⏱ [PairTiming] TOTAL pair → done: '
+          '${pairTimer.elapsedMilliseconds}ms');
       yield PairingProgress(PairingStep.done, deviceId: deviceId);
     } on BlePairingException catch (e) {
       await bleDataSource.closeSession();
@@ -245,11 +254,16 @@ class PairingRepositoryImpl implements PairingRepository {
 
   /// Poll `GET /pairing/token/{token}` mỗi 2s, timeout 90s (spec §6.5).
   Future<String> _pollUntilPaired(String token) async {
+    final pollTimer = Stopwatch()..start();
     for (var i = 0; i < PairingConstants.pollMaxAttempts; i++) {
       final status = await remoteDataSource.getPairingTokenStatus(token);
       if (status.isPaired) {
+        print('⏱ [PairTiming] PAIRED tại lần poll #${i + 1} sau '
+            '${pollTimer.elapsedMilliseconds}ms (phase chờ device online)');
         return status.deviceId ?? '';
       }
+      print('⏱ [PairTiming] poll #${i + 1}: chưa PAIRED '
+          '(${pollTimer.elapsedMilliseconds}ms)');
       if (status.isExpired) {
         throw ServerException(
             message: 'Pairing token has expired — please try again');

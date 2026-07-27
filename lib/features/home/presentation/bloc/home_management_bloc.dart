@@ -1,4 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hydrated_bloc/hydrated_bloc.dart';
+import '../../../../core/cache/cache_serializers.dart';
 
 import '../../../../core/auth/token_manager.dart';
 import '../../../../core/di/injector.dart';
@@ -23,8 +25,8 @@ import '../../domain/usecases/delete_room.dart';
 import 'home_management_event.dart';
 import 'home_management_state.dart';
 
-class HomeManagementBloc
-    extends Bloc<HomeManagementEvent, HomeManagementState> {
+class HomeManagementBloc extends Bloc<HomeManagementEvent, HomeManagementState>
+    with HydratedMixin<HomeManagementState> {
   final GetHomes getHomes;
   final CreateHome createHome;
   final UpdateHome updateHome;
@@ -71,6 +73,44 @@ class HomeManagementBloc
     on<CreateRoomEvent>(_onCreateRoom);
     on<UpdateRoomEvent>(_onUpdateRoom);
     on<DeleteRoomEvent>(_onDeleteRoom);
+    hydrate();
+  }
+
+  @override
+  HomeManagementState? fromJson(Map<String, dynamic> json) {
+    final homes = (json['homes'] as List?) ?? const [];
+    if (homes.isEmpty) return null;
+    return HomeManagementState(
+      status: HomeStatus.loaded,
+      homes: homes
+          .whereType<Map>()
+          .map((e) => homeFromJson(e.cast<String, dynamic>()))
+          .toList(),
+      selectedHomeId: json['selectedHomeId'] as String?,
+      selectedRoomId: json['selectedRoomId'] as String?,
+      devices: ((json['devices'] as List?) ?? const [])
+          .whereType<Map>()
+          .map((e) => deviceFromJson(e.cast<String, dynamic>()))
+          .toList(),
+      rooms: ((json['rooms'] as List?) ?? const [])
+          .whereType<Map>()
+          .map((e) => roomFromJson(e.cast<String, dynamic>()))
+          .toList(),
+    );
+  }
+
+  @override
+  Map<String, dynamic>? toJson(HomeManagementState state) {
+    // Persist only fully-loaded data (never loading/error) so the cache always
+    // restores a usable snapshot.
+    if (state.status != HomeStatus.loaded || state.homes.isEmpty) return null;
+    return {
+      'homes': state.homes.map(homeToJson).toList(),
+      'selectedHomeId': state.selectedHomeId,
+      'selectedRoomId': state.selectedRoomId,
+      'devices': state.devices.map(deviceToJson).toList(),
+      'rooms': state.rooms.map(roomToJson).toList(),
+    };
   }
 
   // ---------------------------------------------------------------------------
@@ -81,6 +121,9 @@ class HomeManagementBloc
     LoadHomesEvent event,
     Emitter<HomeManagementState> emit,
   ) async {
+    // Coalesce: nếu một lượt load đang chạy thì bỏ qua lượt trùng (chống
+    // double-dispatch lúc khởi động → từng nhân đôi 11 API call mỗi lần mở app).
+    if (state.status == HomeStatus.loading) return;
     emit(state.copyWith(status: HomeStatus.loading, clearError: true));
 
     final result = await getHomes();
@@ -379,7 +422,25 @@ class HomeManagementBloc
     UpdateHomeDeviceEvent event,
     Emitter<HomeManagementState> emit,
   ) async {
-    emit(state.copyWith(mutationStatus: MutationStatus.loading));
+    // Optimistic: apply rename/room/sortOrder to the local list IMMEDIATELY so
+    // the UI (esp. Home ordering after "Move to Top") reflects the change at
+    // once. The prod server is in the US and has read-after-write lag — a
+    // reload right after the PUT often returns the *old* order, so we do NOT
+    // reload here; we trust the value we just sent (and revert if it fails).
+    final previous = state.devices;
+    final optimistic = previous
+        .map((d) => d.deviceId == event.deviceId
+            ? d.copyWith(
+                roomId: event.roomId,
+                deviceName: event.deviceName,
+                sortOrder: event.sortOrder,
+              )
+            : d)
+        .toList();
+    emit(state.copyWith(
+      devices: optimistic,
+      mutationStatus: MutationStatus.loading,
+    ));
 
     final result = await updateHomeDevice(
       homeId: event.homeId,
@@ -390,13 +451,11 @@ class HomeManagementBloc
     );
     result.fold(
       (failure) => emit(state.copyWith(
+        devices: previous, // revert the optimistic change
         mutationStatus: MutationStatus.error,
         errorMessage: failure.message,
       )),
-      (_) {
-        emit(state.copyWith(mutationStatus: MutationStatus.success));
-        add(LoadHomeDevicesEvent(event.homeId));
-      },
+      (_) => emit(state.copyWith(mutationStatus: MutationStatus.success)),
     );
   }
 

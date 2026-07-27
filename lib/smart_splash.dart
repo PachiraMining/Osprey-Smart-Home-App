@@ -144,33 +144,32 @@ class _SmartSplashScreenState extends State<SmartSplashScreen>
         backgroundColor: AppColors.background,
         body: Stack(
           children: [
-            // Layer 1: Breathing gradient
+            // Layer 1: Living-room photo background + soft white scrim so the
+            // logo, text and Get Started button stay readable.
             Positioned.fill(
-              child: AnimatedBuilder(
-                animation: _bgController,
-                builder: (context, _) {
-                  final t = _bgController.value;
-                  return DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: RadialGradient(
-                        center: Alignment(
-                          -0.3 + sin(t * pi) * 0.2,
-                          -0.5 + cos(t * pi) * 0.15,
-                        ),
-                        radius: 1.3 + t * 0.3,
-                        colors: [
-                          Color.lerp(
-                            AppColors.primarySubtle,
-                            AppColors.accentSubtle,
-                            t,
-                          )!,
-                          AppColors.background,
-                        ],
-                        stops: const [0.0, 0.85],
-                      ),
-                    ),
-                  );
-                },
+              child: Image.asset(
+                'assets/images/home_bg.jpg',
+                fit: BoxFit.cover,
+                alignment: Alignment.bottomCenter,
+                errorBuilder: (_, __, ___) => const DecoratedBox(
+                  decoration: BoxDecoration(color: AppColors.background),
+                ),
+              ),
+            ),
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.white.withAlpha(90),
+                      Colors.white.withAlpha(40),
+                      Colors.white.withAlpha(110),
+                    ],
+                    stops: const [0.0, 0.5, 1.0],
+                  ),
+                ),
               ),
             ),
 

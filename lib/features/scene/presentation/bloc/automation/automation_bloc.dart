@@ -1,4 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hydrated_bloc/hydrated_bloc.dart';
+import '../../../../../core/cache/cache_serializers.dart';
 
 import '../../../../../core/di/injector.dart';
 import '../../../../../core/notifications/message_center.dart';
@@ -11,7 +13,8 @@ import '../../../domain/usecases/toggle_automation.dart';
 import 'automation_event.dart';
 import 'automation_state.dart';
 
-class AutomationBloc extends Bloc<AutomationEvent, AutomationState> {
+class AutomationBloc extends Bloc<AutomationEvent, AutomationState>
+    with HydratedMixin<AutomationState> {
   final GetAutomations getAutomations;
   final CreateAutomation createAutomation;
   final UpdateAutomation updateAutomation;
@@ -32,6 +35,25 @@ class AutomationBloc extends Bloc<AutomationEvent, AutomationState> {
     on<UpdateAutomationEvent>(_onUpdateAutomation);
     on<DeleteAutomationEvent>(_onDeleteAutomation);
     on<ToggleAutomationEvent>(_onToggleAutomation);
+    hydrate();
+  }
+
+  @override
+  AutomationState? fromJson(Map<String, dynamic> json) {
+    final list = (json['automations'] as List?) ?? const [];
+    if (list.isEmpty) return null;
+    return AutomationLoaded(
+      list
+          .whereType<Map>()
+          .map((e) => automationFromJson(e.cast<String, dynamic>()))
+          .toList(),
+    );
+  }
+
+  @override
+  Map<String, dynamic>? toJson(AutomationState state) {
+    if (state is! AutomationLoaded) return null;
+    return {'automations': state.automations.map(automationToJson).toList()};
   }
 
   Future<void> _onLoadAutomations(

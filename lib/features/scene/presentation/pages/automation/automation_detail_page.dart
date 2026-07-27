@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_curtain_app/core/theme/app_colors.dart';
+import 'package:smart_curtain_app/core/widgets/app_dialog.dart';
 import 'package:smart_curtain_app/features/home/presentation/bloc/home_management_bloc.dart';
 import 'package:smart_curtain_app/features/home/presentation/bloc/home_management_event.dart';
 import 'package:smart_curtain_app/features/scene/domain/entities/automation_scene_entity.dart';
@@ -22,19 +23,23 @@ import 'package:smart_curtain_app/features/scene/presentation/pages/automation/s
 /// (name/function aren't persisted), so resolve the display name from the
 /// home's current device list. Falls back to `'Device'` when the id is unknown
 /// (e.g. the device was removed).
+/// Finds the home device an action targets (entityId is normally the TB
+/// deviceId; older records may carry the home-device row id).
+HomeDeviceEntity? deviceForAction(
+    SceneActionEntity action, List<HomeDeviceEntity> devices) {
+  for (final d in devices) {
+    if (d.deviceId == action.entityId || d.id == action.entityId) return d;
+  }
+  return null;
+}
+
 String resolveActionDeviceName(
     SceneActionEntity action, List<HomeDeviceEntity> devices) {
   final inMemory = action.deviceName;
   if (inMemory != null && inMemory.isNotEmpty) return inMemory;
-  for (final d in devices) {
-    // entityId is normally the TB deviceId, but older records may carry the
-    // home-device row id — accept both.
-    if (d.deviceId == action.entityId || d.id == action.entityId) {
-      return d.displayName;
-    }
-  }
-  // Last resort: name the product line rather than a generic "Device".
-  return 'Curtain Track';
+  final device = deviceForAction(action, devices);
+  if (device != null) return device.displayName;
+  return 'Device';
 }
 
 class AutomationDetailPage extends StatefulWidget {
@@ -162,99 +167,31 @@ class _AutomationDetailPageState extends State<AutomationDetailPage> {
   }
 
   // ─── Rename ───
-  void _showRenameDialog() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Rename',
-            style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
-        content: TextField(
-          controller: _nameController,
-          autofocus: true,
-          style: const TextStyle(color: AppColors.textPrimary),
-          decoration: InputDecoration(
-            hintText: 'Enter name',
-            hintStyle: const TextStyle(color: AppColors.textMuted),
-            filled: true,
-            fillColor: AppColors.surfaceMuted,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
-          ),
-          TextButton(
-            onPressed: () {
-              setState(() {});
-              Navigator.pop(ctx);
-            },
-            child: const Text('OK',
-                style: TextStyle(
-                    color: AppColors.primary, fontWeight: FontWeight.w600)),
-          ),
-        ],
-      ),
+  Future<void> _showRenameDialog() async {
+    final name = await AppDialog.prompt(
+      context,
+      title: 'Rename',
+      initialValue: _nameController.text,
+      hintText: 'Enter name',
+      confirmText: 'OK',
     );
+    if (name != null && mounted) {
+      setState(() => _nameController.text = name);
+    }
   }
 
   // ─── Name input (create mode) ───
-  void _showNameInputDialog() {
-    final controller = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Center(
-          child: Text('Scene Name',
-              style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
-        ),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          style: const TextStyle(color: AppColors.textPrimary),
-          decoration: InputDecoration(
-            hintText: 'Enter scene name',
-            hintStyle: const TextStyle(color: AppColors.textMuted),
-            filled: true,
-            fillColor: AppColors.surfaceMuted,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide.none,
-            ),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          ),
-        ),
-        actionsAlignment: MainAxisAlignment.spaceEvenly,
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel',
-                style: TextStyle(fontSize: 16, color: AppColors.textSecondary)),
-          ),
-          TextButton(
-            onPressed: () {
-              final n = controller.text.trim();
-              if (n.isEmpty) return;
-              Navigator.pop(ctx);
-              _nameController.text = n;
-              _save();
-            },
-            child: const Text('Confirm',
-                style: TextStyle(
-                    fontSize: 16,
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w600)),
-          ),
-        ],
-      ),
+  Future<void> _showNameInputDialog() async {
+    final name = await AppDialog.prompt(
+      context,
+      title: 'Scene Name',
+      hintText: 'Enter scene name',
+      confirmText: 'Confirm',
     );
+    if (name != null && mounted) {
+      _nameController.text = name;
+      _save();
+    }
   }
 
   // ─── Add Condition ───
@@ -686,43 +623,22 @@ class _AutomationDetailPageState extends State<AutomationDetailPage> {
     );
   }
 
-  void _showDeleteConfirmation() {
+  Future<void> _showDeleteConfirmation() async {
     final name = _nameController.text.trim();
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(
-          "Are you sure you want to remove '$name'?",
-          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
-          textAlign: TextAlign.center,
-        ),
-        content: const Text(
+    final ok = await AppDialog.confirm(
+      context,
+      title: "Are you sure you want to remove '$name'?",
+      message:
           'After the scenario is deleted, the device tasks can no longer be executed properly.',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 14),
-        ),
-        actionsAlignment: MainAxisAlignment.spaceEvenly,
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel',
-                style: TextStyle(fontSize: 16, color: AppColors.textPrimary)),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              context
-                  .read<AutomationBloc>()
-                  .add(DeleteAutomationEvent(widget.automation!.id));
-              Navigator.pop(context, true);
-            },
-            child: const Text('Confirm',
-                style: TextStyle(fontSize: 16, color: AppColors.textSecondary)),
-          ),
-        ],
-      ),
+      confirmText: 'Confirm',
+      destructive: true,
     );
+    if (ok && mounted) {
+      context
+          .read<AutomationBloc>()
+          .add(DeleteAutomationEvent(widget.automation!.id));
+      Navigator.pop(context, true);
+    }
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -1160,7 +1076,10 @@ class _ActionRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final devices = context.watch<HomeManagementBloc>().state.devices;
     final (icon, iconColor, title, subtitle) = _resolveDisplay(devices);
-    final Widget leading = action.actionType == 'DEVICE_CONTROL'
+    final actionDevice = deviceForAction(action, devices);
+    final showCurtainArt = action.actionType == 'DEVICE_CONTROL' &&
+        (actionDevice?.isCurtainTrack ?? false);
+    final Widget leading = showCurtainArt
         ? Padding(
             padding: const EdgeInsets.all(5),
             child: Image.asset(
@@ -1192,7 +1111,7 @@ class _ActionRow extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: action.actionType == 'DEVICE_CONTROL'
+                  color: showCurtainArt
                       ? Colors.white
                       : AppColors.surfaceMuted,
                   borderRadius: BorderRadius.circular(10),
@@ -1292,17 +1211,20 @@ class _AllDevicesPage extends StatelessWidget {
                         color: AppColors.surfaceMuted,
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(6),
-                        child: Image.asset(
-                          'assets/icons/curtain_track.png',
-                          fit: BoxFit.contain,
-                          errorBuilder: (_, __, ___) => const Icon(
-                              Icons.devices_other,
-                              size: 24,
-                              color: AppColors.textSecondary),
-                        ),
-                      ),
+                      child: device.isCurtainTrack
+                          ? Padding(
+                              padding: const EdgeInsets.all(6),
+                              child: Image.asset(
+                                'assets/icons/curtain_track.png',
+                                fit: BoxFit.contain,
+                                errorBuilder: (_, __, ___) => const Icon(
+                                    Icons.devices_other,
+                                    size: 24,
+                                    color: AppColors.textSecondary),
+                              ),
+                            )
+                          : const Icon(Icons.devices_other,
+                              size: 24, color: AppColors.textSecondary),
                     ),
                     const SizedBox(width: 14),
                     Expanded(

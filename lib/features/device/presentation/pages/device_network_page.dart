@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/widgets/app_pull_refresh.dart';
 
+import 'package:smart_curtain_app/core/widgets/app_dialog.dart';
+
 import '../../../../core/di/injector.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../data/datasources/device_wifi_remote_datasource.dart';
@@ -79,27 +81,14 @@ class _DeviceNetworkPageState extends State<DeviceNetworkPage> {
       _snack('Already on this network.');
       return;
     }
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text("Switch to '${net.ssid}'?"),
-        content: const Text(
-          'The device will disconnect from its current WiFi and try to join '
+    final confirmed = await AppDialog.confirm(
+      context,
+      title: "Switch to '${net.ssid}'?",
+      message: 'The device will disconnect from its current WiFi and try to join '
           'the new one. This usually takes 5–30 seconds.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Switch'),
-          ),
-        ],
-      ),
+      confirmText: 'Switch',
     );
-    if (confirmed != true || !mounted) return;
+    if (!confirmed || !mounted) return;
 
     setState(() {
       _switching = true;
@@ -151,47 +140,26 @@ class _DeviceNetworkPageState extends State<DeviceNetworkPage> {
     final tip = result.reason == 'no_ap_found'
         ? "\n\nMake sure '${net.ssid}' is on and within range."
         : '';
-    await showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Could not connect'),
-        content: Text(
-          "The device couldn't connect to '${net.ssid}'.\n\n"
+    await AppDialog.alert(
+      context,
+      title: 'Could not connect',
+      message: "The device couldn't connect to '${net.ssid}'.\n\n"
           'Reason: $reason\n\n'
           "The device is still on '$stayedOn'.$tip",
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Got it'),
-          ),
-        ],
-      ),
+      buttonText: 'Got it',
     );
   }
 
   Future<void> _showTimeoutDialog() async {
-    final refresh = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Timed out'),
-        content: const Text(
-          "We didn't get a response from the device. Refresh in a moment to "
+    final refresh = await AppDialog.confirm(
+      context,
+      title: 'Timed out',
+      message: "We didn't get a response from the device. Refresh in a moment to "
           'see its current status.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Got it'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Refresh'),
-          ),
-        ],
-      ),
+      confirmText: 'Refresh',
+      cancelText: 'Got it',
     );
-    if (refresh == true) await _load();
+    if (refresh) await _load();
   }
 
   /// Map mã reason (English debug) → câu ngắn cho người dùng.
@@ -210,25 +178,14 @@ class _DeviceNetworkPageState extends State<DeviceNetworkPage> {
 
   // ─── Delete flow ─────────────────────────────────────────────
   Future<void> _onDeleteTap(SavedWifiNetwork net) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text("Remove '${net.ssid}'?"),
-        content: const Text('This saved network will be removed from the device.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: AppColors.error),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+    final confirmed = await AppDialog.confirm(
+      context,
+      title: "Remove '${net.ssid}'?",
+      message: 'This saved network will be removed from the device.',
+      confirmText: 'Delete',
+      destructive: true,
     );
-    if (confirmed != true || !mounted) return;
+    if (!confirmed || !mounted) return;
     try {
       await _ds.deleteWifi(_deviceId, net.id);
       if (!mounted) return;

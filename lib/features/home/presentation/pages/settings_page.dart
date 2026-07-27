@@ -1,6 +1,8 @@
+import 'package:smart_curtain_app/features/home/presentation/pages/auth_diag_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
+import 'package:smart_curtain_app/core/widgets/app_dialog.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
 import 'account_security_page.dart';
@@ -70,6 +72,16 @@ class _SettingsPageState extends State<SettingsPage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const AiChatPage()),
+                );
+              },
+            ),
+            // Debug: nhật ký phiên đăng nhập — mở sau khi bị đá ra để xem lý do.
+            _buildNavItem(
+              'Auth Diagnostics',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AuthDiagPage()),
                 );
               },
             ),
@@ -192,27 +204,17 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  void _showLogOutDialog() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Log Out'),
-        content: const Text('Are you sure you want to log out?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              GetIt.instance<AuthBloc>().add(LogoutEvent());
-              Navigator.of(context).pushNamedAndRemoveUntil('/', (_) => false);
-            },
-            child: const Text('Log Out', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
+  Future<void> _showLogOutDialog() async {
+    final ok = await AppDialog.confirm(
+      context,
+      title: 'Log Out',
+      message: 'Are you sure you want to log out?',
+      confirmText: 'Log Out',
+      cancelText: 'Cancel',
+      destructive: true,
     );
+    if (!ok || !mounted) return;
+    GetIt.instance<AuthBloc>().add(LogoutEvent());
+    Navigator.of(context).pushNamedAndRemoveUntil('/', (_) => false);
   }
 }

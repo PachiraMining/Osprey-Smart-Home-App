@@ -8,8 +8,6 @@ import 'package:smart_curtain_app/core/theme/liquid_glass.dart';
 import 'package:smart_curtain_app/core/theme/aurora_glow.dart';
 import 'package:smart_curtain_app/features/ai/presentation/bloc/voice_command_bloc.dart';
 import 'package:smart_curtain_app/core/theme/app_typography.dart';
-import 'package:smart_curtain_app/features/home/presentation/pages/CreateSceneTriggerPage.dart';
-import 'package:smart_curtain_app/features/home/presentation/pages/create_scene_page.dart';
 import 'package:smart_curtain_app/features/pairing/presentation/pages/osprey_add_device_page.dart';
 import 'package:smart_curtain_app/features/scene/presentation/bloc/automation/automation_bloc.dart';
 import 'package:smart_curtain_app/features/scene/presentation/bloc/automation/automation_event.dart';
@@ -28,9 +26,13 @@ import 'package:smart_curtain_app/features/scene/presentation/bloc/tap_to_run/ta
 import 'package:smart_curtain_app/features/home/presentation/bloc/home_management_bloc.dart';
 import 'package:smart_curtain_app/features/home/presentation/bloc/home_management_event.dart';
 import 'package:smart_curtain_app/features/home/presentation/bloc/home_management_state.dart';
+import 'package:smart_curtain_app/features/home/domain/entities/home_device_entity.dart';
+import 'package:smart_curtain_app/features/home/presentation/pages/CreateSceneTriggerPage.dart';
 import 'package:smart_curtain_app/features/home/presentation/pages/home_selector_sheet.dart';
 import 'package:smart_curtain_app/features/home/presentation/pages/home_management_page.dart';
+import 'package:smart_curtain_app/core/widgets/app_dialog.dart';
 import 'package:smart_curtain_app/core/widgets/app_pull_refresh.dart';
+import 'package:smart_curtain_app/core/widgets/email_avatar.dart';
 import 'package:smart_curtain_app/core/theme/scene_style.dart';
 import 'package:smart_curtain_app/core/notifications/message_center.dart';
 import 'package:smart_curtain_app/features/home/presentation/pages/app_mall_page.dart';
@@ -146,19 +148,21 @@ class HomePageState extends State<HomePage> {
           MaterialPageRoute(builder: (_) => const OspreyAddDevicePage()),
         );
       case 'Create Scene':
-        final triggerData = await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => const CreateSceneTriggerPage(),
-          ),
-        );
-        if (triggerData == null) return;
+        _seedAutomationBloc(context);
         await Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (_) => CreateScenePage(scheduleData: triggerData),
-          ),
+          MaterialPageRoute(builder: (_) => const CreateSceneTriggerPage()),
         );
+    }
+  }
+
+  /// Bảo đảm AutomationBloc đã biết homeId trước khi mở trang tạo automation
+  /// (create từ menu + khi chưa từng ghé tab Scenes).
+  void _seedAutomationBloc(BuildContext context) {
+    final bloc = context.read<AutomationBloc>();
+    final homeId = context.read<HomeManagementBloc>().state.selectedHomeId;
+    if (bloc.state is AutomationInitial && homeId != null) {
+      bloc.add(LoadAutomationsEvent(homeId));
     }
   }
 
@@ -172,18 +176,30 @@ class HomePageState extends State<HomePage> {
       backgroundColor: AppColors.background,
       body: Stack(
         children: [
-          // Layered radial gradient — distinct visual signature
+          // Photo background (living room). A soft white scrim on top keeps
+          // the cards and text readable over the image.
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/home_bg.jpg',
+              fit: BoxFit.cover,
+              alignment: Alignment.bottomCenter,
+              errorBuilder: (_, __, ___) => const DecoratedBox(
+                decoration: BoxDecoration(color: AppColors.background),
+              ),
+            ),
+          ),
           Positioned.fill(
             child: DecoratedBox(
               decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  center: const Alignment(-0.5, -0.85),
-                  radius: 1.5,
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
                   colors: [
-                    AppColors.primarySubtle,
-                    AppColors.background,
+                    Colors.white.withAlpha(60),
+                    Colors.white.withAlpha(20),
+                    Colors.white.withAlpha(55),
                   ],
-                  stops: const [0.0, 0.65],
+                  stops: const [0.0, 0.45, 1.0],
                 ),
               ),
             ),
@@ -230,18 +246,13 @@ class HomePageState extends State<HomePage> {
                         // Add button - blue circle on Home, black icon on Scene
                         if (currentIndex == tabScenes)
                           GestureDetector(
-                            onTap: () async {
-                              final triggerData = await Navigator.push(
+                            onTap: () {
+                              _seedAutomationBloc(context);
+                              Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => const CreateSceneTriggerPage(),
-                                ),
-                              );
-                              if (triggerData == null) return;
-                              await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => CreateScenePage(scheduleData: triggerData),
+                                  builder: (_) =>
+                                      const CreateSceneTriggerPage(),
                                 ),
                               );
                             },
@@ -946,24 +957,13 @@ class _SceneTabState extends State<SceneTab> {
               child: const Icon(Icons.delete, color: Colors.white),
             ),
             confirmDismiss: (_) async {
-              return await showDialog(
-                context: context,
-                builder: (ctx) => AlertDialog(
-                  title: const Text('Delete scene?'),
-                  content: Text(
-                      'Are you sure you want to delete "${automation.name}"?'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(ctx, false),
-                      child: const Text('Cancel'),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.pop(ctx, true),
-                      child: const Text('Delete',
-                          style: TextStyle(color: Colors.red)),
-                    ),
-                  ],
-                ),
+              return await AppDialog.confirm(
+                context,
+                title: 'Delete scene?',
+                message:
+                    'Are you sure you want to delete "${automation.name}"?',
+                confirmText: 'Delete',
+                destructive: true,
               );
             },
             onDismissed: (_) {
@@ -1033,7 +1033,13 @@ class _SceneTabState extends State<SceneTab> {
                           child: Icon(Icons.arrow_right_alt_rounded,
                               size: 24, color: Colors.grey.shade400),
                         ),
-                        ..._automationActionTiles(automation),
+                        ..._automationActionTiles(
+                          automation,
+                          context
+                              .read<HomeManagementBloc>()
+                              .state
+                              .devices,
+                        ),
                         const Spacer(),
                         Switch(
                           value: automation.enabled,
@@ -1059,7 +1065,17 @@ class _SceneTabState extends State<SceneTab> {
   /// Action tiles for the automation card illustration row: curtain-track
   /// artwork per device action, tag for scene runs, hourglass for delays.
   /// Caps at 3 tiles with a "+n" overflow chip.
-  List<Widget> _automationActionTiles(AutomationSceneEntity automation) {
+  List<Widget> _automationActionTiles(
+      AutomationSceneEntity automation, List<HomeDeviceEntity> devices) {
+    bool isCurtain(String? entityId) {
+      for (final d in devices) {
+        if (d.deviceId == entityId || d.id == entityId) {
+          return d.isCurtainTrack;
+        }
+      }
+      return false;
+    }
+
     final tiles = <Widget>[];
     var shown = 0;
     for (final action in automation.actions) {
@@ -1067,17 +1083,20 @@ class _SceneTabState extends State<SceneTab> {
       final Widget child;
       switch (action.actionType) {
         case 'DEVICE_CONTROL':
-          child = Padding(
-            padding: const EdgeInsets.all(5),
-            child: Image.asset(
-              'assets/icons/curtain_track.png',
-              fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => const Icon(
-                  Icons.curtains_outlined,
-                  size: 22,
-                  color: AppColors.primary),
-            ),
-          );
+          child = isCurtain(action.entityId)
+              ? Padding(
+                  padding: const EdgeInsets.all(5),
+                  child: Image.asset(
+                    'assets/icons/curtain_track.png',
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => const Icon(
+                        Icons.curtains_outlined,
+                        size: 22,
+                        color: AppColors.primary),
+                  ),
+                )
+              : const Icon(Icons.devices_other,
+                  size: 22, color: AppColors.textSecondary);
         case 'SCENE_RUN':
           child = const Icon(Icons.sell,
               size: 22, color: Color(0xFF2BB673));
@@ -1265,7 +1284,6 @@ class ProfileTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final tokenManager = GetIt.instance<TokenManager>();
     final displayName = tokenManager.getDisplayName();
-    final firstLetter = displayName.isNotEmpty ? displayName[0].toUpperCase() : 'U';
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -1303,31 +1321,10 @@ class ProfileTab extends StatelessWidget {
             child: Row(
               children: [
                 // Default avatar: eagle logo
-                Container(
-                  width: 60,
-                  height: 60,
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                  ),
-                  child: ClipOval(
-                    child: Image.asset(
-                      'assets/osprey_avatar.png',
-                      width: 60,
-                      height: 60,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Center(
-                        child: Text(
-                          firstLetter,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 26,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+                EmailAvatar(
+                  email: tokenManager.getEmailSync(),
+                  fallback: displayName,
+                  size: 60,
                 ),
                 const SizedBox(width: 16),
                 Expanded(

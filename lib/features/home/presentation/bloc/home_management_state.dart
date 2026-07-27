@@ -34,9 +34,15 @@ class HomeManagementState extends Equatable {
       homes.where((h) => h.id == selectedHomeId).firstOrNull;
 
   /// Devices filtered by selectedRoomId — null means show all
-  List<HomeDeviceEntity> get filteredDevices => selectedRoomId == null
-      ? devices
-      : devices.where((d) => d.roomId == selectedRoomId).toList();
+  List<HomeDeviceEntity> get filteredDevices {
+    final list = selectedRoomId == null
+        ? [...devices]
+        : devices.where((d) => d.roomId == selectedRoomId).toList();
+    // Sorted by sortOrder so "Move to Top" (which rewrites sortOrder) takes
+    // effect on the Home list.
+    list.sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+    return list;
+  }
 
   HomeManagementState copyWith({
     List<HomeEntity>? homes,
