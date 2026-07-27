@@ -39,6 +39,8 @@ import '../../features/device/data/datasources/device_control_data_source.dart';
 import '../../features/device/data/repositories/device_control_repository_impl.dart';
 import '../../features/device/domain/repositories/device_control_repository.dart';
 import '../../features/device/domain/usecases/send_device_command.dart';
+import '../../features/device/domain/usecases/get_device_status.dart';
+import '../../features/device/domain/usecases/send_dp_command.dart';
 
 // Scene
 
@@ -346,6 +348,8 @@ Future<void> setupInjector() async {
 
   // Device Control Use Case
   sl.registerLazySingleton(() => SendDeviceCommand(sl()));
+  sl.registerLazySingleton(() => GetDeviceStatus(sl<DeviceControlDataSource>()));
+  sl.registerLazySingleton(() => SendDpCommand(sl<DeviceControlDataSource>()));
 
   // ========== Tap-to-Run Scene Feature ==========
   // Data sources

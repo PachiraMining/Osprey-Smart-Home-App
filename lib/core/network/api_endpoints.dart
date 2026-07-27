@@ -62,6 +62,8 @@ class ApiEndpoints {
       '/api/smarthome/devices/$deviceId';
   static String deviceCommands(String deviceId) =>
       '/api/smarthome/devices/$deviceId/commands';
+  static String deviceStatus(String deviceId) =>
+      '/api/smarthome/devices/$deviceId/status';
   static String deviceInfo(String deviceId) => '/api/device/info/$deviceId';
 
   // ── OAuth / social login + smart-assistant account linking ───────────────

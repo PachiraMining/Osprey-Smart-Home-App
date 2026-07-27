@@ -28,7 +28,11 @@ import '../../../ai/presentation/widgets/weather_card.dart';
 import '../../../scene/presentation/widgets/tap_to_run_pills.dart';
 import '../../../ai/presentation/widgets/voice_command_button.dart';
 import '../../../ai/presentation/widgets/weather_ai_banner.dart';
+import 'package:dartz/dartz.dart' show Either;
 import '../../../device/domain/usecases/send_device_command.dart';
+import '../../../device/domain/usecases/get_device_status.dart';
+import '../../../device/domain/usecases/send_dp_command.dart';
+import '../../../../core/error/failure.dart';
 import 'package:get_it/get_it.dart';
 
 /// HomeTab backed by HomeManagementBloc with room filtering and home switching.
@@ -664,33 +668,220 @@ class _DeviceCard extends StatefulWidget {
 }
 
 class _DeviceCardState extends State<_DeviceCard> {
-  /// Whether the in-cell "Common Functions" quick controls are expanded.
+  /// Whether the in-cell "Common Functions" controls are expanded.
   bool _expanded = false;
+
+  /// Live device status (DP code → value) read from GET /devices/{id}/status.
+  Map<String, dynamic>? _status;
+  bool _busy = false;
 
   HomeDeviceEntity get device => widget.device;
 
-  static const _successByCommand = {
-    'open': ('Opening', 'Curtain is opening'),
-    'stop': ('Paused', 'Curtain stopped'),
-    'close': ('Closing', 'Curtain is closing'),
-  };
+  void _toggleExpand() {
+    setState(() => _expanded = !_expanded);
+    if (_expanded && _status == null) _fetchStatus();
+  }
 
-  Future<void> _send(String command) async {
-    // Popup custom giữa màn (AppPopup): loading khi gửi lệnh →
-    // success (tự đóng) hoặc error nếu server từ chối.
-    AppPopup.loading(context, title: 'Sending', message: device.displayName);
-    final result =
-        await GetIt.instance<SendDeviceCommand>()(device.deviceId, command);
+  Future<void> _fetchStatus() async {
+    final res = await GetIt.instance<GetDeviceStatus>()(device.deviceId);
     if (!mounted) return;
-    Navigator.of(context, rootNavigator: true).pop(); // đóng loading
-    final ok = _successByCommand[command];
-    result.fold(
-      (failure) => AppPopup.error(context,
+    res.fold((_) {}, (s) => setState(() => _status = s));
+  }
+
+  /// Apply a DP write then refresh status. Error → popup; success → re-read.
+  Future<void> _apply(Future<Either<Failure, void>> Function() send) async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    final res = await send();
+    if (!mounted) return;
+    setState(() => _busy = false);
+    res.fold(
+      (_) => AppPopup.error(context,
           title: 'Failed',
           message: 'Could not send the command. Please try again.'),
-      (_) => AppPopup.success(context,
-          title: ok?.$1 ?? 'Sent', message: ok?.$2 ?? device.displayName),
+      (_) => _fetchStatus(),
     );
+  }
+
+  // ─── Popup 1: Control (Open / Stop / Close) — dpId 1 ────────────────
+  void _controlSheet() {
+    final current = _status?['control'] as String?;
+    _radioSheet(
+      title: 'Control',
+      options: const [('open', 'Open'), ('stop', 'Stop'), ('close', 'Close')],
+      current: current,
+      onSelect: (v) => _apply(
+          () => GetIt.instance<SendDeviceCommand>()(device.deviceId, v)),
+    );
+  }
+
+  // ─── Popup 3: Motor Direction (Forward / Back) — dpId 5 ─────────────
+  void _motorSheet() {
+    final current = _status?['control_back'] as String? ?? 'forward';
+    _radioSheet(
+      title: 'Motor Direction',
+      options: const [('forward', 'Forward'), ('back', 'Back')],
+      current: current,
+      onSelect: (v) => _apply(
+          () => GetIt.instance<SendDpCommand>()(device.deviceId, 5, v)),
+    );
+  }
+
+  /// Floating bottom sheet: inset 10px from left/right/bottom, above the safe
+  /// area, rounded on all corners.
+  Future<T?> _floatingSheet<T>(WidgetBuilder builder) {
+    return showModalBottomSheet<T>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(
+          left: 10,
+          right: 10,
+          bottom: 10 + MediaQuery.of(ctx).padding.bottom,
+        ),
+        child: Container(
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: builder(ctx),
+        ),
+      ),
+    );
+  }
+
+  void _radioSheet({
+    required String title,
+    required List<(String, String)> options,
+    required String? current,
+    required void Function(String value) onSelect,
+  }) {
+    // Selection stays; tapping ticks + runs the command but KEEPS the sheet
+    // open. It only closes when the user taps outside (barrier).
+    var selected = current;
+    _floatingSheet<void>(
+      (sheetCtx) => StatefulBuilder(
+        builder: (sheetCtx, setSheet) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 13),
+              Text(title,
+                  style: const TextStyle(
+                      fontSize: 13, color: AppColors.textSecondary)),
+              const SizedBox(height: 6),
+              for (final (value, label) in options)
+                ListTile(
+                  dense: true,
+                  title: Text(label,
+                      style: const TextStyle(
+                          fontSize: 15, color: AppColors.textPrimary)),
+                  trailing: value == selected
+                      ? const Icon(Icons.check_circle,
+                          color: AppColors.primary, size: 22)
+                      : Icon(Icons.circle_outlined,
+                          color: Colors.grey.shade300, size: 22),
+                  onTap: () {
+                    if (value == selected) return;
+                    setSheet(() => selected = value);
+                    onSelect(value);
+                  },
+                ),
+              const SizedBox(height: 10),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  // ─── Popup 2: Curtain position setting (0–100%) — dpId 2 ────────────
+  void _positionSheet() {
+    final raw = _status?['percent_state'] ?? _status?['percent_control'];
+    var pct = (raw is num ? raw.toInt() : 0).clamp(0, 100);
+    _floatingSheet<void>(
+      (sheetCtx) => StatefulBuilder(
+        builder: (sheetCtx, setSheet) => Padding(
+            padding: const EdgeInsets.fromLTRB(24, 14, 24, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('Curtain position setting',
+                    style: TextStyle(
+                        fontSize: 15, color: AppColors.textSecondary)),
+                const SizedBox(height: 28),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_left, size: 34),
+                      color: AppColors.textSecondary,
+                      onPressed: pct <= 0
+                          ? null
+                          : () => setSheet(() => pct = (pct - 1).clamp(0, 100)),
+                    ),
+                    SizedBox(
+                      width: 96,
+                      child: Text('$pct%',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                              fontSize: 34,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textPrimary)),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.arrow_right, size: 34),
+                      color: AppColors.textSecondary,
+                      onPressed: pct >= 100
+                          ? null
+                          : () => setSheet(() => pct = (pct + 1).clamp(0, 100)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                _PositionBar(
+                  value: pct,
+                  onChanged: (v) => setSheet(() => pct = v),
+                  // Apply on release but keep the sheet open — it closes only
+                  // when the user taps outside.
+                  onChangeEnd: (v) => _apply(
+                      () => GetIt.instance<SendDeviceCommand>()(
+                          device.deviceId, v.toString())),
+                ),
+              ],
+            ),
+          ),
+        ),
+    );
+  }
+
+  String get _controlLabel {
+    switch (_status?['control'] as String?) {
+      case 'open':
+        return 'Open';
+      case 'close':
+        return 'Close';
+      case 'stop':
+        return 'Stop';
+      default:
+        return '--';
+    }
+  }
+
+  String get _positionLabel {
+    final raw = _status?['percent_state'] ?? _status?['percent_control'];
+    return raw is num ? '${raw.toInt()}%' : '--';
+  }
+
+  String get _motorLabel {
+    switch (_status?['control_back'] as String?) {
+      case 'back':
+        return 'Back';
+      case 'forward':
+      default:
+        return 'Forward'; // default direction is Forward
+    }
   }
 
   @override
@@ -779,8 +970,7 @@ class _DeviceCardState extends State<_DeviceCard> {
                     if (isOnline)
                       GestureDetector(
                         behavior: HitTestBehavior.opaque,
-                        onTap: () =>
-                            setState(() => _expanded = !_expanded),
+                        onTap: _toggleExpand,
                         child: Padding(
                           padding: const EdgeInsets.only(top: 6),
                           child: Row(
@@ -845,44 +1035,34 @@ class _DeviceCardState extends State<_DeviceCard> {
             ],
           ),
 
-              // Expanded quick actions — open/pause/close without leaving Home.
+              // Common Functions — 3 columns reading live status, each opening
+              // its popup: Control / Curtain position / Motor Direction.
               if (isOnline && _expanded)
                 Padding(
                   padding: const EdgeInsets.only(top: 14),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      _QuickAction(
-                        label: 'Open',
-                        icon: Image.asset(
-                          'assets/icons/curtain_open.png',
-                          width: 22,
-                          height: 22,
-                          errorBuilder: (_, __, ___) => const Icon(
-                              Icons.keyboard_double_arrow_left,
-                              size: 22,
-                              color: AppColors.primary),
-                        ),
-                        onTap: () => _send('open'),
+                      _CommonFn(
+                        icon: const Icon(Icons.power_settings_new_rounded,
+                            size: 26, color: Color(0xFF42A5F5)),
+                        label: 'Control',
+                        value: _controlLabel,
+                        onTap: _controlSheet,
                       ),
-                      _QuickAction(
-                        label: 'Pause',
-                        icon: const Icon(Icons.pause_rounded,
-                            size: 24, color: AppColors.primary),
-                        onTap: () => _send('stop'),
+                      _CommonFn(
+                        icon: const Icon(Icons.percent_rounded,
+                            size: 24, color: Color(0xFF2ECC71)),
+                        label: 'Curtain position',
+                        value: _positionLabel,
+                        onTap: _positionSheet,
                       ),
-                      _QuickAction(
-                        label: 'Close',
-                        icon: Image.asset(
-                          'assets/icons/curtain_close.png',
-                          width: 22,
-                          height: 22,
-                          errorBuilder: (_, __, ___) => const Icon(
-                              Icons.keyboard_double_arrow_right,
-                              size: 22,
-                              color: AppColors.primary),
-                        ),
-                        onTap: () => _send('close'),
+                      _CommonFn(
+                        icon: const Icon(Icons.grid_view_rounded,
+                            size: 24, color: Color(0xFFE0824A)),
+                        label: 'Motor Direction',
+                        value: _motorLabel,
+                        onTap: _motorSheet,
                       ),
                     ],
                   ),
@@ -896,42 +1076,127 @@ class _DeviceCardState extends State<_DeviceCard> {
 }
 
 /// Circular quick-action button + label used inside the device cell.
-class _QuickAction extends StatelessWidget {
+/// One Common-Functions column (Tuya style): icon, label, and the current
+/// value read from device status; tapping opens its control popup.
+class _CommonFn extends StatelessWidget {
   final Widget icon;
   final String label;
+  final String value;
   final VoidCallback onTap;
 
-  const _QuickAction({
+  const _CommonFn({
     required this.icon,
     required this.label,
+    required this.value,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.primarySubtle,
+    return Expanded(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(height: 30, child: Center(child: icon)),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTypography.caption
+                  .copyWith(color: AppColors.textPrimary),
             ),
-            child: Center(child: icon),
-          ),
-          const SizedBox(height: 5),
-          Text(
-            label,
-            style: AppTypography.caption
-                .copyWith(color: AppColors.textSecondary),
-          ),
-        ],
+            const SizedBox(height: 2),
+            Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTypography.caption
+                  .copyWith(color: AppColors.textMuted),
+            ),
+          ],
+        ),
       ),
+    );
+  }
+}
+
+/// Thick draggable position bar (Tuya style): a tall light-blue track with a
+/// white grab handle you slide from 0–100%.
+class _PositionBar extends StatelessWidget {
+  final int value; // 0–100
+  final ValueChanged<int> onChanged;
+  final ValueChanged<int> onChangeEnd;
+
+  const _PositionBar({
+    required this.value,
+    required this.onChanged,
+    required this.onChangeEnd,
+  });
+
+  static const double _barHeight = 56;
+  static const double _handleWidth = 28;
+
+  int _pctFromDx(double dx, double width) {
+    final usable = width - _handleWidth;
+    if (usable <= 0) return 0;
+    final x = (dx - _handleWidth / 2).clamp(0.0, usable);
+    return (x / usable * 100).round();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final handleX = (value / 100) * (width - _handleWidth);
+        return GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTapDown: (d) => onChanged(_pctFromDx(d.localPosition.dx, width)),
+          onHorizontalDragUpdate: (d) =>
+              onChanged(_pctFromDx(d.localPosition.dx, width)),
+          onHorizontalDragEnd: (_) => onChangeEnd(value),
+          child: SizedBox(
+            height: _barHeight,
+            width: double.infinity,
+            child: Stack(
+              children: [
+                Container(
+                  height: _barHeight,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFDCEBFA),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                Positioned(
+                  left: handleX,
+                  top: 0,
+                  bottom: 0,
+                  child: Container(
+                    width: _handleWidth,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(11),
+                      border: Border.all(
+                          color: const Color(0xFFCBD9E8), width: 1),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withAlpha(20),
+                          blurRadius: 4,
+                          offset: const Offset(0, 1),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
