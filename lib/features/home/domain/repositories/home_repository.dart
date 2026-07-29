@@ -4,6 +4,7 @@ import '../entities/home_entity.dart';
 import '../entities/home_device_entity.dart';
 import '../entities/factory_reset_result.dart';
 import '../entities/room_entity.dart';
+import '../entities/home_member_entity.dart';
 
 abstract class HomeRepository {
   // Homes
@@ -21,6 +22,9 @@ abstract class HomeRepository {
 
   // Rooms
   Future<Either<Failure, List<RoomEntity>>> getRooms(String homeId);
+
+  /// Thành viên của home, đã ghép sẵn tên + email.
+  Future<Either<Failure, List<HomeMemberEntity>>> getHomeMembers(String homeId);
   Future<Either<Failure, RoomEntity>> createRoom({required String homeId, required String name, String? icon, int? sortOrder});
   Future<Either<Failure, RoomEntity>> updateRoom({required String homeId, required String roomId, required String name, String? icon, int? sortOrder});
   Future<Either<Failure, void>> deleteRoom({required String homeId, required String roomId});

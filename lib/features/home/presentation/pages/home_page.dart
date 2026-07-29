@@ -9,6 +9,9 @@ import 'package:smart_curtain_app/core/theme/aurora_glow.dart';
 import 'package:smart_curtain_app/features/ai/presentation/bloc/voice_command_bloc.dart';
 import 'package:smart_curtain_app/core/theme/app_typography.dart';
 import 'package:smart_curtain_app/features/pairing/presentation/pages/osprey_add_device_page.dart';
+import 'package:smart_curtain_app/features/scene/data/siri_shortcuts_service.dart';
+import 'package:smart_curtain_app/features/scene/presentation/pages/tap_to_run/siri_shortcuts_page.dart';
+import 'package:smart_curtain_app/features/scene/presentation/utils/scene_action_display.dart';
 import 'package:smart_curtain_app/features/scene/presentation/bloc/automation/automation_bloc.dart';
 import 'package:smart_curtain_app/features/scene/presentation/bloc/automation/automation_event.dart';
 import 'package:smart_curtain_app/features/scene/presentation/bloc/automation/automation_state.dart';
@@ -774,7 +777,27 @@ class _SceneTabState extends State<SceneTab> {
           return _buildEmptyTapToRun();
         }
 
-        return _buildTapToRunList(context, scenes, state);
+        // Nút "Add to Siri" nổi góc dưới phải, chỉ hiện trên iOS.
+        return Stack(
+          children: [
+            _buildTapToRunList(context, scenes, state),
+            if (GetIt.instance<SiriShortcutsService>().isSupported)
+              Positioned(
+                right: 16,
+                // Đỉnh thanh navigation = safe area + padding 8 + cao 53 = 61,
+                // nên 20 cho nút nằm hẳn trong vùng nav bar.
+                bottom: MediaQuery.of(context).padding.bottom + 20,
+                child: _AddToSiriButton(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute<void>(
+                      builder: (_) => SiriShortcutsPage(scenes: scenes),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        );
       },
     );
   }
@@ -833,7 +856,9 @@ class _SceneTabState extends State<SceneTab> {
         await Future.delayed(const Duration(milliseconds: 800));
       },
       child: GridView.builder(
-        padding: const EdgeInsets.only(bottom: 100),
+        // Chừa chỗ cho thanh navigation nổi + nút Add to Siri phía trên nó,
+        // để thẻ scene cuối cùng không bị che.
+        padding: const EdgeInsets.only(bottom: 150),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
           crossAxisSpacing: 12,
@@ -862,16 +887,24 @@ class _SceneTabState extends State<SceneTab> {
     BuildContext context,
     TapToRunExecuteResult state,
   ) async {
-    // Find the scene that was executed
-    final scene = state.scenes.isNotEmpty ? state.scenes.first : null;
+    // Scene vừa chạy — tra theo sceneId trong state; `.first` sẽ sai khi
+    // home có nhiều scene hoặc 2 lượt execute xen kẽ.
+    TapToRunSceneEntity? scene;
+    for (final s in state.scenes) {
+      if (s.id == state.sceneId) {
+        scene = s;
+        break;
+      }
+    }
+    scene ??= state.scenes.isNotEmpty ? state.scenes.first : null;
     final sceneName = scene?.name ?? 'Scene';
     final actions = scene?.actions ?? [];
 
-    // Build device name lookup from HomeManagementBloc
     final homeState = context.read<HomeManagementBloc>().state;
-    final deviceMap = {
-      for (final d in homeState.devices) d.deviceId: d.displayName,
-    };
+    final devices = homeState.devices;
+    // Tên chức năng cho action chỉ có dpId (scene tạo ở nơi khác).
+    final dpNames = await resolveDpNames(actions: actions, devices: devices);
+    if (!context.mounted) return;
 
     await showDialog(
       context: context,
@@ -909,16 +942,18 @@ class _SceneTabState extends State<SceneTab> {
               ...actions.map((action) {
                 String title;
                 String subtitle;
+                String? asset;
                 switch (action.actionType) {
                   case 'DEVICE_CONTROL':
-                    title =
-                        action.deviceName ??
-                        deviceMap[action.entityId] ??
-                        'Device';
-                    final dp = action.executorProperty;
-                    subtitle = action.functionName != null
-                        ? '${action.functionName} : ${dp?['dpValue']}'
-                        : 'dpId ${dp?['dpId']} : ${dp?['dpValue']}';
+                    // Dòng trên: chức năng + giá trị. Dòng dưới: tên thiết bị
+                    // HIỆN TẠI (snapshot trong action sai sau khi rename).
+                    title = actionFunctionLabel(action, dpNames);
+                    final live = deviceOfAction(action, devices);
+                    subtitle =
+                        live?.displayName ?? action.deviceName ?? 'Device';
+                    if (live?.isCurtainTrack ?? false) {
+                      asset = kCurtainTrackAsset;
+                    }
                   case 'DELAY':
                     title = 'Delay';
                     final m = action.executorProperty?['minutes'] ?? 0;
@@ -942,15 +977,27 @@ class _SceneTabState extends State<SceneTab> {
                       Container(
                         width: 36,
                         height: 36,
+                        padding:
+                            asset != null ? const EdgeInsets.all(6) : null,
                         decoration: BoxDecoration(
                           color: Colors.grey.shade100,
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Icon(
-                          Icons.devices_other,
-                          size: 20,
-                          color: Colors.grey.shade500,
-                        ),
+                        child: asset != null
+                            ? Image.asset(
+                                asset,
+                                fit: BoxFit.contain,
+                                errorBuilder: (_, __, ___) => Icon(
+                                  Icons.devices_other,
+                                  size: 20,
+                                  color: Colors.grey.shade500,
+                                ),
+                              )
+                            : Icon(
+                                Icons.devices_other,
+                                size: 20,
+                                color: Colors.grey.shade500,
+                              ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -1254,6 +1301,50 @@ class _SceneTabState extends State<SceneTab> {
       );
     }
     return tiles;
+  }
+}
+
+/// Khối đen vuông góc + icon Siri thật, nổi ở góc dưới phải tab Tap-to-Run.
+/// Chỉ dựng trên iOS.
+class _AddToSiriButton extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _AddToSiriButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.black.withValues(alpha: 0.82),
+      // Bo nhẹ cho bớt gắt, vẫn giữ dáng vuông.
+      borderRadius: BorderRadius.circular(4),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(4),
+        // Bản nửa cỡ nhân thêm 30%: cao ~26.
+        child: const Padding(
+          padding: EdgeInsets.fromLTRB(8, 5, 9, 5),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image(
+                image: AssetImage('assets/icons/siri_orb.png'),
+                width: 16,
+                height: 16,
+              ),
+              SizedBox(width: 6),
+              Text(
+                'Add to Siri',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 

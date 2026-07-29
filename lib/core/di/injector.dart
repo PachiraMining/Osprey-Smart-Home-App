@@ -1,6 +1,7 @@
 // lib/core/di/injector.dart
 
 import '../../features/scene/data/scene_logs_service.dart';
+import '../../features/scene/data/siri_shortcuts_service.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -82,6 +83,7 @@ import '../../features/home/domain/usecases/update_home_device.dart';
 import '../../features/home/domain/usecases/remove_device_from_home.dart';
 import '../../features/home/domain/usecases/factory_reset_device.dart';
 import '../../features/home/domain/usecases/get_rooms.dart';
+import '../../features/home/domain/usecases/get_home_members.dart';
 import '../../features/home/domain/usecases/create_room.dart';
 import '../../features/home/domain/usecases/update_room.dart';
 import '../../features/home/domain/usecases/delete_room.dart';
@@ -350,6 +352,7 @@ Future<void> setupInjector() async {
   // Device Control Use Case
   sl.registerLazySingleton(() => SendDeviceCommand(sl()));
   sl.registerLazySingleton(() => SceneLogsService(sl<ApiClient>()));
+  sl.registerLazySingleton(() => const SiriShortcutsService());
   sl.registerLazySingleton(() => GetDeviceStatus(sl<DeviceControlDataSource>()));
   sl.registerLazySingleton(() => SendDpCommand(sl<DeviceControlDataSource>()));
 
@@ -435,6 +438,7 @@ Future<void> setupInjector() async {
   sl.registerLazySingleton(() => RemoveDeviceFromHome(sl()));
   sl.registerLazySingleton(() => FactoryResetDevice(sl()));
   sl.registerLazySingleton(() => GetRooms(sl()));
+  sl.registerLazySingleton(() => GetHomeMembers(sl()));
   sl.registerLazySingleton(() => CreateRoom(sl()));
   sl.registerLazySingleton(() => UpdateRoom(sl()));
   sl.registerLazySingleton(() => DeleteRoom(sl()));

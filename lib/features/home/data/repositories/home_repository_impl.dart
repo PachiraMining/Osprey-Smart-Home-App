@@ -5,6 +5,7 @@ import '../../domain/entities/home_entity.dart';
 import '../../domain/entities/home_device_entity.dart';
 import '../../domain/entities/factory_reset_result.dart';
 import '../../domain/entities/room_entity.dart';
+import '../../domain/entities/home_member_entity.dart';
 import '../../domain/repositories/home_repository.dart';
 import '../datasources/home_remote_datasource.dart';
 import '../models/home_model.dart';
@@ -187,6 +188,34 @@ class HomeRepositoryImpl implements HomeRepository {
       return Right(result);
     } on UnauthorizedException {
       return const Left(UnauthorizedFailure('Unauthorized', message: 'Session expired'));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message, message: e.message));
+    } catch (e) {
+      return Left(ServerFailure('$e', message: 'Unknown error'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<HomeMemberEntity>>> getHomeMembers(
+      String homeId) async {
+    try {
+      final members = await remoteDataSource.getMembers(homeId);
+      // Bản ghi thành viên chỉ có userId → tra hồ sơ song song để có tên/email.
+      // Tra lỗi một người không được làm hỏng cả danh sách.
+      final enriched = await Future.wait(
+        members.map((m) async {
+          try {
+            final profile = await remoteDataSource.getUserProfile(m.userId);
+            return m.withProfile(profile);
+          } catch (_) {
+            return m;
+          }
+        }),
+      );
+      return Right(enriched);
+    } on UnauthorizedException {
+      return const Left(
+          UnauthorizedFailure('Unauthorized', message: 'Session expired'));
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message, message: e.message));
     } catch (e) {

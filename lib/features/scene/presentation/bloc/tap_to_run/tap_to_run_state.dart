@@ -42,16 +42,20 @@ class TapToRunExecuting extends TapToRunState {
 }
 
 class TapToRunExecuteResult extends TapToRunState {
+  /// Scene vừa chạy — consumer PHẢI lọc theo id này; bloc dùng transformer
+  /// concurrent nên 2 lượt execute gần nhau có thể trả kết quả xen kẽ.
+  final String sceneId;
   final String status; // SUCCESS, PARTIAL, FAILURE
   final String details;
   final List<TapToRunSceneEntity> scenes;
 
   const TapToRunExecuteResult({
+    this.sceneId = '',
     required this.status,
     required this.details,
     required this.scenes,
   });
 
   @override
-  List<Object?> get props => [status, details, scenes];
+  List<Object?> get props => [sceneId, status, details, scenes];
 }

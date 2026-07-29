@@ -11,7 +11,8 @@ abstract class TapToRunRemoteDataSource {
   Future<TapToRunSceneModel> createScene(String homeId, Map<String, dynamic> body);
   Future<TapToRunSceneModel> updateScene(String sceneId, Map<String, dynamic> body);
   Future<void> deleteScene(String sceneId);
-  Future<Map<String, dynamic>> executeScene(String sceneId);
+  Future<void> executeScene(String sceneId);
+  Future<List<Map<String, dynamic>>> getSceneLogs(String sceneId);
   Future<void> enableScene(String sceneId);
   Future<void> disableScene(String sceneId);
   Future<List<DataPointModel>> getDeviceDataPoints(String deviceProfileId);
@@ -103,15 +104,42 @@ class TapToRunRemoteDataSourceImpl implements TapToRunRemoteDataSource {
   }
 
   @override
-  Future<Map<String, dynamic>> executeScene(String sceneId) async {
+  Future<void> executeScene(String sceneId) async {
     try {
-      final response = await apiClient.post(ApiEndpoints.sceneExecute(sceneId));
-      return response.data as Map<String, dynamic>;
+      // Backend trả 200 với body RỖNG — thực thi chạy bất đồng bộ phía server,
+      // kết quả thật nằm trong /logs (xem getSceneLogs).
+      await apiClient.post(ApiEndpoints.sceneExecute(sceneId));
     } on DioException catch (e) {
       if (e.response?.statusCode == 401) {
         throw UnauthorizedException();
       }
-      throw ServerException(message: 'Failed to execute scene: ${e.type.name} - ${e.response?.data ?? e.message}');
+      final body = e.response?.data;
+      final serverMessage = body is Map ? body['message'] as String? : null;
+      // errorCode 31 là mã ổn định backend trả cho "Scene is disabled";
+      // so khớp message chỉ là fallback phòng backend đổi mã.
+      final errorCode = body is Map ? body['errorCode'] : null;
+      if (e.response?.statusCode == 400 &&
+          (errorCode == 31 ||
+              (serverMessage?.toLowerCase().contains('disabled') ?? false))) {
+        throw SceneDisabledException(
+            message: serverMessage ?? 'Scene is disabled');
+      }
+      throw ServerException(message: 'Failed to execute scene: ${e.type.name} - ${body ?? e.message}');
+    }
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getSceneLogs(String sceneId) async {
+    try {
+      final response = await apiClient.get(ApiEndpoints.sceneLogs(sceneId));
+      final data = response.data;
+      if (data is! List) return const [];
+      return data.whereType<Map<String, dynamic>>().toList();
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401) {
+        throw UnauthorizedException();
+      }
+      throw ServerException(message: 'Failed to get scene logs: ${e.message}');
     }
   }
 

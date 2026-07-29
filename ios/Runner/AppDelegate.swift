@@ -1,4 +1,5 @@
 import Flutter
+import Intents
 import SwiftUI
 import UIKit
 
@@ -18,16 +19,43 @@ import Aurora
     ) -> Bool {
         GeneratedPluginRegistrant.register(with: self)
 
-        if let controller = window?.rootViewController as? FlutterViewController {
-            registerFoundationModelsChannel(messenger: controller.binaryMessenger)
-            if #available(iOS 17.0, *) {
-                let factory = AuroraGlowPlatformViewFactory(messenger: controller.binaryMessenger)
-                registrar(forPlugin: "AuroraGlowPlugin")?
-                    .register(factory, withId: "io.dracaena.curtainai/aurora_glow")
-            }
-        }
-
+        // KHÔNG đăng ký channel ở đây: app chạy UIScene lifecycle
+        // (`FlutterSceneDelegate`) nên `window` còn nil tại thời điểm này.
+        // SceneDelegate gọi `registerChannels(controller:)` khi scene đã có
+        // root view controller.
         return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+    }
+
+    private var channelsRegistered = false
+
+    /// Đăng ký toàn bộ method channel / platform view của app.
+    /// Gọi từ `SceneDelegate` — idempotent vì mỗi scene connect đều gọi.
+    func registerChannels(controller: FlutterViewController) {
+        guard !channelsRegistered else { return }
+        channelsRegistered = true
+
+        registerFoundationModelsChannel(messenger: controller.binaryMessenger)
+        if #available(iOS 12.0, *) {
+            SiriShortcutsBridge.register(with: controller,
+                                         messenger: controller.binaryMessenger)
+        }
+        if #available(iOS 17.0, *) {
+            let factory = AuroraGlowPlatformViewFactory(messenger: controller.binaryMessenger)
+            registrar(forPlugin: "AuroraGlowPlugin")?
+                .register(factory, withId: "io.dracaena.curtainai/aurora_glow")
+        }
+    }
+
+    // MARK: - Siri (in-app intent handling, iOS 14+)
+    //
+    // Siri chạy shortcut → hệ thống launch app ở NỀN và hỏi handler ở đây.
+    // Handler làm việc bằng Swift thuần nên scene chạy mà không cần mở app.
+    override func application(_ application: UIApplication,
+                              handlerFor intent: INIntent) -> Any? {
+        if #available(iOS 14.0, *), intent is RunSceneIntent {
+            return RunSceneIntentHandler()
+        }
+        return nil
     }
 
     // MARK: - Foundation Models bridge (iOS 26+)

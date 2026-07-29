@@ -6,7 +6,14 @@ import WidgetKit
 
 /// App Group chia sẻ với app Flutter (home_widget ghi UserDefaults vào đây).
 let kAppGroupId = "group.io.dracaena.curtainai"
-let kBaseUrl = "https://performentmarketing.ddnsgeek.com"
+
+/// Base URL do app Flutter ghi vào App Group lúc khởi động — KHÔNG hardcode,
+/// vì bản phát hành chạy production còn build dev chạy server test.
+var kBaseUrl: String {
+    let stored = UserDefaults(suiteName: kAppGroupId)?
+        .string(forKey: "api_base_url") ?? ""
+    return stored.isEmpty ? "https://iot.osprey.life" : stored
+}
 
 // MARK: - Device list (app Flutter ghi JSON vào `widget_devices`)
 

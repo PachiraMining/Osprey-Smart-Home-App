@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lottie/lottie.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../../../../core/di/injector.dart';
@@ -14,6 +13,7 @@ import '../bloc/osprey_scan_bloc.dart';
 import '../bloc/osprey_scan_event.dart';
 import '../bloc/osprey_scan_state.dart';
 import 'osprey_pairing_page.dart';
+import '../widgets/radar_sweep.dart';
 
 /// Trang "Thêm thiết bị" Osprey — BLE scan filter theo Brand Service UUID,
 /// chỉ hiện thiết bị Osprey đang ở pairing mode (spec §8.2).
@@ -223,16 +223,9 @@ class _OspreyAddDeviceViewState extends State<_OspreyAddDeviceView> {
       child: AnimatedSwitcher(
         duration: const Duration(milliseconds: 350),
         child: devices.isEmpty
-            ? Center(
-                key: const ValueKey('radar'),
-                child: Lottie.asset(
-                  'assets/lottie/blue_radar.lottie',
-                  width: 190,
-                  height: 190,
-                  fit: BoxFit.contain,
-                  repeat: true,
-                  decoder: _dotLottieDecoder,
-                ),
+            ? const Center(
+                key: ValueKey('radar'),
+                child: RadarSweep(size: 190),
               )
             : Align(
                 key: const ValueKey('found'),
@@ -257,18 +250,6 @@ class _OspreyAddDeviceViewState extends State<_OspreyAddDeviceView> {
       ),
     );
   }
-
-  /// dotLottie (.lottie) = zip: pick the real animation json, NOT
-  /// manifest.json (parsing the manifest trips lottie's
-  /// startFrame == endFrame assertion). Images resolve from the archive.
-  static Future<LottieComposition?> _dotLottieDecoder(List<int> bytes) {
-    return LottieComposition.decodeZip(bytes, filePicker: (files) {
-      return files.firstWhere(
-        (f) => f.name.startsWith('animations/') && f.name.endsWith('.json'),
-      );
-    });
-  }
-
 
 }
 

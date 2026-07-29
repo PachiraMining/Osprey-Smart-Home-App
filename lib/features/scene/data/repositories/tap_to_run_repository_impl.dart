@@ -108,8 +108,35 @@ class TapToRunRepositoryImpl implements TapToRunRepository {
   @override
   Future<Either<Failure, Map<String, dynamic>>> executeScene(String sceneId) async {
     try {
-      final result = await remoteDataSource.executeScene(sceneId);
-      return Right(result);
+      // Backend chạy scene bất đồng bộ: POST /execute trả 200 body rỗng, kết
+      // quả thật được ghi vào /logs ngay sau đó. Snapshot log mới nhất trước
+      // khi execute để nhận ra entry của đúng lượt chạy này.
+      String? lastLogId;
+      try {
+        final before = await remoteDataSource.getSceneLogs(sceneId);
+        if (before.isNotEmpty) lastLogId = before.first['id'] as String?;
+      } catch (_) {
+        // Không đọc được logs không chặn việc execute.
+      }
+
+      await remoteDataSource.executeScene(sceneId);
+
+      for (var attempt = 0; attempt < 4; attempt++) {
+        await Future<void>.delayed(const Duration(milliseconds: 700));
+        try {
+          final logs = await remoteDataSource.getSceneLogs(sceneId);
+          if (logs.isNotEmpty && logs.first['id'] != lastLogId) {
+            return Right(logs.first);
+          }
+        } catch (_) {
+          // Lỗi đọc log tạm thời — thử lại ở vòng sau.
+        }
+      }
+      // Server đã nhận lệnh (200) nhưng log chưa kịp xuất hiện — coi là thành
+      // công thay vì báo lỗi sai như trước.
+      return const Right({'status': 'SUCCESS'});
+    } on SceneDisabledException catch (e) {
+      return Left(SceneDisabledFailure(e.message, message: e.message));
     } on UnauthorizedException {
       return const Left(UnauthorizedFailure('Unauthorized', message: 'Session expired'));
     } on ServerException catch (e) {

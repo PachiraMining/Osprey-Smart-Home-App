@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import '../../../../../core/cache/cache_serializers.dart';
+import '../../../../../core/error/failure.dart';
 
 import '../../../../../core/di/injector.dart';
 import '../../../../../core/notifications/message_center.dart';
@@ -163,11 +164,15 @@ class TapToRunBloc extends Bloc<TapToRunEvent, TapToRunState>
 
     emit(TapToRunExecuting(event.sceneId, currentScenes));
 
-    // Try execute; if scene is disabled, auto-enable and retry once
+    // Execute; CHỈ khi backend báo đúng "Scene is disabled" (400) mới
+    // auto-enable rồi thử lại một lần. Retry mù trên mọi lỗi như trước sẽ
+    // làm scene chạy 2 lần trên server.
     var result = await executeTapToRunScene(event.sceneId);
-    final firstFailed = result.isLeft();
-    if (firstFailed) {
-      // Auto-enable then retry
+    final disabledFailure = result.fold(
+      (failure) => failure is SceneDisabledFailure,
+      (_) => false,
+    );
+    if (disabledFailure) {
       await repository.toggleScene(event.sceneId, true);
       result = await executeTapToRunScene(event.sceneId);
     }
@@ -193,6 +198,7 @@ class TapToRunBloc extends Bloc<TapToRunEvent, TapToRunState>
       (failure) {
         logFailure();
         emit(TapToRunExecuteResult(
+          sceneId: event.sceneId,
           status: 'FAILURE',
           details: failure.message,
           scenes: currentScenes,
@@ -203,6 +209,7 @@ class TapToRunBloc extends Bloc<TapToRunEvent, TapToRunState>
         final details = (data['executionDetails'] as Map<String, dynamic>?)?['details'] as String? ?? '';
         if (status != 'SUCCESS') logFailure();
         emit(TapToRunExecuteResult(
+          sceneId: event.sceneId,
           status: status,
           details: details,
           scenes: currentScenes,

@@ -23,3 +23,11 @@ class UnauthorizedException implements Exception {
 
   UnauthorizedException({this.message = 'Unauthorized access'});
 }
+
+/// Backend trả 400 "Scene is disabled" (errorCode 31) khi execute scene
+/// đang tắt — caller có thể enable rồi thử lại đúng MỘT lần.
+class SceneDisabledException implements Exception {
+  final String message;
+
+  SceneDisabledException({this.message = 'Scene is disabled'});
+}

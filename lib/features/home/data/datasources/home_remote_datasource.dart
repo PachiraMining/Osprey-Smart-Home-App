@@ -6,6 +6,7 @@ import '../models/home_model.dart';
 import '../models/home_device_model.dart';
 import '../models/factory_reset_result_model.dart';
 import '../models/room_model.dart';
+import '../models/home_member_model.dart';
 
 abstract class HomeRemoteDataSource {
   Future<List<HomeModel>> getHomes();
@@ -25,6 +26,11 @@ abstract class HomeRemoteDataSource {
       String homeId, String deviceId);
 
   Future<List<RoomModel>> getRooms(String homeId);
+
+  Future<List<HomeMemberModel>> getMembers(String homeId);
+
+  /// Hồ sơ user để lấy tên + email cho danh sách thành viên.
+  Future<Map<String, dynamic>> getUserProfile(String userId);
   Future<RoomModel> createRoom(String homeId, Map<String, dynamic> body);
   Future<RoomModel> updateRoom(String homeId, String roomId, Map<String, dynamic> body);
   Future<void> deleteRoom(String homeId, String roomId);
@@ -197,6 +203,37 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
         throw UnauthorizedException();
       }
       throw ServerException(message: 'Failed to get rooms: ${e.message}');
+    }
+  }
+
+  @override
+  Future<List<HomeMemberModel>> getMembers(String homeId) async {
+    try {
+      final response = await apiClient.get(ApiEndpoints.homeMembers(homeId));
+      final List<dynamic> data = response.data is List ? response.data : [];
+      return data
+          .whereType<Map<String, dynamic>>()
+          .map(HomeMemberModel.fromJson)
+          .toList();
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401) {
+        throw UnauthorizedException();
+      }
+      throw ServerException(message: 'Failed to get members: ${e.message}');
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> getUserProfile(String userId) async {
+    try {
+      final response = await apiClient.get(ApiEndpoints.user(userId));
+      final data = response.data;
+      return data is Map<String, dynamic> ? data : <String, dynamic>{};
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401) {
+        throw UnauthorizedException();
+      }
+      throw ServerException(message: 'Failed to get user: ${e.message}');
     }
   }
 

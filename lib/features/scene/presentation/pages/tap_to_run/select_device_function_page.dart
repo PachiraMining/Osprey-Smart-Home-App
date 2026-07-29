@@ -163,7 +163,13 @@ class _SelectDeviceFunctionPageState extends State<SelectDeviceFunctionPage> {
         return;
     }
     if (result != null && mounted) {
-      setState(() => _selectedValues[dp.dpId] = result);
+      setState(() {
+        // Remove-rồi-insert để entry vừa chọn luôn nằm CUỐI map — _onNext lấy
+        // `.entries.last` làm "lựa chọn gần nhất"; nếu chỉ gán đè, key cũ giữ
+        // nguyên vị trí và action lưu sai function.
+        _selectedValues.remove(dp.dpId);
+        _selectedValues[dp.dpId] = result;
+      });
     }
   }
 

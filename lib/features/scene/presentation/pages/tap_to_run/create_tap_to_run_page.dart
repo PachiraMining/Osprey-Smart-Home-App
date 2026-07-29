@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_curtain_app/core/widgets/app_dialog.dart';
 import 'package:smart_curtain_app/features/scene/domain/entities/tap_to_run_scene_entity.dart';
 import 'package:smart_curtain_app/features/scene/domain/entities/scene_action_entity.dart';
+import 'package:smart_curtain_app/features/scene/presentation/utils/scene_action_display.dart';
 import 'package:smart_curtain_app/features/scene/presentation/bloc/tap_to_run/tap_to_run_bloc.dart';
 import 'package:smart_curtain_app/features/scene/presentation/bloc/tap_to_run/tap_to_run_event.dart';
 import 'package:smart_curtain_app/features/scene/presentation/bloc/tap_to_run/tap_to_run_state.dart';
@@ -48,6 +49,11 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
   static const _bgColor = Color(0xFFF5F6FA);
   static const _blueAccent = Color(0xFF1B4332);
 
+  /// Tên chức năng tra được từ datapoints, khoá `'<entityId>:<dpId>'`.
+  /// Scene tạo ở nơi khác chỉ lưu dpId nên phải tra ngược để hiện "Control"
+  /// thay vì "dpId 1".
+  final Map<String, String> _dpNames = {};
+
   @override
   void initState() {
     super.initState();
@@ -55,11 +61,25 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
       _nameController.text = widget.existingScene!.name;
       _actions.addAll(widget.existingScene!.actions);
       _decodeStyleIcon(widget.existingScene!.icon);
+      WidgetsBinding.instance.addPostFrameCallback((_) => _resolveDpNames());
     } else {
       _nameController.text = 'Scene Name';
       // New scenes get a random palette color (persisted in scene.icon on
       // save, so the card keeps this exact color on every reload).
       _selectedColor = _sceneColors[Random().nextInt(_sceneColors.length)];
+    }
+  }
+
+  /// Tra tên chức năng cho các action DEVICE_CONTROL bằng datapoints của
+  /// device profile tương ứng (cache theo profile để không gọi trùng).
+  Future<void> _resolveDpNames() async {
+    if (!mounted) return;
+    final resolved = await resolveDpNames(
+      actions: _actions,
+      devices: context.read<HomeManagementBloc>().state.devices,
+    );
+    if (mounted && resolved.isNotEmpty) {
+      setState(() => _dpNames.addAll(resolved));
     }
   }
 
@@ -146,6 +166,7 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
               // Then card
               _ThenCard(
                 actions: _actions,
+                dpNames: _dpNames,
                 onAddAction: _showAddActionSheet,
                 onRemoveAction: (index) => setState(() => _actions.removeAt(index)),
               ),
@@ -795,11 +816,13 @@ class _IfCard extends StatelessWidget {
 class _ThenCard extends StatelessWidget {
   const _ThenCard({
     required this.actions,
+    required this.dpNames,
     required this.onAddAction,
     required this.onRemoveAction,
   });
 
   final List<SceneActionEntity> actions;
+  final Map<String, String> dpNames;
   final VoidCallback onAddAction;
   final void Function(int index) onRemoveAction;
 
@@ -844,6 +867,7 @@ class _ThenCard extends StatelessWidget {
                   (entry) => _ActionRow(
                     index: entry.key,
                     action: entry.value,
+                    dpNames: dpNames,
                     totalCount: actions.length,
                     onRemove: () => onRemoveAction(entry.key),
                   ),
@@ -859,43 +883,55 @@ class _ActionRow extends StatelessWidget {
   const _ActionRow({
     required this.index,
     required this.action,
+    required this.dpNames,
     required this.totalCount,
     required this.onRemove,
   });
 
   final int index;
   final SceneActionEntity action;
+  final Map<String, String> dpNames;
   final int totalCount;
   final VoidCallback onRemove;
 
-  (IconData, String, String) _resolveDisplay() {
+  /// (icon dự phòng, ảnh thiết bị nếu có, dòng trên, dòng dưới)
+  (IconData, String?, String, String) _resolveDisplay(BuildContext context) {
     switch (action.actionType) {
       case 'DEVICE_CONTROL':
-        final dp = action.executorProperty;
-        final subtitle = action.functionName != null
-            ? '${action.functionName}: ${dp?['dpValue']}'
-            : 'dpId ${dp?['dpId']}: ${dp?['dpValue']}';
-        return (Icons.devices, action.deviceName ?? 'Device', subtitle);
+        final title = actionFunctionLabel(action, dpNames);
+        // Tên HIỆN TẠI của thiết bị — tên lưu trong action là snapshot lúc
+        // tạo, sẽ sai sau khi user đổi tên. Thiết bị đã gỡ khỏi home thì đánh
+        // dấu để user biết action đã chết.
+        final devices = context.watch<HomeManagementBloc>().state.devices;
+        final live = deviceOfAction(action, devices);
+        final deviceLabel = live?.displayName ??
+            (devices.isEmpty
+                ? (action.deviceName ?? 'Device')
+                : '${action.deviceName ?? 'Device'} (removed)');
+        final asset =
+            (live?.isCurtainTrack ?? false) ? kCurtainTrackAsset : null;
+        return (Icons.devices, asset, title, deviceLabel);
       case 'DELAY':
         final minutes = action.executorProperty?['minutes'] ?? 0;
         final seconds = action.executorProperty?['seconds'] ?? 0;
         final subtitle =
             minutes > 0 ? '${minutes}m ${seconds}s' : '${seconds}s';
-        return (Icons.timer_outlined, 'Wait', subtitle);
+        return (Icons.timer_outlined, null, 'Wait', subtitle);
       case 'SCENE_RUN':
         return (
           Icons.play_circle_outline,
+          null,
           'Run Scene',
           action.deviceName ?? action.entityId ?? '',
         );
       default:
-        return (Icons.help_outline, action.actionType, '');
+        return (Icons.help_outline, null, action.actionType, '');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final (icon, title, subtitle) = _resolveDisplay();
+    final (icon, asset, title, subtitle) = _resolveDisplay(context);
     return Column(
       children: [
         Dismissible(
@@ -916,11 +952,19 @@ class _ActionRow extends StatelessWidget {
                 Container(
                   width: 36,
                   height: 36,
+                  padding: asset != null ? const EdgeInsets.all(6) : null,
                   decoration: BoxDecoration(
                     color: Colors.grey.shade100,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(icon, size: 20, color: Colors.grey.shade600),
+                  child: asset != null
+                      ? Image.asset(
+                          asset,
+                          fit: BoxFit.contain,
+                          errorBuilder: (_, __, ___) => Icon(icon,
+                              size: 20, color: Colors.grey.shade600),
+                        )
+                      : Icon(icon, size: 20, color: Colors.grey.shade600),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -1061,15 +1105,28 @@ class _AllDevicesPage extends StatelessWidget {
                     Container(
                       width: 44,
                       height: 44,
+                      padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         color: Colors.grey.shade100,
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: Icon(
-                        Icons.devices_other,
-                        size: 24,
-                        color: Colors.grey.shade500,
-                      ),
+                      // Cùng artwork với card thiết bị ở Home tab để user nhận
+                      // đúng thiết bị đang chọn.
+                      child: device.isCurtainTrack
+                          ? Image.asset(
+                              'assets/icons/curtain_track.png',
+                              fit: BoxFit.contain,
+                              errorBuilder: (_, __, ___) => Icon(
+                                Icons.curtains_outlined,
+                                size: 24,
+                                color: Colors.grey.shade500,
+                              ),
+                            )
+                          : Icon(
+                              Icons.devices_other,
+                              size: 24,
+                              color: Colors.grey.shade500,
+                            ),
                     ),
                     const SizedBox(width: 14),
                     Expanded(

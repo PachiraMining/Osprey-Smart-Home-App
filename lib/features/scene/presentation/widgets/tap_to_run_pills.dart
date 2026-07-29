@@ -43,14 +43,18 @@ class _TapToRunPillsState extends State<TapToRunPills> {
     final bloc = context.read<TapToRunBloc>();
     AppPopup.loading(context, title: 'Running', message: scene.name);
     bloc.add(ExecuteTapToRunSceneEvent(scene.id));
+    // Lọc theo sceneId — bloc concurrent, kết quả của scene khác có thể tới trước.
     final result = await bloc.stream
-        .firstWhere((s) => s is TapToRunExecuteResult)
+        .firstWhere(
+          (s) => s is TapToRunExecuteResult && s.sceneId == scene.id,
+        )
         .timeout(
           const Duration(seconds: 15),
-          onTimeout: () => const TapToRunExecuteResult(
+          onTimeout: () => TapToRunExecuteResult(
+            sceneId: scene.id,
             status: 'FAILURE',
             details: 'timeout',
-            scenes: [],
+            scenes: const [],
           ),
         ) as TapToRunExecuteResult;
     if (!context.mounted) return;

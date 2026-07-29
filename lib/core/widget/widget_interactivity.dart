@@ -28,7 +28,12 @@ Future<void> ospreyWidgetCallback(Uri? uri) async {
   }
 
   try {
-    const storage = FlutterSecureStorage();
+    // Phải khớp cấu hình ở injector.dart: mặc định `whenUnlocked` khiến lần
+    // đọc đầu sau khi khởi động máy (chưa mở khoá) trả null → báo "no_auth".
+    const storage = FlutterSecureStorage(
+      aOptions: AndroidOptions(encryptedSharedPreferences: true),
+      iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
+    );
     final token = await storage.read(key: 'auth_token');
     final deviceId =
         await HomeWidget.getWidgetData<String>('widget_device_id');

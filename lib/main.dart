@@ -16,6 +16,7 @@ import 'core/config/app_config.dart';
 import 'core/di/injector.dart';
 import 'core/base/bloc_observer.dart';
 import 'core/auth/session_manager.dart';
+import 'core/auth/token_manager.dart';
 import 'core/widget/home_widget_service.dart';
 import 'core/widget/widget_interactivity.dart';
 import 'core/theme/app_theme.dart';
@@ -54,6 +55,12 @@ Future<void> _bootstrap() async {
   // Home-screen widget: app group (iOS) + callback nút bấm chạy nền (Android)
   await GetIt.instance<HomeWidgetService>().init();
   await HomeWidget.registerInteractivityCallback(ospreyWidgetCallback);
+
+  // Đẩy token hiện tại sang App Group mỗi lần mở app. Trước đây chỉ đẩy lúc
+  // saveTokens() nên user đăng nhập từ bản cũ có `widget_jwt` rỗng → widget và
+  // Siri intent không gọi được API.
+  final token = await GetIt.instance<TokenManager>().getToken();
+  await GetIt.instance<HomeWidgetService>().pushAuthToken(token);
 }
 
 void main() async {

@@ -28,3 +28,11 @@ class UnauthorizedFailure extends Failure {
     super.message = 'Session expired',
   });
 }
+
+/// Execute bị backend từ chối vì scene đang tắt (400, errorCode 31).
+class SceneDisabledFailure extends Failure {
+  const SceneDisabledFailure(
+    super.string, {
+    super.message = 'Scene is disabled',
+  });
+}

@@ -6,7 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../bloc/home_management_bloc.dart';
 import '../bloc/home_management_event.dart';
 import '../bloc/home_management_state.dart';
-import 'manage_home_page.dart';
+import 'home_settings_page.dart';
 
 /// Tuya-style "Home Management" hub: lists every home the user has (tap one to
 /// manage it), plus "Create a home" / "Join a home" actions.
@@ -54,9 +54,10 @@ class HomeManagementPage extends StatelessWidget {
                         onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => ManageHomePage(
+                            builder: (_) => HomeSettingsPage(
                               homeId: state.homes[i].id,
                               homeName: state.homes[i].name,
+                              geoName: state.homes[i].geoName,
                             ),
                           ),
                         ),

@@ -30,6 +30,14 @@ class ApiEndpoints {
   static String homeDeviceFactoryReset(String homeId, String deviceId) =>
       '/api/smarthome/homes/$homeId/devices/$deviceId/factory-reset';
   static String homeRooms(String homeId) => '/api/smarthome/homes/$homeId/rooms';
+  static String homeMembers(String homeId) =>
+      '/api/smarthome/homes/$homeId/members';
+  static String homeMember(String homeId, String memberId) =>
+      '/api/smarthome/homes/$homeId/members/$memberId';
+
+  /// Hồ sơ user — `SmartHomeMember` chỉ trả `userId`, phải tra thêm để có
+  /// tên + email hiển thị trong danh sách thành viên.
+  static String user(String userId) => '/api/user/$userId';
   static String homeRoom(String homeId, String roomId) =>
       '/api/smarthome/homes/$homeId/rooms/$roomId';
 

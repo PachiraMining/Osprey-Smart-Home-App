@@ -4,6 +4,8 @@ import 'dart:io';
 
 import 'package:home_widget/home_widget.dart';
 
+import '../config/app_config.dart';
+
 /// Cầu nối dữ liệu app → home-screen widget (iOS WidgetKit + Android
 /// AppWidget) qua package `home_widget`.
 ///
@@ -31,6 +33,13 @@ class HomeWidgetService {
     try {
       if (Platform.isIOS) {
         await HomeWidget.setAppGroupId(appGroupId);
+        // Widget + Siri intent chạy trong tiến trình riêng, không đọc được
+        // dart-define; phải ghi base URL ra App Group để chúng gọi ĐÚNG server
+        // (trước đây widget hardcode domain test).
+        await HomeWidget.saveWidgetData<String>(
+          'api_base_url',
+          AppConfig.thingsboardBaseUrl,
+        );
       }
     } catch (e) {
       log('HomeWidgetService.init failed: $e', name: 'widget');

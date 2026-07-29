@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer' as dev;
 import 'dart:io';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
@@ -17,6 +16,9 @@ import '../../../control/domain/repositories/transport_router.dart';
 import '../../../control/presentation/widgets/local_control_badge.dart';
 import '../../../pairing/presentation/pages/osprey_add_device_page.dart';
 import '../../domain/entities/device_entity.dart';
+import 'curtain_more_settings_page.dart';
+import '../widgets/curtain_track_view.dart';
+import '../widgets/percent_badge.dart';
 import 'device_settings_page.dart';
 
 class CurtainControlPage extends StatefulWidget {
@@ -117,7 +119,7 @@ class _CurtainControlPageState extends State<CurtainControlPage>
             body: body,
           );
           if (response.statusCode == 200) {
-            _showSnackBar('Command sent', Colors.green);
+            // Không báo gì khi thành công — hình rèm tự chuyển động là đủ.
             return;
           }
           // Non-2xx (4xx/5xx): backend reachable, không phải lỗi mạng → show.
@@ -173,7 +175,7 @@ class _CurtainControlPageState extends State<CurtainControlPage>
         },
         (_) {
           dev.log('[CurtainCtrl] BLE result: Right(ok)', name: 'CurtainCtrl');
-          _showSnackBar('Local control: command sent', Colors.green);
+          // Im lặng khi thành công; lỗi vẫn báo như cũ.
         },
       );
     } catch (e) {
@@ -316,78 +318,77 @@ class _CurtainControlPageState extends State<CurtainControlPage>
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     final width = constraints.maxWidth;
-                    final height = width * 1.15;
-                    final motorRadius = width * 0.06;
-                    final trackY = motorRadius + 4;
-                    final leftEdge = motorRadius + 4;
-                    final rightEdge = width - motorRadius - 4;
-                    final totalWidth = rightEdge - leftEdge;
-                    final halfWidth = totalWidth / 2;
+                    // Quy đổi design-space → pixel; mọi toạ độ núm lấy từ
+                    // CurtainTrackGeometry nên vùng kéo luôn trùng hình vẽ.
+                    final scale = width / CurtainTrackGeometry.designSize.width;
+                    final height =
+                        CurtainTrackGeometry.designSize.height * scale;
+                    final knobRadius =
+                        CurtainTrackGeometry.knobRadius * scale;
+                    final knobCenterY =
+                        CurtainTrackGeometry.knobCenterY * scale;
+                    final travelPx =
+                        CurtainTrackGeometry.travelPerUnit * scale;
 
-                    final leftMotorX = leftEdge + halfWidth * _position;
-                    final rightMotorX = rightEdge - halfWidth * _position;
+                    final leftKnobX =
+                        CurtainTrackGeometry.leftKnobX(_position) * scale;
+                    final rightKnobX =
+                        CurtainTrackGeometry.rightKnobX(_position) * scale;
+
+                    void drag(double deltaPx) {
+                      final newPos =
+                          (_position + deltaPx / travelPx).clamp(0.0, 1.0);
+                      setState(() {
+                        _position = newPos;
+                        _animController.value = newPos;
+                      });
+                    }
+
+                    Widget knobHit(double centerX, bool isLeft) => Positioned(
+                          left: centerX - knobRadius - 6,
+                          top: knobCenterY - knobRadius - 6,
+                          child: GestureDetector(
+                            onHorizontalDragStart: (_) =>
+                                setState(() => _isDragging = true),
+                            // Núm phải kéo NGƯỢC chiều nhau: kéo sang phải là
+                            // đóng với núm trái, mở với núm phải.
+                            onHorizontalDragUpdate: (d) =>
+                                drag(isLeft ? d.delta.dx : -d.delta.dx),
+                            onHorizontalDragEnd: (_) {
+                              _onPercentChanged(_position * 100);
+                              setState(() => _isDragging = false);
+                            },
+                            child: Container(
+                              width: (knobRadius + 6) * 2,
+                              height: (knobRadius + 6) * 2,
+                              color: Colors.transparent,
+                            ),
+                          ),
+                        );
 
                     return SizedBox(
                       width: width,
                       height: height,
                       child: Stack(
                         children: [
-                          CustomPaint(
-                            painter: _CurtainPainter(position: _position),
-                            size: Size(width, height),
-                          ),
-                          // Left motor — draggable
-                          Positioned(
-                            left: leftMotorX - motorRadius - 6,
-                            top: trackY - motorRadius - 6,
-                            child: GestureDetector(
-                              onHorizontalDragStart: (_) => setState(() => _isDragging = true),
-                              onHorizontalDragUpdate: (details) {
-                                final newX = leftMotorX + details.delta.dx;
-                                final clamped = newX.clamp(leftEdge, leftEdge + halfWidth);
-                                final newPos = (clamped - leftEdge) / halfWidth;
-                                setState(() {
-                                  _position = newPos;
-                                  _animController.value = newPos;
-                                });
-                              },
-                              onHorizontalDragEnd: (_) {
-                                _onPercentChanged(_position * 100);
-                                setState(() => _isDragging = false);
-                              },
-                              child: Container(
-                                width: (motorRadius + 6) * 2,
-                                height: (motorRadius + 6) * 2,
-                                color: Colors.transparent,
+                          Positioned.fill(
+                            // Badge % tự hiện khi vị trí đổi (kéo núm hoặc
+                            // rèm đang chạy) rồi tự ẩn — IgnorePointer nên
+                            // không chắn thao tác kéo.
+                            child: CurtainTrackWithBadge(
+                              value: _position,
+                              curtainBuilder: (v) => CurtainTrackView(value: v),
+                              // Chữ nhỏ còn 2/3 số đo gốc (0.3016 → 0.2011);
+                              // baseline dời theo để chữ vẫn nằm giữa hộp, nhờ
+                              // vậy lề quanh chữ rộng ra.
+                              metrics: const PercentBadgeMetrics(
+                                capHeight: 0.2011,
+                                baseline: 0.589,
                               ),
                             ),
                           ),
-                          // Right motor — draggable
-                          Positioned(
-                            left: rightMotorX - motorRadius - 6,
-                            top: trackY - motorRadius - 6,
-                            child: GestureDetector(
-                              onHorizontalDragStart: (_) => setState(() => _isDragging = true),
-                              onHorizontalDragUpdate: (details) {
-                                final newX = rightMotorX + details.delta.dx;
-                                final clamped = newX.clamp(rightEdge - halfWidth, rightEdge);
-                                final newPos = (rightEdge - clamped) / halfWidth;
-                                setState(() {
-                                  _position = newPos;
-                                  _animController.value = newPos;
-                                });
-                              },
-                              onHorizontalDragEnd: (_) {
-                                _onPercentChanged(_position * 100);
-                                setState(() => _isDragging = false);
-                              },
-                              child: Container(
-                                width: (motorRadius + 6) * 2,
-                                height: (motorRadius + 6) * 2,
-                                color: Colors.transparent,
-                              ),
-                            ),
-                          ),
+                          knobHit(leftKnobX, true),
+                          knobHit(rightKnobX, false),
                         ],
                       ),
                     );
@@ -413,53 +414,74 @@ class _CurtainControlPageState extends State<CurtainControlPage>
 
           const SizedBox(height: 10),
 
-          // Control buttons
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 50),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _ImageControlButton(
-                  asset: 'assets/icons/curtain_open.png',
-                  size: 60,
-                  imgSize: 30,
-                  bgColor: const Color(0xFFF0F0F0),
-                  onTap: _onOpen,
-                ),
-                _ControlButton(
-                  icon: Icons.pause,
-                  size: 80,
-                  iconSize: 34,
-                  bgColor: const Color(0xFFFCE4EC),
-                  iconColor: const Color(0xFFB7727D),
-                  onTap: _onStop,
-                ),
-                _ImageControlButton(
-                  asset: 'assets/icons/curtain_close.png',
-                  size: 60,
-                  imgSize: 30,
-                  bgColor: const Color(0xFFF0F0F0),
-                  onTap: _onClose,
-                ),
-              ],
+          // Control buttons — kéo lên 30px trên trục Y; dùng translate nên chỉ
+          // hàng nút dịch, các phần khác giữ nguyên vị trí.
+          Transform.translate(
+            offset: const Offset(0, -80),
+            child: Padding(
+              // Thu hẹp lề ngang để hai nút bên dạt ra xa nút giữa.
+              padding: const EdgeInsets.symmetric(horizontal: 15),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _ImageControlButton(
+                    asset: 'assets/icons/curtain_open.png',
+                    size: 60,
+                    imgSize: 30,
+                    bgColor: const Color(0xFFF0F0F0),
+                    onTap: _onOpen,
+                  ),
+                  _ControlButton(
+                    icon: Icons.pause,
+                    size: 80,
+                    iconSize: 34,
+                    // Hồng nhạt hơn một bậc so với 0xFFFCE4EC.
+                    bgColor: const Color(0xFFFDF0F4),
+                    iconColor: const Color(0xFFB7727D),
+                    onTap: _onStop,
+                  ),
+                  _ImageControlButton(
+                    asset: 'assets/icons/curtain_close.png',
+                    size: 60,
+                    imgSize: 30,
+                    bgColor: const Color(0xFFF0F0F0),
+                    onTap: _onClose,
+                  ),
+                ],
+              ),
             ),
           ),
 
           const SizedBox(height: 30),
 
-          // "more >" link
-          GestureDetector(
-            onTap: () {},
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'more',
-                  style: TextStyle(fontSize: 15, color: Colors.grey.shade500),
+          // "more >" link → màn Setting (Motor Direction, Schedule).
+          // Kéo lên 10px; chữ đậm hơn cho bớt mảnh.
+          Transform.translate(
+            offset: const Offset(0, -10),
+            child: GestureDetector(
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute<void>(
+                  builder: (_) =>
+                      CurtainMoreSettingsPage(deviceId: widget.device.id),
                 ),
-                const SizedBox(width: 4),
-                Icon(Icons.chevron_right, size: 20, color: Colors.grey.shade500),
-              ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'more',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(Icons.chevron_right,
+                      size: 21, color: Colors.grey.shade600),
+                ],
+              ),
             ),
           ),
 
@@ -542,244 +564,6 @@ class _ImageControlButton extends StatelessWidget {
     );
   }
 }
-
-/// Custom painter: horizontal curtain that opens from center to sides
-/// Motors at left/right ends of track, city skyline in background
-class _CurtainPainter extends CustomPainter {
-  final double position; // 0.0 = fully open, 1.0 = fully closed
-
-  _CurtainPainter({required this.position});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final motorRadius = size.width * 0.06;
-    final trackY = motorRadius + 4;
-    final curtainTop = trackY + 8;
-    final curtainBottom = size.height * 0.95;
-
-    final leftEdge = motorRadius + 4;
-    final rightEdge = size.width - motorRadius - 4;
-    final totalWidth = rightEdge - leftEdge;
-
-    // === Draw city skyline in background (visible when curtain is open) ===
-    _drawSkyline(canvas, size, curtainTop, curtainBottom, leftEdge, rightEdge);
-
-    // === Track bar ===
-    final trackPaint = Paint()
-      ..color = const Color(0xFFD5D5D5)
-      ..strokeWidth = 6
-      ..strokeCap = StrokeCap.round;
-    canvas.drawLine(
-      Offset(leftEdge, trackY),
-      Offset(rightEdge, trackY),
-      trackPaint,
-    );
-
-    // === Calculate curtain panel positions ===
-    // position 1.0 = closed (panels meet in middle)
-    // position 0.0 = open (panels pulled to edges)
-    final halfWidth = totalWidth / 2;
-    // Each panel width when fully closed = half of total
-    // When opening, panels compress toward the edges
-    final leftPanelRight = leftEdge + halfWidth * position;
-    final rightPanelLeft = rightEdge - halfWidth * position;
-
-    // === Draw LEFT curtain panel ===
-    _drawCurtainPanel(
-      canvas,
-      left: leftEdge,
-      right: leftPanelRight,
-      top: curtainTop,
-      bottom: curtainBottom,
-      isLeftPanel: true,
-    );
-
-    // === Draw RIGHT curtain panel ===
-    _drawCurtainPanel(
-      canvas,
-      left: rightPanelLeft,
-      right: rightEdge,
-      top: curtainTop,
-      bottom: curtainBottom,
-      isLeftPanel: false,
-    );
-
-    // === Motor circles move with curtain panels ===
-    _drawMotor(canvas, Offset(leftPanelRight, trackY), motorRadius);
-    _drawMotor(canvas, Offset(rightPanelLeft, trackY), motorRadius);
-  }
-
-  void _drawCurtainPanel(
-    Canvas canvas, {
-    required double left,
-    required double right,
-    required double top,
-    required double bottom,
-    required bool isLeftPanel,
-  }) {
-    final panelWidth = right - left;
-    if (panelWidth < 3) return;
-
-    final curtainHeight = bottom - top;
-
-    // --- Curtain body (white fill) ---
-    canvas.drawRect(
-      Rect.fromLTRB(left, top, right, bottom),
-      Paint()
-        ..color = Colors.white
-        ..style = PaintingStyle.fill,
-    );
-
-    // --- Vertical fold lines ---
-    final foldLinePaint = Paint()
-      ..color = const Color(0xFFDDDDDD)
-      ..strokeWidth = 1.0;
-
-    // More folds when panel is compressed (bunched up)
-    final foldCount = max(3, (panelWidth / 12).round());
-    final foldSpacing = panelWidth / foldCount;
-
-    for (int i = 1; i < foldCount; i++) {
-      final x = left + foldSpacing * i;
-      // Slight wave effect on fold lines
-      final path = Path();
-      path.moveTo(x, top);
-      final segments = 8;
-      final segH = curtainHeight / segments;
-      for (int s = 0; s < segments; s++) {
-        final amp = (s % 2 == 0 ? 1.5 : -1.5) * (panelWidth < 60 ? 0.8 : 0.4);
-        path.quadraticBezierTo(
-          x + amp, top + segH * s + segH / 2,
-          x, top + segH * (s + 1),
-        );
-      }
-      canvas.drawPath(path, foldLinePaint);
-    }
-
-    // --- Scalloped bottom edge ---
-    final scallopCount = max(2, foldCount);
-    final scallopW = panelWidth / scallopCount;
-    final scallopDepth = min(10.0, panelWidth / 6);
-
-    // White fill for scallops
-    final scallopFill = Path();
-    scallopFill.moveTo(left, bottom);
-    for (int i = 0; i < scallopCount; i++) {
-      final sx = left + scallopW * i;
-      final ex = sx + scallopW;
-      final mx = (sx + ex) / 2;
-      scallopFill.quadraticBezierTo(mx, bottom + scallopDepth, ex, bottom);
-    }
-    scallopFill.lineTo(right, bottom - 1);
-    scallopFill.lineTo(left, bottom - 1);
-    scallopFill.close();
-    canvas.drawPath(
-      scallopFill,
-      Paint()
-        ..color = Colors.white
-        ..style = PaintingStyle.fill,
-    );
-
-    // Scallop outline
-    final scallopOutline = Path();
-    scallopOutline.moveTo(left, bottom);
-    for (int i = 0; i < scallopCount; i++) {
-      final sx = left + scallopW * i;
-      final ex = sx + scallopW;
-      final mx = (sx + ex) / 2;
-      scallopOutline.quadraticBezierTo(mx, bottom + scallopDepth, ex, bottom);
-    }
-    canvas.drawPath(
-      scallopOutline,
-      Paint()
-        ..color = const Color(0xFFBDBDBD)
-        ..strokeWidth = 1.0
-        ..style = PaintingStyle.stroke,
-    );
-
-    // --- Panel border ---
-    final borderPaint = Paint()
-      ..color = const Color(0xFFCCCCCC)
-      ..strokeWidth = 1.0
-      ..style = PaintingStyle.stroke;
-    // Left side
-    canvas.drawLine(Offset(left, top), Offset(left, bottom), borderPaint);
-    // Right side
-    canvas.drawLine(Offset(right, top), Offset(right, bottom), borderPaint);
-    // Top
-    canvas.drawLine(Offset(left, top), Offset(right, top), borderPaint);
-  }
-
-  void _drawSkyline(Canvas canvas, Size size, double top, double bottom,
-      double leftEdge, double rightEdge) {
-    final skylineColor = const Color(0xFFE8E4EE); // Light purple/gray
-    final paint = Paint()
-      ..color = skylineColor
-      ..style = PaintingStyle.fill;
-
-    final baseY = bottom * 0.85;
-    final skyWidth = rightEdge - leftEdge;
-
-    // Building definitions: (xFraction, widthFraction, heightFraction)
-    final buildings = [
-      (0.05, 0.06, 0.30),
-      (0.12, 0.08, 0.45),
-      (0.21, 0.05, 0.35),
-      (0.27, 0.07, 0.55),
-      (0.35, 0.06, 0.40),
-      (0.42, 0.08, 0.65),
-      (0.51, 0.06, 0.50),
-      (0.58, 0.07, 0.60),
-      (0.66, 0.05, 0.45),
-      (0.72, 0.08, 0.70),
-      (0.81, 0.06, 0.50),
-      (0.88, 0.07, 0.55),
-    ];
-
-    for (final (xFrac, wFrac, hFrac) in buildings) {
-      final bx = leftEdge + skyWidth * xFrac;
-      final bw = skyWidth * wFrac;
-      final bh = (baseY - top) * hFrac;
-      canvas.drawRect(
-        Rect.fromLTWH(bx, baseY - bh, bw, bh + (bottom - baseY)),
-        paint,
-      );
-    }
-  }
-
-  void _drawMotor(Canvas canvas, Offset center, double radius) {
-    // White fill circle
-    canvas.drawCircle(
-      center,
-      radius,
-      Paint()
-        ..color = Colors.white
-        ..style = PaintingStyle.fill,
-    );
-    // Gray border
-    canvas.drawCircle(
-      center,
-      radius,
-      Paint()
-        ..color = const Color(0xFFD0D0D0)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.5,
-    );
-    // Inner pink/mauve circle
-    canvas.drawCircle(
-      center,
-      radius * 0.6,
-      Paint()
-        ..color = const Color(0xFFB7727D)
-        ..style = PaintingStyle.fill,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _CurtainPainter oldDelegate) =>
-      oldDelegate.position != position;
-}
-
 class _CurtainToast extends StatefulWidget {
   final String message;
   final bool isSuccess;
