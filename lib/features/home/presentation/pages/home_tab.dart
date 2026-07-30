@@ -688,18 +688,35 @@ class _DeviceCardState extends State<_DeviceCard> {
     res.fold((_) {}, (s) => setState(() => _status = s));
   }
 
-  /// Apply a DP write then refresh status. Error → popup; success → re-read.
-  Future<void> _apply(Future<Either<Failure, void>> Function() send) async {
+  /// Ghi một DP rồi cập nhật giao diện LẠC QUAN theo [optimistic].
+  ///
+  /// KHÔNG đọc lại `/status` sau khi ghi: endpoint đó còn trả giá trị cũ trong
+  /// khoảnh khắc ngay sau lệnh, làm nhãn nhảy sang giá trị mới rồi giật về cũ.
+  /// Lệnh trả 2xx đã là xác nhận (response echo lại dp vừa ghi).
+  Future<void> _apply(
+    Future<Either<Failure, void>> Function() send, {
+    Map<String, dynamic>? optimistic,
+  }) async {
     if (_busy) return;
-    setState(() => _busy = true);
+    final previous = _status;
+    setState(() {
+      _busy = true;
+      if (optimistic != null) {
+        _status = {...?_status, ...optimistic};
+      }
+    });
     final res = await send();
     if (!mounted) return;
     setState(() => _busy = false);
     res.fold(
-      (_) => AppPopup.error(context,
-          title: 'Failed',
-          message: 'Could not send the command. Please try again.'),
-      (_) => _fetchStatus(),
+      (_) {
+        // Hỏng thì trả lại trạng thái cũ để giao diện không nói sai.
+        setState(() => _status = previous);
+        AppPopup.error(context,
+            title: 'Failed',
+            message: 'Could not send the command. Please try again.');
+      },
+      (_) {},
     );
   }
 
@@ -711,7 +728,9 @@ class _DeviceCardState extends State<_DeviceCard> {
       options: const [('open', 'Open'), ('stop', 'Stop'), ('close', 'Close')],
       current: current,
       onSelect: (v) => _apply(
-          () => GetIt.instance<SendDeviceCommand>()(device.deviceId, v)),
+        () => GetIt.instance<SendDeviceCommand>()(device.deviceId, v),
+        optimistic: {'control': v},
+      ),
     );
   }
 
@@ -723,7 +742,9 @@ class _DeviceCardState extends State<_DeviceCard> {
       options: const [('forward', 'Forward'), ('back', 'Back')],
       current: current,
       onSelect: (v) => _apply(
-          () => GetIt.instance<SendDpCommand>()(device.deviceId, 5, v)),
+        () => GetIt.instance<SendDpCommand>()(device.deviceId, 5, v),
+        optimistic: {'control_back': v},
+      ),
     );
   }
 
@@ -846,8 +867,10 @@ class _DeviceCardState extends State<_DeviceCard> {
                   // Apply on release but keep the sheet open — it closes only
                   // when the user taps outside.
                   onChangeEnd: (v) => _apply(
-                      () => GetIt.instance<SendDeviceCommand>()(
-                          device.deviceId, v.toString())),
+                    () => GetIt.instance<SendDeviceCommand>()(
+                        device.deviceId, v.toString()),
+                    optimistic: {'percent_control': v.round()},
+                  ),
                 ),
               ],
             ),

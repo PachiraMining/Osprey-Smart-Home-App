@@ -4,12 +4,18 @@ import 'package:get_it/get_it.dart';
 import '../../../../core/widgets/app_popup.dart';
 import '../../domain/usecases/get_device_status.dart';
 import '../../domain/usecases/send_dp_command.dart';
+import 'device_schedule_page.dart';
 
 /// Màn "Setting" mở từ liên kết `more` ở trang điều khiển rèm.
 class CurtainMoreSettingsPage extends StatefulWidget {
   final String deviceId;
+  final String deviceName;
 
-  const CurtainMoreSettingsPage({super.key, required this.deviceId});
+  const CurtainMoreSettingsPage({
+    super.key,
+    required this.deviceId,
+    required this.deviceName,
+  });
 
   @override
   State<CurtainMoreSettingsPage> createState() =>
@@ -25,6 +31,10 @@ class _CurtainMoreSettingsPageState extends State<CurtainMoreSettingsPage> {
 
   String? _motorDirection;
   bool _loading = true;
+
+  /// Đang gửi lệnh đổi chiều — chặn bấm trùng, vì mỗi lần bấm là một lệnh
+  /// THẬT xuống rèm (trước đây user bấm 3–4 lần trong lúc chờ ⇒ 3–4 lệnh).
+  bool _sendingMotor = false;
 
   @override
   void initState() {
@@ -46,11 +56,13 @@ class _CurtainMoreSettingsPageState extends State<CurtainMoreSettingsPage> {
     });
   }
 
+  /// Rỗng khi CHƯA đọc được trạng thái — thà để trống hơn là hiện "Forward"
+  /// đoán bừa rồi nói sai với người dùng.
   String get _motorLabel {
     for (final (value, label) in _motorOptions) {
       if (value == _motorDirection) return label;
     }
-    return _loading ? '' : 'Forward';
+    return '';
   }
 
   Future<void> _pickMotorDirection() async {
@@ -107,27 +119,35 @@ class _CurtainMoreSettingsPageState extends State<CurtainMoreSettingsPage> {
 
     if (picked == null || picked == _motorDirection || !mounted) return;
 
+    // Cập nhật lạc quan: lệnh + đọc lại trạng thái mất ~2.5s, nếu chờ mới đổi
+    // nhãn thì user tưởng không ăn và bấm lại.
+    final previous = _motorDirection;
+    setState(() {
+      _motorDirection = picked;
+      _sendingMotor = true;
+    });
+
     final result = await GetIt.instance<SendDpCommand>()(
       widget.deviceId,
       _motorDpId,
       picked,
     );
     if (!mounted) return;
+    setState(() => _sendingMotor = false);
     result.fold(
-      (_) => AppPopup.error(
-        context,
-        title: 'Failed',
-        message: 'Could not change the motor direction. Please try again.',
-      ),
-      // Đọc lại từ thiết bị thay vì tin giá trị vừa gửi — lệnh có thể bị
-      // firmware từ chối trong khi rèm đang chạy.
-      (_) => _fetchStatus(),
-    );
-  }
-
-  void _notYet(String feature) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('$feature is coming soon.')),
+      (_) {
+        // Trả lại giá trị cũ để nhãn không nói sai.
+        setState(() => _motorDirection = previous);
+        AppPopup.error(
+          context,
+          title: 'Failed',
+          message: 'Could not change the motor direction. Please try again.',
+        );
+      },
+      // KHÔNG đọc lại trạng thái ở đây: endpoint status có thể còn trả giá trị
+      // cũ ngay sau khi ghi, làm nhãn nhảy sang giá trị mới rồi giật về cũ.
+      // Response 200 của lệnh đã echo lại `direction` nên coi là xác nhận.
+      (_) {},
     );
   }
 
@@ -154,7 +174,8 @@ class _CurtainMoreSettingsPageState extends State<CurtainMoreSettingsPage> {
             child: _SettingRow(
               label: 'Motor Direction',
               value: _motorLabel,
-              onTap: _loading ? null : _pickMotorDirection,
+              busy: _sendingMotor,
+              onTap: (_loading || _sendingMotor) ? null : _pickMotorDirection,
             ),
           ),
           const SizedBox(height: 10),
@@ -162,7 +183,15 @@ class _CurtainMoreSettingsPageState extends State<CurtainMoreSettingsPage> {
             color: Colors.white,
             child: _SettingRow(
               label: 'Schedule',
-              onTap: () => _notYet('Schedule'),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute<void>(
+                  builder: (_) => DeviceSchedulePage(
+                    deviceId: widget.deviceId,
+                    deviceName: widget.deviceName,
+                  ),
+                ),
+              ),
             ),
           ),
         ],
@@ -174,9 +203,17 @@ class _CurtainMoreSettingsPageState extends State<CurtainMoreSettingsPage> {
 class _SettingRow extends StatelessWidget {
   final String label;
   final String? value;
+
+  /// Đang gửi lệnh → hiện vòng xoay thay cho chevron.
+  final bool busy;
   final VoidCallback? onTap;
 
-  const _SettingRow({required this.label, this.value, this.onTap});
+  const _SettingRow({
+    required this.label,
+    this.value,
+    this.busy = false,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -200,7 +237,17 @@ class _SettingRow extends StatelessWidget {
                   style: TextStyle(fontSize: 16, color: Colors.grey.shade500),
                 ),
               ),
-            Icon(Icons.chevron_right, size: 22, color: Colors.grey.shade500),
+            if (busy)
+              SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.grey.shade500,
+                ),
+              )
+            else
+              Icon(Icons.chevron_right, size: 22, color: Colors.grey.shade500),
           ],
         ),
       ),

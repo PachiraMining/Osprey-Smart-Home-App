@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../core/widgets/app_popup.dart';
+import 'scene_run_feedback.dart';
 
 import '../../../../core/theme/scene_style.dart';
 import '../../../home/presentation/bloc/home_management_bloc.dart';
@@ -41,33 +41,29 @@ class _TapToRunPillsState extends State<TapToRunPills> {
   Future<void> _runScene(
       BuildContext context, TapToRunSceneEntity scene) async {
     final bloc = context.read<TapToRunBloc>();
-    AppPopup.loading(context, title: 'Running', message: scene.name);
-    bloc.add(ExecuteTapToRunSceneEvent(scene.id));
-    // Lọc theo sceneId — bloc concurrent, kết quả của scene khác có thể tới trước.
-    final result = await bloc.stream
-        .firstWhere(
-          (s) => s is TapToRunExecuteResult && s.sceneId == scene.id,
-        )
-        .timeout(
-          const Duration(seconds: 15),
-          onTimeout: () => TapToRunExecuteResult(
-            sceneId: scene.id,
-            status: 'FAILURE',
-            details: 'timeout',
-            scenes: const [],
-          ),
-        ) as TapToRunExecuteResult;
-    if (!context.mounted) return;
-    Navigator.of(context, rootNavigator: true).pop(); // đóng loading
-    final success = result.status == 'SUCCESS';
-    if (success) {
-      AppPopup.success(context,
-          title: 'Done', message: '"${scene.name}" executed');
-    } else {
-      AppPopup.error(context,
-          title: 'Failed',
-          message: 'Could not run "${scene.name}". Please try again.');
-    }
+    await showSceneRunFeedback(
+      context: context,
+      sceneName: scene.name,
+      run: () async {
+        bloc.add(ExecuteTapToRunSceneEvent(scene.id));
+        // Lọc theo sceneId — bloc dùng transformer concurrent nên kết quả của
+        // scene khác có thể tới trước.
+        final result = await bloc.stream
+            .firstWhere(
+              (s) => s is TapToRunExecuteResult && s.sceneId == scene.id,
+            )
+            .timeout(
+              const Duration(seconds: 15),
+              onTimeout: () => TapToRunExecuteResult(
+                sceneId: scene.id,
+                status: 'FAILURE',
+                details: 'timeout',
+                scenes: const [],
+              ),
+            ) as TapToRunExecuteResult;
+        return result.status == 'SUCCESS';
+      },
+    );
   }
 
   List<TapToRunSceneEntity> _scenesOf(TapToRunState state) => switch (state) {

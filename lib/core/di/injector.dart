@@ -2,6 +2,8 @@
 
 import '../../features/scene/data/scene_logs_service.dart';
 import '../../features/scene/data/siri_shortcuts_service.dart';
+import '../../features/device/data/device_info_service.dart';
+import '../../features/device/data/device_group_service.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -16,6 +18,7 @@ import '../../core/auth/token_manager.dart';
 import '../../core/auth/session_manager.dart';
 import '../../core/auth/social_login_service.dart';
 import '../../core/time/device_timezone.dart';
+import '../../core/settings/app_settings_store.dart';
 import '../../core/notifications/message_center.dart';
 
 // Auth
@@ -352,6 +355,8 @@ Future<void> setupInjector() async {
   // Device Control Use Case
   sl.registerLazySingleton(() => SendDeviceCommand(sl()));
   sl.registerLazySingleton(() => SceneLogsService(sl<ApiClient>()));
+  sl.registerLazySingleton(() => DeviceInfoService(sl<ApiClient>()));
+  sl.registerLazySingleton(() => DeviceGroupService(sl<ApiClient>()));
   sl.registerLazySingleton(() => const SiriShortcutsService());
   sl.registerLazySingleton(() => GetDeviceStatus(sl<DeviceControlDataSource>()));
   sl.registerLazySingleton(() => SendDpCommand(sl<DeviceControlDataSource>()));
@@ -467,6 +472,7 @@ Future<void> setupInjector() async {
   // SharedPreferences (product catalog cache)
   final prefs = await SharedPreferences.getInstance();
   sl.registerLazySingleton(() => prefs);
+  sl.registerLazySingleton(() => AppSettingsStore(prefs));
 
   // Crypto + data sources
   sl.registerLazySingleton(() => PairingCrypto());

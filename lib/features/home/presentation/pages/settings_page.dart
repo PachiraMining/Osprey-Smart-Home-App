@@ -1,11 +1,14 @@
-import 'package:smart_curtain_app/features/home/presentation/pages/auth_diag_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:smart_curtain_app/core/widgets/app_dialog.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
+import '../../../../core/settings/app_settings_store.dart';
+import '../../../../core/settings/cache_manager.dart';
+import 'about_page.dart';
 import 'account_security_page.dart';
+import 'network_diagnosis_page.dart';
 import 'personal_info_page.dart';
 import '../../../ai/presentation/pages/ai_chat_page.dart';
 
@@ -17,7 +20,102 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  bool _touchTone = false;
+  final _settings = GetIt.instance<AppSettingsStore>();
+  static const _cache = CacheManager();
+
+  int? _cacheBytes;
+  bool _clearing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _measureCache();
+  }
+
+  Future<void> _measureCache() async {
+    final bytes = await _cache.sizeInBytes();
+    if (mounted) setState(() => _cacheBytes = bytes);
+  }
+
+  Future<void> _clearCache() async {
+    if (_clearing) return;
+    final confirmed = await AppDialog.confirm(
+      context,
+      title: 'Clear Cache',
+      message: 'Cached scenes, home data and images will be re-downloaded on '
+          'next use. Your account and devices are not affected.',
+      confirmText: 'Clear',
+      destructive: true,
+    );
+    if (!confirmed || !mounted) return;
+
+    setState(() => _clearing = true);
+    final freed = await _cache.clear();
+    if (!mounted) return;
+    setState(() => _clearing = false);
+    await _measureCache();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(
+        content: Text('Freed ${CacheManager.formatBytes(freed)}'),
+      ));
+  }
+
+  Future<void> _pickTemperatureUnit() async {
+    final picked = await showModalBottomSheet<TemperatureUnit>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(
+          left: 10,
+          right: 10,
+          bottom: 10 + MediaQuery.of(ctx).padding.bottom,
+        ),
+        child: Container(
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: Text('Temperature Unit',
+                    style:
+                        TextStyle(fontSize: 15, color: Colors.grey.shade500)),
+              ),
+              for (final unit in TemperatureUnit.values)
+                InkWell(
+                  onTap: () => Navigator.pop(ctx, unit),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 16),
+                    child: Row(
+                      children: [
+                        Expanded(
+                            child: Text(unit.symbol,
+                                style: const TextStyle(fontSize: 16))),
+                        if (unit == _settings.temperatureUnit)
+                          const Icon(Icons.check,
+                              color: Color(0xFF1B4332), size: 22),
+                      ],
+                    ),
+                  ),
+                ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (picked != null && mounted) {
+      await _settings.setTemperatureUnit(picked);
+      if (mounted) setState(() {});
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,8 +160,11 @@ class _SettingsPageState extends State<SettingsPage> {
           _buildSection([
             _buildSwitchItem(
               'Touch Tone on Panel',
-              value: _touchTone,
-              onChanged: (v) => setState(() => _touchTone = v),
+              value: _settings.touchTone,
+              onChanged: (v) async {
+                await _settings.setTouchTone(v);
+                if (mounted) setState(() {});
+              },
             ),
             _buildNavItem(
               'AI Assistant',
@@ -75,15 +176,35 @@ class _SettingsPageState extends State<SettingsPage> {
                 );
               },
             ),
-            // Debug: nhật ký phiên đăng nhập — mở sau khi bị đá ra để xem lý do.
             _buildNavItem(
-              'Auth Diagnostics',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const AuthDiagPage()),
-                );
-              },
+              'Temperature Unit',
+              trailing: _settings.temperatureUnit.symbol,
+              onTap: _pickTemperatureUnit,
+            ),
+          ]),
+
+          // Section 3: chẩn đoán + thông tin app
+          _buildSection([
+            _buildNavItem('About', onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AboutPage()),
+              );
+            }),
+            _buildNavItem('Network Diagnosis', onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const NetworkDiagnosisPage()),
+              );
+            }),
+            _buildNavItem(
+              'Clear Cache',
+              trailing: _clearing
+                  ? '...'
+                  : (_cacheBytes == null
+                      ? ''
+                      : CacheManager.formatBytes(_cacheBytes!)),
+              onTap: _clearCache,
             ),
           ]),
 

@@ -88,6 +88,9 @@ dependencies:
   flutter_timezone: ^5.1.0
   flutter_native_splash: ^2.4.4
 
+  # About page: tên app + số phiên bản đọc từ bundle
+  package_info_plus: ^8.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -138,6 +141,7 @@ flutter:
     - assets/icons/curtain_open.png
     - assets/icons/curtain_close.png
     - assets/icons/curtain_track.png
+    - assets/icons/curtain_track_hero.png
     - assets/icons/siri_orb.png
     - assets/icons/bluetooth_disconnect.svg
     - assets/images/home_bg.jpg

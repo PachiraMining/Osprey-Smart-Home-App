@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
+
+import '../../../../core/settings/app_settings_store.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../domain/entities/weather_recommendation.dart';
@@ -47,9 +50,9 @@ class WeatherCard extends StatelessWidget {
                     _ConditionIcon(w: w),
                     const SizedBox(width: 8),
                     Text(
-                      w != null
-                          ? '${w.temperatureCelsius.round()}°C'
-                          : '--°C',
+                      // Đơn vị theo Settings → Temperature Unit.
+                      GetIt.instance<AppSettingsStore>()
+                          .formatFromCelsius(w?.temperatureCelsius),
                       style: const TextStyle(
                         fontSize: 19,
                         fontWeight: FontWeight.w700,

@@ -72,6 +72,14 @@ class ApiEndpoints {
       '/api/smarthome/devices/$deviceId';
   static String deviceCommands(String deviceId) =>
       '/api/smarthome/devices/$deviceId/commands';
+  /// Thông tin mạng của thiết bị: deviceUuid, SSID đang nối, RSSI.
+  static String deviceNetworkInfo(String deviceId) =>
+      '/api/smarthome/devices/$deviceId/network-info';
+
+  /// Attributes ThingsBoard (fw_version, …) — dùng cho trang Device Information.
+  static String deviceAttributes(String deviceId) =>
+      '/api/plugins/telemetry/DEVICE/$deviceId/values/attributes';
+
   static String deviceStatus(String deviceId) =>
       '/api/smarthome/devices/$deviceId/status';
   static String deviceInfo(String deviceId) => '/api/device/info/$deviceId';

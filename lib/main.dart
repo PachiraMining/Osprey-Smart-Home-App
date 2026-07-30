@@ -216,8 +216,9 @@ class _SmartAppState extends State<SmartApp> {
           scaffoldMessengerKey: _messengerKey,
           home: const SmartSplashScreen(),
           routes: {
+            // Mở app là vào tab Home, không phải Chat.
             '/home': (_) =>
-                const HomePage(initialIndex: HomePageState.tabChat),
+                const HomePage(initialIndex: HomePageState.tabHome),
           },
         ),
       ),

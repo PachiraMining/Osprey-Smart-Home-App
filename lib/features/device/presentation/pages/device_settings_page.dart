@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_dialog.dart';
@@ -7,7 +8,14 @@ import '../../../home/presentation/bloc/home_management_bloc.dart';
 import '../../../home/presentation/bloc/home_management_event.dart';
 import '../../../home/presentation/bloc/home_management_state.dart';
 import '../../domain/entities/device_entity.dart';
-import 'device_network_page.dart';
+import '../../../home/presentation/pages/alexa_linking_page.dart';
+import 'device_edit_page.dart';
+import 'device_information_page.dart';
+import 'device_scenes_page.dart';
+import '../../../home/presentation/pages/in_app_web_page.dart';
+import 'create_group_page.dart';
+import 'device_network_info_page.dart';
+import 'device_update_page.dart';
 
 /// Màn "Settings" của 1 thiết bị (mở từ nút góc trên phải màn điều khiển).
 ///
@@ -29,6 +37,32 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
   /// True khi đang chờ kết quả gỡ thiết bị (để BlocListener chỉ bắt mutation
   /// do màn này phát ra, không nhầm mutation của màn khác).
   bool _removing = false;
+
+  /// Mở trang trợ giúp "Add to Home Screen" trong trình duyệt ngoài.
+  ///
+  /// Trang này của nhà cung cấp panel (smart321) tự dựng shortcut Safari; tên
+  /// thiết bị và ngôn ngữ được truyền theo thiết bị đang xem. `schemeUrl` giữ
+  /// nguyên scheme của panel — shortcut tạo ra sẽ mở panel đó, KHÔNG mở app này.
+  Future<void> _openAddToHomeScreen() async {
+    final uri = Uri.https('app-support.smart321.com', '/screen', {
+      'icon': _addToHomeScreenIcon,
+      'lang': Localizations.localeOf(context).languageCode,
+      'devName': _displayName,
+      'schemeUrl': 'g01g01://panelEx?devId=$_deviceId',
+    });
+    final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!ok && mounted) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(
+          content: Text('Could not open the browser.'),
+        ));
+    }
+  }
+
+  static const _addToHomeScreenIcon =
+      'https://d1448c85ulz2o4.cdn5th.com/smart/icon/bay1676357614061UPpS/'
+      'b132ea62f1be3360afa5125704e886d7.png';
 
   void _comingSoon() {
     ScaffoldMessenger.of(context)
@@ -174,58 +208,230 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
                 fontSize: 17, fontWeight: FontWeight.w600, color: Colors.black87),
           ),
         ),
-        body: Stack(
+        body: ListView(
+          padding: const EdgeInsets.only(bottom: 32),
           children: [
-            ListView(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
-              children: [
-                _sectionHeader('Device Settings'),
-                _card([
-                  _navRow(
-                    'Device Network',
-                    trailing: _isOnlineText(),
+            // ── Đầu trang: ảnh thiết bị + tên + phòng ─────────────────
+            Container(
+              color: Colors.white,
+              child: Column(
+                children: [
+                  InkWell(
                     onTap: () => Navigator.push(
                       context,
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            DeviceNetworkPage(device: widget.device),
+                      MaterialPageRoute<void>(
+                        builder: (_) => DeviceEditPage(
+                          deviceId: widget.device.id,
+                          deviceName: _displayName,
+                        ),
+                      ),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 16, 16, 16),
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            width: 52,
+                            height: 52,
+                            child: Image.asset(
+                              'assets/icons/curtain_track_hero.png',
+                              fit: BoxFit.contain,
+                              errorBuilder: (_, __, ___) => Icon(
+                                Icons.devices_other,
+                                size: 28,
+                                color: Colors.grey.shade400,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  _displayName,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  _roomLabel,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(Icons.edit_outlined,
+                              size: 22, color: Colors.grey.shade800),
+                          const SizedBox(width: 6),
+                          Icon(Icons.chevron_right,
+                              size: 22, color: Colors.grey.shade400),
+                        ],
                       ),
                     ),
                   ),
-                  _divider(),
-                  _navRow('Device Review', onTap: _comingSoon),
-                  _divider(),
-                  _switchRow(
-                    'Offline notification',
-                    value: _offlineNotify,
-                    onChanged: (v) => setState(() => _offlineNotify = v),
+                  Divider(height: 1, indent: 20, color: Colors.grey.shade200),
+                  _row(
+                    'Device Information',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (_) =>
+                            DeviceInformationPage(deviceId: widget.device.id),
+                      ),
+                    ),
                   ),
-                ]),
-                const SizedBox(height: 24),
-                _sectionHeader('General Settings'),
-                _card([
-                  _navRow('FAQ & feedback', onTap: _comingSoon),
-                  _divider(),
-                  _navRow('Add to home screen', onTap: _comingSoon),
-                  _divider(),
-                  _navRow(
-                    'Check for updates',
-                    trailing: const Text('This is the latest version',
-                        style:
-                            TextStyle(fontSize: 13, color: AppColors.textMuted)),
+                  _row(
+                    'Device Network',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (_) =>
+                            DeviceNetworkInfoPage(device: widget.device),
+                      ),
+                    ),
+                  ),
+                  _row(
+                    'Tap-to-Run and Automation',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (_) => DeviceScenesPage(
+                          deviceId: widget.device.id,
+                          deviceName: _displayName,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            _sectionHeader('Third-party Control'),
+            Container(
+              color: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+              child: Row(
+                children: [
+                  _ThirdParty(
+                    asset: 'assets/icons/alexa_logo.png',
+                    label: 'Alexa',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (_) => const AlexaLinkingPage(),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 34),
+                  _ThirdParty(
+                    asset: 'assets/icons/google_assistant_logo.png',
+                    label: 'Google Assistant',
                     onTap: _comingSoon,
                   ),
-                  _divider(),
-                  _navRow('Contact Email', onTap: _comingSoon),
-                ]),
-              ],
+                ],
+              ),
             ),
-            // Nút Gỡ bỏ thiết bị cố định đáy màn
-            Positioned(
-              left: 16,
-              right: 16,
-              bottom: 24,
-              child: _removeButton(),
+
+            _sectionHeader('Device Offline Notification'),
+            Container(
+              color: Colors.white,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                child: Row(
+                  children: [
+                    const Expanded(
+                      child: Text('Offline Notification',
+                          style:
+                              TextStyle(fontSize: 17, color: Colors.black87)),
+                    ),
+                    Switch.adaptive(
+                      value: _offlineNotify,
+                      activeThumbColor: Colors.white,
+                      activeTrackColor: const Color(0xFF2ECC71),
+                      onChanged: (v) => setState(() => _offlineNotify = v),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            _sectionHeader('Others'),
+            Container(
+              color: Colors.white,
+              child: Column(
+                children: [
+                  _row('Share Device', onTap: _comingSoon),
+                  _row(
+                    'Create Group',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute<bool>(
+                        builder: (_) =>
+                            CreateGroupPage(deviceId: widget.device.id),
+                      ),
+                    ),
+                  ),
+                  _row(
+                    'FAQ & Feedback',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (_) => const InAppWebPage(
+                          title: 'FAQ & Feedback',
+                          url: 'https://osprey.life/pages/main-faqs',
+                        ),
+                      ),
+                    ),
+                  ),
+                  _row('Add to Home Screen', onTap: _openAddToHomeScreen),
+                  _row('Check Device Network',
+                      value: 'Check Now', onTap: _comingSoon),
+                  _row(
+                    'Device Update',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (_) =>
+                            DeviceUpdatePage(deviceId: widget.device.id),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 20),
+            Container(
+              color: Colors.white,
+              child: InkWell(
+                onTap: _removing ? null : _showRemoveSheet,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 18),
+                  child: Center(
+                    child: _removing
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text(
+                            'Remove Device',
+                            style: TextStyle(
+                                fontSize: 17, color: AppColors.error),
+                          ),
+                  ),
+                ),
+              ),
             ),
           ],
         ),
@@ -233,100 +439,94 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
     );
   }
 
-  Widget _removeButton() {
-    return Material(
-      color: AppColors.surface,
-      borderRadius: BorderRadius.circular(28),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(28),
-        onTap: _removing ? null : _showRemoveSheet,
-        child: Container(
-          height: 54,
-          alignment: Alignment.center,
-          child: _removing
-              ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2))
-              : const Text(
-                  'Remove device',
-                  style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.error),
-                ),
-        ),
-      ),
-    );
+  /// "Room:Sảnh" — tra phòng của thiết bị từ state của home đang chọn.
+  String get _roomLabel {
+    final state = context.watch<HomeManagementBloc>().state;
+    String? roomId;
+    for (final d in state.devices) {
+      if (d.deviceId == widget.device.id) {
+        roomId = d.roomId;
+        break;
+      }
+    }
+    if (roomId == null) return 'Room:Unassigned';
+    for (final r in state.rooms) {
+      if (r.id == roomId) return 'Room:${r.name}';
+    }
+    return 'Room:Unassigned';
   }
 
-  Widget _isOnlineText() {
-    final online = widget.device.status == 'online';
-    return Text(
-      online ? 'Connected' : 'Offline',
-      style: TextStyle(
-        fontSize: 13,
-        color: online ? AppColors.success : AppColors.textMuted,
-      ),
-    );
-  }
-
-  // ─── building blocks ─────────────────────────────────────
-  Widget _sectionHeader(String text) => Padding(
-        padding: const EdgeInsets.only(left: 4, bottom: 8, top: 4),
-        child: Text(text,
-            style: const TextStyle(fontSize: 13, color: AppColors.textMuted)),
-      );
-
-  Widget _card(List<Widget> children) => Container(
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Column(children: children),
-      );
-
-  Widget _divider() =>
-      const Divider(height: 1, indent: 16, endIndent: 16);
-
-  Widget _navRow(String label, {Widget? trailing, VoidCallback? onTap}) {
+  Widget _row(String label, {String? value, VoidCallback? onTap}) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(14),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
         child: Row(
           children: [
             Expanded(
               child: Text(label,
-                  style: const TextStyle(
-                      fontSize: 15.5, color: AppColors.textPrimary)),
+                  style:
+                      const TextStyle(fontSize: 17, color: Colors.black87)),
             ),
-            if (trailing != null) ...[
-              const SizedBox(width: 8),
-              Flexible(child: trailing),
-            ],
-            const SizedBox(width: 6),
-            const Icon(Icons.chevron_right,
-                size: 20, color: AppColors.textDisabled),
+            if (value != null)
+              Padding(
+                padding: const EdgeInsets.only(right: 6),
+                child: Text(value,
+                    style: TextStyle(
+                        fontSize: 16, color: Colors.grey.shade500)),
+              ),
+            Icon(Icons.chevron_right, size: 22, color: Colors.grey.shade400),
           ],
         ),
       ),
     );
   }
 
-  Widget _switchRow(String label,
-      {required bool value, required ValueChanged<bool> onChanged}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      child: Row(
+  Widget _sectionHeader(String text) => Padding(
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+        child: Text(text,
+            style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
+      );
+
+}
+
+/// Ô logo trợ lý giọng nói ở mục "Third-party Control".
+class _ThirdParty extends StatelessWidget {
+  final String asset;
+  final String label;
+  final VoidCallback onTap;
+
+  const _ThirdParty({
+    required this.asset,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Expanded(
-            child: Text(label,
-                style: const TextStyle(
-                    fontSize: 15.5, color: AppColors.textPrimary)),
+          SizedBox(
+            width: 54,
+            height: 54,
+            child: Image.asset(
+              asset,
+              fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) => Icon(
+                Icons.mic_none_rounded,
+                size: 28,
+                color: Colors.grey.shade400,
+              ),
+            ),
           ),
-          Switch(value: value, onChanged: onChanged),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 15, color: Colors.black87),
+          ),
         ],
       ),
     );

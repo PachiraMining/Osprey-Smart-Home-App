@@ -1,0 +1,148 @@
+import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
+
+import '../../data/device_info_service.dart';
+
+/// Trạng thái firmware của thiết bị.
+///
+/// Backend chỉ có MỘT phiên bản firmware (`fw_version`) và cờ `updateAvailable`;
+/// không có phiên bản MCU riêng, cũng không có tuỳ chọn tự động cập nhật — nên
+/// hai mục đó không hiển thị thay vì bịa ra.
+class DeviceUpdatePage extends StatefulWidget {
+  final String deviceId;
+
+  const DeviceUpdatePage({super.key, required this.deviceId});
+
+  @override
+  State<DeviceUpdatePage> createState() => _DeviceUpdatePageState();
+}
+
+class _DeviceUpdatePageState extends State<DeviceUpdatePage> {
+  static const _pageBg = Color(0xFFF2F4F7);
+  static const _green = Color(0xFF2ECC71);
+
+  DeviceTechInfo? _info;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final info =
+        await GetIt.instance<DeviceInfoService>().fetch(widget.deviceId);
+    if (!mounted) return;
+    setState(() {
+      _info = info;
+      _loading = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final info = _info;
+    final hasUpdate = info?.updateAvailable ?? false;
+
+    return Scaffold(
+      backgroundColor: _pageBg,
+      appBar: AppBar(
+        backgroundColor: _pageBg,
+        elevation: 0,
+        centerTitle: true,
+        foregroundColor: Colors.black87,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          'Device Update',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+        ),
+      ),
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : ListView(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 44),
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 86,
+                        height: 86,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: hasUpdate
+                              ? const Color(0xFF2D7DD2)
+                              : _green,
+                        ),
+                        child: Icon(
+                          hasUpdate
+                              ? Icons.arrow_downward_rounded
+                              : Icons.check,
+                          size: 46,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 22),
+                      Text(
+                        hasUpdate
+                            ? 'Update available'
+                            : 'No updates available',
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        'Main Module: V${info?.firmwareVersion ?? 'Unknown'}',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (hasUpdate) ...[
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    height: 52,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF0D7AC4),
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(26),
+                        ),
+                      ),
+                      // Việc xác nhận cập nhật do backend/firmware lo qua
+                      // endpoint riêng — chưa nối vào đây.
+                      onPressed: () => ScaffoldMessenger.of(context)
+                        ..hideCurrentSnackBar()
+                        ..showSnackBar(const SnackBar(
+                          content: Text('Firmware update is coming soon.'),
+                        )),
+                      child: const Text(
+                        'Update Now',
+                        style: TextStyle(
+                            fontSize: 17, fontWeight: FontWeight.w500),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+    );
+  }
+}

@@ -290,8 +290,9 @@ class _CurtainControlPageState extends State<CurtainControlPage>
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings_outlined,
-                size: 22, color: Colors.black87),
+            // Bút kèm gạch chân — thay icon bánh răng cũ.
+            icon: const Icon(Icons.drive_file_rename_outline,
+                size: 23, color: Colors.black87),
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(
@@ -463,7 +464,10 @@ class _CurtainControlPageState extends State<CurtainControlPage>
                 context,
                 MaterialPageRoute<void>(
                   builder: (_) =>
-                      CurtainMoreSettingsPage(deviceId: widget.device.id),
+                      CurtainMoreSettingsPage(
+                  deviceId: widget.device.id,
+                  deviceName: widget.device.name,
+                ),
                 ),
               ),
               child: Row(
