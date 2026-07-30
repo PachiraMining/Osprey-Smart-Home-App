@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/gen/app_l10n.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
@@ -46,7 +47,7 @@ class _DeviceInformationPageState extends State<DeviceInformationPage> {
   String get _timeZone {
     final home = context.watch<HomeManagementBloc>().state.selectedHome;
     final tz = home?.timezone;
-    return (tz == null || tz.isEmpty) ? 'Not set' : tz;
+    return (tz == null || tz.isEmpty) ? AppL10n.of(context).notSet : tz;
   }
 
   @override
@@ -63,8 +64,8 @@ class _DeviceInformationPageState extends State<DeviceInformationPage> {
           icon: const Icon(Icons.arrow_back_ios_new, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Device Information',
+        title:  Text(
+          AppL10n.of(context).deviceInformation,
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
         ),
       ),
@@ -78,25 +79,25 @@ class _DeviceInformationPageState extends State<DeviceInformationPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   _InfoRow(
-                    label: 'Virtual ID',
+                    label: AppL10n.of(context).virtualId,
                     value: info?.deviceUuid ?? '—',
                     copyable: info?.deviceUuid != null,
                   ),
                   _InfoRow(
-                    label: 'Wi-Fi',
-                    value: info?.currentSsid ?? 'Unknown',
+                    label: AppL10n.of(context).wiFi,
+                    value: info?.currentSsid ?? AppL10n.of(context).unknown,
                   ),
                   _InfoRow(
-                    label: 'Signal Strength',
+                    label: AppL10n.of(context).signalStrength,
                     value: info?.rssiDbm == null
-                        ? 'Not reported'
+                        ? AppL10n.of(context).notReported
                         : '${info!.rssiDbm}dBm',
                   ),
                   _InfoRow(
-                    label: 'Firmware',
-                    value: info?.firmwareVersion ?? 'Unknown',
+                    label: AppL10n.of(context).firmware,
+                    value: info?.firmwareVersion ?? AppL10n.of(context).unknown,
                   ),
-                  _InfoRow(label: 'Time Zone', value: _timeZone),
+                  _InfoRow(label: AppL10n.of(context).timeZone, value: _timeZone),
                 ],
               ),
             ),
@@ -137,12 +138,12 @@ class _InfoRow extends StatelessWidget {
                 ScaffoldMessenger.of(context)
                   ..hideCurrentSnackBar()
                   ..showSnackBar(
-                      const SnackBar(content: Text('Copied to clipboard')));
+                      SnackBar(content: Text(AppL10n.of(context).copiedToClipboard)));
               },
-              child: const Padding(
-                padding: EdgeInsets.only(left: 10),
+              child: Padding(
+                padding: EdgeInsetsDirectional.only(start: 10),
                 child: Text(
-                  'Copy',
+                  AppL10n.of(context).copy,
                   style: TextStyle(fontSize: 17, color: Color(0xFF007AFF)),
                 ),
               ),

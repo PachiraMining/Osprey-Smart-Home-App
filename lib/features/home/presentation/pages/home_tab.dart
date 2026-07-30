@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/gen/app_l10n.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -168,7 +169,7 @@ class _HomeTabState extends State<HomeTab> {
             const SizedBox(height: 8),
             ListTile(
               leading: const Icon(Icons.edit_outlined, color: AppColors.primary),
-              title: const Text('Rename device'),
+              title: Text(AppL10n.of(context).renameDevice),
               onTap: () {
                 Navigator.pop(sheetCtx);
                 _showRenameDeviceDialog(device);
@@ -178,9 +179,9 @@ class _HomeTabState extends State<HomeTab> {
             // Nút 1 — Ngắt kết nối (DELETE, không wipe ngay, ~1-2 phút)
             ListTile(
               leading: const Icon(Icons.link_off, color: AppColors.warning),
-              title: const Text('Disconnect'),
-              subtitle: const Text(
-                'Removes from home; device returns to pairing mode in 1-2 minutes',
+              title: Text(AppL10n.of(context).disconnect),
+              subtitle:  Text(
+                AppL10n.of(context).removesFromHomeHint,
                 style: TextStyle(fontSize: 12),
               ),
               onTap: () {
@@ -191,12 +192,12 @@ class _HomeTabState extends State<HomeTab> {
             // Nút 2 — Hủy liên kết và xóa dữ liệu (POST factory-reset, RPC wipe)
             ListTile(
               leading: const Icon(Icons.delete_forever, color: AppColors.error),
-              title: const Text(
-                'Unlink and erase data',
+              title:  Text(
+                AppL10n.of(context).unlinkAndEraseData,
                 style: TextStyle(color: AppColors.error),
               ),
-              subtitle: const Text(
-                'Erases all data, cannot be undone',
+              subtitle:  Text(
+                AppL10n.of(context).erasesAllDataHint,
                 style: TextStyle(fontSize: 12),
               ),
               onTap: () {
@@ -215,11 +216,10 @@ class _HomeTabState extends State<HomeTab> {
   Future<void> _confirmDisconnect(HomeDeviceEntity device) async {
     final confirmed = await AppDialog.confirm(
       context,
-      title: 'Disconnect device?',
+      title: AppL10n.of(context).disconnectDevice,
       message:
-          '"${device.displayName}" will be removed from your home and '
-          'automatically return to pairing mode in about 1-2 minutes.',
-      confirmText: 'Disconnect',
+          AppL10n.of(context).removeDeviceConfirm(device.displayName),
+      confirmText: AppL10n.of(context).disconnect,
       destructive: true,
     );
     if (!confirmed || !mounted) return;
@@ -228,8 +228,7 @@ class _HomeTabState extends State<HomeTab> {
     final homeId = bloc.state.selectedHomeId;
     if (homeId == null) return;
     _pendingSuccessMessage =
-        'Device disconnected from home. It will return to pairing mode '
-        'in 1-2 minutes.';
+        AppL10n.of(context).deviceDisconnectedFromHome;
     bloc.add(RemoveDeviceFromHomeEvent(
       homeId: homeId,
       deviceId: device.deviceId,
@@ -240,11 +239,10 @@ class _HomeTabState extends State<HomeTab> {
   Future<void> _confirmFactoryReset(HomeDeviceEntity device) async {
     final confirmed = await AppDialog.confirm(
       context,
-      title: 'Erase device data?',
+      title: AppL10n.of(context).eraseDeviceData,
       message:
-          'All data for "${device.displayName}" will be erased and '
-          'CANNOT be recovered. Are you sure?',
-      confirmText: 'Delete',
+          AppL10n.of(context).eraseDeviceConfirm(device.displayName),
+      confirmText: AppL10n.of(context).delete,
       destructive: true,
     );
     if (!confirmed || !mounted) return;
@@ -253,7 +251,7 @@ class _HomeTabState extends State<HomeTab> {
     final homeId = bloc.state.selectedHomeId;
     if (homeId == null) return;
     _pendingSuccessMessage =
-        'Device deleted. It is returning to pairing mode.';
+        AppL10n.of(context).deviceDeletedReturningToPairing;
     bloc.add(FactoryResetDeviceEvent(
       homeId: homeId,
       deviceId: device.deviceId,
@@ -263,17 +261,17 @@ class _HomeTabState extends State<HomeTab> {
   Future<void> _showRenameDeviceDialog(HomeDeviceEntity device) async {
     final newName = await AppDialog.prompt(
       context,
-      title: 'Rename device',
+      title: AppL10n.of(context).renameDevice,
       initialValue: device.displayName,
-      hintText: 'Device name',
-      confirmText: 'Save',
+      hintText: AppL10n.of(context).deviceName,
+      confirmText: AppL10n.of(context).save,
     );
     if (newName == null || !mounted) return;
 
     final bloc = context.read<HomeManagementBloc>();
     final homeId = bloc.state.selectedHomeId;
     if (homeId == null) return;
-    _pendingSuccessMessage = 'Device renamed.';
+    _pendingSuccessMessage = AppL10n.of(context).deviceRenamed;
     // PUT backend là full-replace — truyền kèm roomId + sortOrder hiện tại
     // để không bị reset (văng device khỏi room).
     bloc.add(UpdateHomeDeviceEvent(
@@ -293,15 +291,15 @@ class _HomeTabState extends State<HomeTab> {
     if (pending == null) return;
     if (state.mutationStatus == MutationStatus.success) {
       _pendingSuccessMessage = null;
-      AppPopup.success(context, title: 'Done', message: pending);
+      AppPopup.success(context, title: AppL10n.of(context).done, message: pending);
     } else if (state.mutationStatus == MutationStatus.error) {
       _pendingSuccessMessage = null;
       AppPopup.error(
         context,
-        title: 'Failed',
+        title: AppL10n.of(context).failed,
         message: _isNetworkError(state.errorMessage)
-            ? 'No connection. Check your internet and try again.'
-            : (state.errorMessage ?? 'Something went wrong, please try again'),
+            ? AppL10n.of(context).noConnectionCheckInternet
+            : (state.errorMessage ?? AppL10n.of(context).somethingWentWrongTryAgain),
       );
     }
   }
@@ -354,14 +352,14 @@ class _HomeTabState extends State<HomeTab> {
                         child: Row(
                           children: [
                             _RoomChip(
-                              label: 'All',
+                              label: AppL10n.of(context).all,
                               isSelected: state.selectedRoomId == null,
                               onTap: () => context
                                   .read<HomeManagementBloc>()
                                   .add(const SelectRoomEvent(null)),
                             ),
                             ...state.rooms.map((room) => Padding(
-                                  padding: const EdgeInsets.only(left: 8),
+                                  padding: const EdgeInsetsDirectional.only(start: 8),
                                   child: _RoomChip(
                                     label: room.name,
                                     isSelected:
@@ -417,11 +415,11 @@ class _HomeTabState extends State<HomeTab> {
   }
 
   String _friendlyErrorTitle(String? raw) =>
-      _isNetworkError(raw) ? 'No connection' : 'Something went wrong';
+      _isNetworkError(raw) ? AppL10n.of(context).noConnection : AppL10n.of(context).somethingWentWrong;
 
   String _friendlyErrorBody(String? raw) => _isNetworkError(raw)
-      ? 'Check your internet connection and try again.'
-      : 'We couldn\'t load your home. Please try again.';
+      ? AppL10n.of(context).checkInternetAndRetry
+      : AppL10n.of(context).couldNotLoadHome;
 
   Widget _buildDeviceSliver(HomeManagementState state) {
     if (state.status == HomeStatus.loading ||
@@ -465,7 +463,7 @@ class _HomeTabState extends State<HomeTab> {
                 onPressed: () => context
                     .read<HomeManagementBloc>()
                     .add(const LoadHomesEvent()),
-                child: const Text('Try again'),
+                child: Text(AppL10n.of(context).tryAgain),
               ),
             ],
           ),
@@ -480,9 +478,9 @@ class _HomeTabState extends State<HomeTab> {
         hasScrollBody: false,
         child: _BrandEmptyState(
           icon: Icons.cottage_outlined,
-          title: 'No devices yet',
+          title: AppL10n.of(context).noDevicesYet,
           message:
-              'Tap the + button to add your first curtain to this home.',
+              AppL10n.of(context).addFirstCurtainHint,
         ),
       );
     }
@@ -521,8 +519,8 @@ class _HomeTabState extends State<HomeTab> {
           } else {
             ScaffoldMessenger.of(context)
               ..clearSnackBars()
-              ..showSnackBar(const SnackBar(
-                content: Text('Device is offline'),
+              ..showSnackBar(SnackBar(
+                content: Text(AppL10n.of(context).deviceIsOffline),
                 duration: Duration(seconds: 2),
               ));
           }
@@ -547,8 +545,8 @@ class _HomeTabState extends State<HomeTab> {
           children: [
             Text(
               _showHidden
-                  ? 'Hide invisible devices'
-                  : 'Show invisible devices ($count)',
+                  ? AppL10n.of(context).hideInvisibleDevices
+                  : AppL10n.of(context).showInvisibleDevices(count),
               style: AppTypography.labelMedium
                   .copyWith(color: AppColors.textSecondary),
             ),
@@ -713,8 +711,8 @@ class _DeviceCardState extends State<_DeviceCard> {
         // Hỏng thì trả lại trạng thái cũ để giao diện không nói sai.
         setState(() => _status = previous);
         AppPopup.error(context,
-            title: 'Failed',
-            message: 'Could not send the command. Please try again.');
+            title: AppL10n.of(context).failed,
+            message: AppL10n.of(context).couldNotSendTheCommandPleaseTryAgain);
       },
       (_) {},
     );
@@ -724,8 +722,12 @@ class _DeviceCardState extends State<_DeviceCard> {
   void _controlSheet() {
     final current = _status?['control'] as String?;
     _radioSheet(
-      title: 'Control',
-      options: const [('open', 'Open'), ('stop', 'Stop'), ('close', 'Close')],
+      title: AppL10n.of(context).control,
+      options: [
+        ('open', AppL10n.of(context).open),
+        ('stop', AppL10n.of(context).stop),
+        ('close', AppL10n.of(context).close),
+      ],
       current: current,
       onSelect: (v) => _apply(
         () => GetIt.instance<SendDeviceCommand>()(device.deviceId, v),
@@ -738,8 +740,8 @@ class _DeviceCardState extends State<_DeviceCard> {
   void _motorSheet() {
     final current = _status?['control_back'] as String? ?? 'forward';
     _radioSheet(
-      title: 'Motor Direction',
-      options: const [('forward', 'Forward'), ('back', 'Back')],
+      title: AppL10n.of(context).motorDirection,
+      options: [('forward', AppL10n.of(context).forward), ('back', AppL10n.of(context).back)],
       current: current,
       onSelect: (v) => _apply(
         () => GetIt.instance<SendDpCommand>()(device.deviceId, 5, v),
@@ -828,7 +830,7 @@ class _DeviceCardState extends State<_DeviceCard> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text('Curtain position setting',
+                Text(AppL10n.of(context).curtainPositionSetting,
                     style: TextStyle(
                         fontSize: 15, color: AppColors.textSecondary)),
                 const SizedBox(height: 28),
@@ -882,11 +884,11 @@ class _DeviceCardState extends State<_DeviceCard> {
   String get _controlLabel {
     switch (_status?['control'] as String?) {
       case 'open':
-        return 'Open';
+        return AppL10n.of(context).open;
       case 'close':
-        return 'Close';
+        return AppL10n.of(context).close;
       case 'stop':
-        return 'Stop';
+        return AppL10n.of(context).stop;
       default:
         return '--';
     }
@@ -900,10 +902,10 @@ class _DeviceCardState extends State<_DeviceCard> {
   String get _motorLabel {
     switch (_status?['control_back'] as String?) {
       case 'back':
-        return 'Back';
+        return AppL10n.of(context).back;
       case 'forward':
       default:
-        return 'Forward'; // default direction is Forward
+        return AppL10n.of(context).forward; // default direction is Forward
     }
   }
 
@@ -1000,7 +1002,7 @@ class _DeviceCardState extends State<_DeviceCard> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                'Common Functions',
+                                AppL10n.of(context).commonFunctions,
                                 style: AppTypography.caption.copyWith(
                                   color: AppColors.accentDark,
                                   fontWeight: FontWeight.w600,
@@ -1033,8 +1035,8 @@ class _DeviceCardState extends State<_DeviceCard> {
               if (device.isCurtainTrack)
                 (isOnline
                     ? const SizedBox.shrink()
-                    : const Text(
-                        'Offline',
+                    :  Text(
+                        AppL10n.of(context).offline,
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -1074,21 +1076,21 @@ class _DeviceCardState extends State<_DeviceCard> {
                       _CommonFn(
                         icon: const Icon(Icons.power_settings_new_rounded,
                             size: 26, color: Color(0xFF42A5F5)),
-                        label: 'Control',
+                        label: AppL10n.of(context).control,
                         value: _controlLabel,
                         onTap: _controlSheet,
                       ),
                       _CommonFn(
                         icon: const Icon(Icons.percent_rounded,
                             size: 24, color: Color(0xFF2ECC71)),
-                        label: 'Curtain position',
+                        label: AppL10n.of(context).curtainPosition,
                         value: _positionLabel,
                         onTap: _positionSheet,
                       ),
                       _CommonFn(
                         icon: const Icon(Icons.grid_view_rounded,
                             size: 24, color: Color(0xFFE0824A)),
-                        label: 'Motor Direction',
+                        label: AppL10n.of(context).motorDirection,
                         value: _motorLabel,
                         onTap: _motorSheet,
                       ),

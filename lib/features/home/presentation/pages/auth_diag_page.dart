@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/gen/app_l10n.dart';
 import 'package:flutter/services.dart';
 
 import '../../../../core/auth/auth_diag_log.dart';
@@ -31,7 +32,7 @@ class _AuthDiagPageState extends State<AuthDiagPage> {
     await Clipboard.setData(ClipboardData(text: text));
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Log copied to clipboard')),
+        SnackBar(content: Text(AppL10n.of(context).logCopiedToClipboard)),
       );
     }
   }
@@ -71,7 +72,7 @@ class _AuthDiagPageState extends State<AuthDiagPage> {
               size: 20, color: Colors.black87),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Auth Diagnostics',
+        title: Text(AppL10n.of(context).authDiagnostics,
             style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -79,18 +80,18 @@ class _AuthDiagPageState extends State<AuthDiagPage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.copy, size: 20, color: Colors.black87),
-            tooltip: 'Copy',
+            tooltip: AppL10n.of(context).copy,
             onPressed: _copy,
           ),
           IconButton(
             icon: const Icon(Icons.refresh, size: 22, color: Colors.black87),
-            tooltip: 'Reload',
+            tooltip: AppL10n.of(context).reload,
             onPressed: _reload,
           ),
           IconButton(
             icon: const Icon(Icons.delete_outline,
                 size: 22, color: Colors.black87),
-            tooltip: 'Clear',
+            tooltip: AppL10n.of(context).clear,
             onPressed: () async {
               await AuthDiagLog.instance.clear();
               _reload();

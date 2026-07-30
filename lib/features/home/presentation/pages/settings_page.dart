@@ -7,7 +7,9 @@ import '../../../auth/presentation/bloc/auth_event.dart';
 import '../../../../core/settings/app_settings_store.dart';
 import '../../../../core/settings/cache_manager.dart';
 import 'about_page.dart';
+import '../../../../l10n/gen/app_l10n.dart';
 import 'account_security_page.dart';
+import 'language_page.dart';
 import 'network_diagnosis_page.dart';
 import 'personal_info_page.dart';
 import '../../../ai/presentation/pages/ai_chat_page.dart';
@@ -39,12 +41,12 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<void> _clearCache() async {
     if (_clearing) return;
+    final l10n = AppL10n.of(context);
     final confirmed = await AppDialog.confirm(
       context,
-      title: 'Clear Cache',
-      message: 'Cached scenes, home data and images will be re-downloaded on '
-          'next use. Your account and devices are not affected.',
-      confirmText: 'Clear',
+      title: l10n.clearCache,
+      message: l10n.clearCacheMessage,
+      confirmText: l10n.clear,
       destructive: true,
     );
     if (!confirmed || !mounted) return;
@@ -58,7 +60,7 @@ class _SettingsPageState extends State<SettingsPage> {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(
-        content: Text('Freed ${CacheManager.formatBytes(freed)}'),
+        content: Text(l10n.freedSpace(CacheManager.formatBytes(freed))),
       ));
   }
 
@@ -83,7 +85,7 @@ class _SettingsPageState extends State<SettingsPage> {
             children: [
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                child: Text('Temperature Unit',
+                child: Text(AppL10n.of(ctx).temperatureUnit,
                     style:
                         TextStyle(fontSize: 15, color: Colors.grey.shade500)),
               ),
@@ -119,6 +121,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context);
     return Scaffold(
       backgroundColor: const Color(0xFFF8F5F0),
       appBar: AppBar(
@@ -129,8 +132,8 @@ class _SettingsPageState extends State<SettingsPage> {
           onPressed: () => Navigator.pop(context),
         ),
         centerTitle: true,
-        title: const Text(
-          'Settings',
+        title: Text(
+          l10n.settingsTitle,
           style: TextStyle(
             fontSize: 17,
             fontWeight: FontWeight.w600,
@@ -142,13 +145,13 @@ class _SettingsPageState extends State<SettingsPage> {
         children: [
           // Section 1: Account
           _buildSection([
-            _buildNavItem('Personal Information', onTap: () {
+            _buildNavItem(l10n.personalInformation, onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const PersonalInfoPage()),
               );
             }),
-            _buildNavItem('Account and Security', onTap: () {
+            _buildNavItem(l10n.accountAndSecurity, onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const AccountSecurityPage()),
@@ -159,7 +162,7 @@ class _SettingsPageState extends State<SettingsPage> {
           // Section 2: App Settings
           _buildSection([
             _buildSwitchItem(
-              'Touch Tone on Panel',
+              l10n.touchToneOnPanel,
               value: _settings.touchTone,
               onChanged: (v) async {
                 await _settings.setTouchTone(v);
@@ -167,7 +170,7 @@ class _SettingsPageState extends State<SettingsPage> {
               },
             ),
             _buildNavItem(
-              'AI Assistant',
+              l10n.aiAssistant,
               trailing: '✨',
               onTap: () {
                 Navigator.push(
@@ -177,7 +180,18 @@ class _SettingsPageState extends State<SettingsPage> {
               },
             ),
             _buildNavItem(
-              'Temperature Unit',
+              l10n.language,
+              trailing: _languageLabel(l10n),
+              onTap: () async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LanguagePage()),
+                );
+                if (mounted) setState(() {});
+              },
+            ),
+            _buildNavItem(
+              l10n.temperatureUnit,
               trailing: _settings.temperatureUnit.symbol,
               onTap: _pickTemperatureUnit,
             ),
@@ -185,20 +199,20 @@ class _SettingsPageState extends State<SettingsPage> {
 
           // Section 3: chẩn đoán + thông tin app
           _buildSection([
-            _buildNavItem('About', onTap: () {
+            _buildNavItem(l10n.about, onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const AboutPage()),
               );
             }),
-            _buildNavItem('Network Diagnosis', onTap: () {
+            _buildNavItem(l10n.networkDiagnosis, onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const NetworkDiagnosisPage()),
               );
             }),
             _buildNavItem(
-              'Clear Cache',
+              l10n.clearCache,
               trailing: _clearing
                   ? '...'
                   : (_cacheBytes == null
@@ -221,9 +235,9 @@ class _SettingsPageState extends State<SettingsPage> {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Center(
+                child: Center(
                   child: Text(
-                    'Log Out',
+                    AppL10n.of(context).logOut,
                     style: TextStyle(
                       fontSize: 16,
                       color: Colors.red,
@@ -239,6 +253,11 @@ class _SettingsPageState extends State<SettingsPage> {
       ),
     );
   }
+
+  /// Nhãn bên phải hàng Language: tên ngôn ngữ đang chọn (viết bằng chính ngôn
+  /// ngữ đó), hoặc "theo hệ thống".
+  String _languageLabel(AppL10n l10n) =>
+      _settings.localeLabel ?? l10n.languageSystemDefault;
 
   Widget _buildSection(List<Widget> children) {
     return Container(
@@ -328,10 +347,10 @@ class _SettingsPageState extends State<SettingsPage> {
   Future<void> _showLogOutDialog() async {
     final ok = await AppDialog.confirm(
       context,
-      title: 'Log Out',
-      message: 'Are you sure you want to log out?',
-      confirmText: 'Log Out',
-      cancelText: 'Cancel',
+      title: AppL10n.of(context).logOut,
+      message: AppL10n.of(context).areYouSureYouWantToLogOut,
+      confirmText: AppL10n.of(context).logOut,
+      cancelText: AppL10n.of(context).cancel,
       destructive: true,
     );
     if (!ok || !mounted) return;

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import '../../../../l10n/gen/app_l10n.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
@@ -72,7 +73,7 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
     } catch (e, stack) {
       if (!mounted) return;
       setState(() {
-        _error = 'Connection error';
+        _error = AppL10n.of(context).connectionError;
         _isLoading = false;
       });
     }
@@ -119,7 +120,7 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
       }
 
       if (code == null || code.isEmpty) {
-        _setError('No authorization code received');
+        _setError(AppL10n.of(context).noAuthorizationCode);
         return;
       }
 
@@ -142,9 +143,9 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
           _isLinked = true;
           _isLinking = false;
         });
-        _showSnackBar('Account linked successfully!', Colors.green);
+        _showSnackBar(AppL10n.of(context).accountLinkedSuccessfully, Colors.green);
       } else {
-        _setError(completeData['message'] as String? ?? 'Linking failed');
+        _setError(completeData['message'] as String? ?? AppL10n.of(context).linkingFailed);
       }
     } catch (e, stack) {
       if (e.toString().contains('CANCELED') ||
@@ -152,7 +153,7 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
         if (mounted) setState(() => _isLinking = false);
         return;
       }
-      _setError('An error occurred. Please try again.');
+      _setError(AppL10n.of(context).anErrorOccurredTryAgain);
     }
   }
 
@@ -245,13 +246,11 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
           ),
           const SizedBox(height: 40),
           // Description text
-          const Padding(
+           Padding(
             padding: EdgeInsets.symmetric(horizontal: 8),
             child: Text(
-              'Binding your app account to your Amazon account allows '
-              'you to control Alexa-enabled devices through Amazon '
-              'Echo speakers (ex. "Alexa, turn on light.")',
-              textAlign: TextAlign.left,
+              AppL10n.of(context).alexaLinkExplainer,
+              textAlign: TextAlign.start,
               style: TextStyle(
                 fontSize: 15,
                 color: Colors.black87,
@@ -286,8 +285,8 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
                           strokeWidth: 2.5,
                         ),
                       )
-                    : const Text(
-                        'Sign In With Amazon',
+                    :  Text(
+                        AppL10n.of(context).signInWithAmazon,
                         style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w500,
@@ -301,7 +300,7 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
           TextButton(
             onPressed: () {},
             child: Text(
-              'View more ways to link',
+              AppL10n.of(context).viewMoreWaysToLink,
               style: TextStyle(
                 fontSize: 15,
                 color: Colors.cyan.shade600,
@@ -325,8 +324,8 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
           Image.asset('assets/icons/alexa_logo.png', width: 80, height: 80),
           const SizedBox(height: 24),
           // Title
-          const Text(
-            'Already linked with Amazon Alexa',
+           Text(
+            AppL10n.of(context).alreadyLinkedWithAlexa,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 22,
@@ -337,7 +336,7 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
           const SizedBox(height: 20),
           // Subtitle
           Text(
-            'You can control Alexa-enabled devices with\nAmazon Alexa speakers, such as',
+            AppL10n.of(context).alexaExamplesIntro,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 15,
@@ -375,7 +374,7 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
           TextButton(
             onPressed: () {},
             child: Text(
-              'View more ways to link',
+              AppL10n.of(context).viewMoreWaysToLink,
               style: TextStyle(
                 fontSize: 15,
                 color: Colors.cyan.shade600,
@@ -400,8 +399,8 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
                   ),
                   elevation: 0,
                 ),
-                child: const Text(
-                  'Back',
+                child:  Text(
+                  AppL10n.of(context).back,
                   style: TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.w500,
@@ -415,9 +414,7 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
-              'Disable osprey.life skill on the Amazon Alexa app or tap '
-              'Me > the Setting button in the top right corner > '
-              'Account and Security to unauthorize it.',
+              AppL10n.of(context).alexaUnlinkHint,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13,
@@ -442,14 +439,14 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
             Icon(Icons.error_outline, size: 48, color: Colors.grey.shade400),
             const SizedBox(height: 16),
             Text(
-              _error ?? 'Something went wrong',
+              _error ?? AppL10n.of(context).somethingWentWrong,
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 15, color: Colors.grey.shade600),
             ),
             const SizedBox(height: 24),
             TextButton(
               onPressed: _checkStatus,
-              child: const Text('Retry'),
+              child: Text(AppL10n.of(context).retry),
             ),
           ],
         ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/gen/app_l10n.dart';
 import 'package:get_it/get_it.dart';
 
 import '../../data/device_info_service.dart';
@@ -56,8 +57,8 @@ class _DeviceUpdatePageState extends State<DeviceUpdatePage> {
           icon: const Icon(Icons.arrow_back_ios_new, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Device Update',
+        title:  Text(
+          AppL10n.of(context).deviceUpdate,
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
         ),
       ),
@@ -94,8 +95,8 @@ class _DeviceUpdatePageState extends State<DeviceUpdatePage> {
                       const SizedBox(height: 22),
                       Text(
                         hasUpdate
-                            ? 'Update available'
-                            : 'No updates available',
+                            ? AppL10n.of(context).updateAvailable
+                            : AppL10n.of(context).noUpdatesAvailable,
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
@@ -104,7 +105,8 @@ class _DeviceUpdatePageState extends State<DeviceUpdatePage> {
                       ),
                       const SizedBox(height: 10),
                       Text(
-                        'Main Module: V${info?.firmwareVersion ?? 'Unknown'}',
+                        AppL10n.of(context).mainModuleVersion(
+                            info?.firmwareVersion ?? AppL10n.of(context).unknown),
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.grey.shade600,
@@ -130,11 +132,11 @@ class _DeviceUpdatePageState extends State<DeviceUpdatePage> {
                       // endpoint riêng — chưa nối vào đây.
                       onPressed: () => ScaffoldMessenger.of(context)
                         ..hideCurrentSnackBar()
-                        ..showSnackBar(const SnackBar(
-                          content: Text('Firmware update is coming soon.'),
+                        ..showSnackBar(SnackBar(
+                          content: Text(AppL10n.of(context).firmwareUpdateIsComingSoon),
                         )),
-                      child: const Text(
-                        'Update Now',
+                      child:  Text(
+                        AppL10n.of(context).updateNow,
                         style: TextStyle(
                             fontSize: 17, fontWeight: FontWeight.w500),
                       ),

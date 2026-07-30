@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/gen/app_l10n.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 
 import '../../../../core/di/injector.dart';
@@ -58,11 +59,11 @@ class _AddWifiNetworkPageState extends State<AddWifiNetworkPage> {
     final password = _passwordController.text;
     setState(() {
       _ssidError = ssid.isEmpty
-          ? 'Enter the WiFi name'
-          : (ssid.length > 32 ? 'WiFi name must be 1–32 characters' : null);
+          ? AppL10n.of(context).enterWifiName
+          : (ssid.length > 32 ? AppL10n.of(context).wifiNameLengthError : null);
       _passwordError = password.length < 8
-          ? 'Password must be at least 8 characters'
-          : (password.length > 63 ? 'Password must be 8–63 characters' : null);
+          ? AppL10n.of(context).passwordMin8
+          : (password.length > 63 ? AppL10n.of(context).passwordLength863 : null);
       _serverError = null;
     });
     return _ssidError == null && _passwordError == null;
@@ -87,7 +88,7 @@ class _AddWifiNetworkPageState extends State<AddWifiNetworkPage> {
         _saving = false;
         if (e.code == DeviceWifiErrorCode.alreadySaved) {
           _serverError =
-              'This network is already saved. To change its password, delete it and add it again.';
+              AppL10n.of(context).networkAlreadySaved;
         } else {
           _serverError = e.message;
         }
@@ -113,8 +114,8 @@ class _AddWifiNetworkPageState extends State<AddWifiNetworkPage> {
               const Icon(Icons.arrow_back_ios, size: 20, color: Colors.black87),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Add WiFi network',
+        title:  Text(
+          AppL10n.of(context).addWifiNetwork,
           style: TextStyle(
               fontSize: 17, fontWeight: FontWeight.w600, color: Colors.black87),
         ),
@@ -123,7 +124,7 @@ class _AddWifiNetworkPageState extends State<AddWifiNetworkPage> {
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         children: [
-          _label('WiFi name (SSID)'),
+          _label(AppL10n.of(context).wifiNameSsid),
           TextField(
             controller: _ssidController,
             enabled: !_saving,
@@ -139,7 +140,7 @@ class _AddWifiNetworkPageState extends State<AddWifiNetworkPage> {
             },
           ),
           const SizedBox(height: 12),
-          _label('Password'),
+          _label(AppL10n.of(context).password),
           TextField(
             controller: _passwordController,
             enabled: !_saving,
@@ -147,7 +148,7 @@ class _AddWifiNetworkPageState extends State<AddWifiNetworkPage> {
             textInputAction: TextInputAction.next,
             maxLength: 63,
             decoration: _decoration(
-              hint: 'At least 8 characters',
+              hint: AppL10n.of(context).atLeast8Characters,
               errorText: _passwordError,
               counter: '',
               suffix: IconButton(
@@ -166,12 +167,12 @@ class _AddWifiNetworkPageState extends State<AddWifiNetworkPage> {
             },
           ),
           const SizedBox(height: 4),
-          const Text(
-            'Curtain devices only support 2.4GHz WiFi (WPA2).',
+           Text(
+            AppL10n.of(context).only24GhzSupported,
             style: TextStyle(fontSize: 12, color: AppColors.textMuted),
           ),
           const SizedBox(height: 16),
-          _label('Label (optional)'),
+          _label(AppL10n.of(context).labelOptional),
           TextField(
             controller: _labelController,
             enabled: !_saving,
@@ -215,7 +216,7 @@ class _AddWifiNetworkPageState extends State<AddWifiNetworkPage> {
                       child: CircularProgressIndicator(
                           strokeWidth: 2, color: Colors.white),
                     )
-                  : const Text('Save',
+                  : Text(AppL10n.of(context).save,
                       style: TextStyle(
                           fontSize: 16, fontWeight: FontWeight.w600)),
             ),
@@ -226,7 +227,7 @@ class _AddWifiNetworkPageState extends State<AddWifiNetworkPage> {
   }
 
   Widget _label(String text) => Padding(
-        padding: const EdgeInsets.only(left: 2, bottom: 6),
+        padding: const EdgeInsetsDirectional.only(start: 2, bottom: 6),
         child: Text(text,
             style: const TextStyle(
                 fontSize: 13.5,

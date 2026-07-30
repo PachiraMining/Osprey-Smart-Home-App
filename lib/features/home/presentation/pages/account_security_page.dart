@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/gen/app_l10n.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:smart_curtain_app/core/widgets/app_popup.dart';
@@ -23,7 +24,7 @@ class AccountSecurityPage extends StatelessWidget {
           Navigator.of(context).pushNamedAndRemoveUntil('/', (_) => false);
         }
         if (state is AuthFailure) {
-          AppPopup.error(context, title: 'Error', message: state.message);
+          AppPopup.error(context, title: AppL10n.of(context).error, message: state.message);
         }
       },
       child: Scaffold(
@@ -36,8 +37,8 @@ class AccountSecurityPage extends StatelessWidget {
             onPressed: () => Navigator.pop(context),
           ),
           centerTitle: true,
-          title: const Text(
-            'Account and Security',
+          title:  Text(
+            AppL10n.of(context).accountAndSecurity,
             style: TextStyle(
               fontSize: 17,
               fontWeight: FontWeight.w600,
@@ -48,13 +49,13 @@ class AccountSecurityPage extends StatelessWidget {
         body: ListView(
           children: [
             _buildSection([
-              _buildInfoItem('Email Address', email),
+              _buildInfoItem(AppL10n.of(context).emailAddressLabel, email),
             ]),
 
             _buildSection([
               _buildNavItem(
                 context,
-                'Delete Account',
+                AppL10n.of(context).deleteAccount,
                 textColor: Colors.red,
                 onTap: () => _showDeleteAccountDialog(context),
               ),
@@ -134,14 +135,11 @@ class AccountSecurityPage extends StatelessWidget {
   Future<void> _showDeleteAccountDialog(BuildContext context) async {
     final result = await AppDialog.confirmWithInput(
       context,
-      title: 'Delete Account',
-      message: 'After deletion:\n'
-          '\u2022 Your account will be deleted after 30 days\n'
-          '\u2022 All your devices and scenes will be removed\n'
-          '\u2022 You can cancel by logging in again within 30 days',
+      title: AppL10n.of(context).deleteAccount,
+      message: AppL10n.of(context).deleteAccountWarning,
       messageColor: Colors.red,
-      hintText: 'Reason (optional)',
-      confirmText: 'Delete',
+      hintText: AppL10n.of(context).reasonOptional,
+      confirmText: AppL10n.of(context).delete,
       destructive: true,
     );
     if (!result.ok || !context.mounted) return;

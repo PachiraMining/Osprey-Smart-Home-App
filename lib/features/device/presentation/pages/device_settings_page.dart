@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/gen/app_l10n.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -54,8 +55,8 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
     if (!ok && mounted) {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(const SnackBar(
-          content: Text('Could not open the browser.'),
+        ..showSnackBar(SnackBar(
+          content: Text(AppL10n.of(context).couldNotOpenTheBrowser),
         ));
     }
   }
@@ -67,7 +68,7 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
   void _comingSoon() {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(const SnackBar(content: Text('Feature coming soon')));
+      ..showSnackBar(SnackBar(content: Text(AppL10n.of(context).featureComingSoon)));
   }
 
   String get _deviceId => widget.device.id;
@@ -88,9 +89,9 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
             // Nút 1 — Ngắt kết nối (DELETE, thiết bị về pairing sau 1-2 phút)
             ListTile(
               leading: const Icon(Icons.link_off, color: AppColors.warning),
-              title: const Text('Disconnect'),
-              subtitle: const Text(
-                'Removes from home; device returns to pairing mode in 1-2 minutes',
+              title: Text(AppL10n.of(context).disconnect),
+              subtitle:  Text(
+                AppL10n.of(context).removesFromHomeHint,
                 style: TextStyle(fontSize: 12),
               ),
               onTap: () {
@@ -101,12 +102,12 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
             // Nút 2 — Hủy liên kết và xóa dữ liệu (POST factory-reset)
             ListTile(
               leading: const Icon(Icons.delete_forever, color: AppColors.error),
-              title: const Text(
-                'Unlink and erase data',
+              title:  Text(
+                AppL10n.of(context).unlinkAndEraseData,
                 style: TextStyle(color: AppColors.error),
               ),
-              subtitle: const Text(
-                'Erases all data, cannot be undone',
+              subtitle:  Text(
+                AppL10n.of(context).erasesAllDataHint,
                 style: TextStyle(fontSize: 12),
               ),
               onTap: () {
@@ -124,11 +125,9 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
   Future<void> _confirmDisconnect() async {
     final confirmed = await AppDialog.confirm(
       context,
-      title: 'Disconnect device?',
-      message:
-          '"$_displayName" will be removed from your home and automatically '
-          'return to pairing mode in about 1-2 minutes.',
-      confirmText: 'Disconnect',
+      title: AppL10n.of(context).disconnectDevice,
+      message: AppL10n.of(context).removeDeviceConfirm(_displayName),
+      confirmText: AppL10n.of(context).disconnect,
       destructive: true,
     );
     if (!confirmed || !mounted) return;
@@ -138,11 +137,9 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
   Future<void> _confirmFactoryReset() async {
     final confirmed = await AppDialog.confirm(
       context,
-      title: 'Erase device data?',
-      message:
-          'All data for "$_displayName" will be erased and CANNOT be '
-          'recovered. Are you sure?',
-      confirmText: 'Delete',
+      title: AppL10n.of(context).eraseDeviceData,
+      message: AppL10n.of(context).eraseDeviceConfirm(_displayName),
+      confirmText: AppL10n.of(context).delete,
       destructive: true,
     );
     if (!confirmed || !mounted) return;
@@ -154,7 +151,7 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
     final homeId = bloc.state.selectedHomeId;
     if (homeId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No home selected, please try again')),
+        SnackBar(content: Text(AppL10n.of(context).noHomeSelectedPleaseTryAgain)),
       );
       return;
     }
@@ -173,14 +170,14 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
       // Lấy messenger gốc trước khi pop để snackbar sống sót qua điều hướng.
       final messenger = ScaffoldMessenger.of(context);
       Navigator.of(context).popUntil((route) => route.isFirst);
-      messenger.showSnackBar(const SnackBar(
-        content: Text('Device removed from home.'),
+      messenger.showSnackBar(SnackBar(
+        content: Text(AppL10n.of(context).deviceRemovedFromHome),
         backgroundColor: AppColors.success,
       ));
     } else if (state.mutationStatus == MutationStatus.error) {
       setState(() => _removing = false);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(state.errorMessage ?? 'Something went wrong, please try again'),
+        content: Text(state.errorMessage ?? AppL10n.of(context).somethingWentWrongTryAgain),
         backgroundColor: AppColors.error,
       ));
     }
@@ -202,8 +199,8 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
                 size: 20, color: Colors.black87),
             onPressed: () => Navigator.pop(context),
           ),
-          title: const Text(
-            'Settings',
+          title:  Text(
+            AppL10n.of(context).settingsTitle,
             style: TextStyle(
                 fontSize: 17, fontWeight: FontWeight.w600, color: Colors.black87),
           ),
@@ -281,7 +278,7 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
                   ),
                   Divider(height: 1, indent: 20, color: Colors.grey.shade200),
                   _row(
-                    'Device Information',
+                    AppL10n.of(context).deviceInformation,
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute<void>(
@@ -291,7 +288,7 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
                     ),
                   ),
                   _row(
-                    'Device Network',
+                    AppL10n.of(context).deviceNetwork,
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute<void>(
@@ -301,7 +298,7 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
                     ),
                   ),
                   _row(
-                    'Tap-to-Run and Automation',
+                    AppL10n.of(context).tapToRunAndAutomation,
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute<void>(
@@ -316,7 +313,7 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
               ),
             ),
 
-            _sectionHeader('Third-party Control'),
+            _sectionHeader(AppL10n.of(context).thirdPartyControl),
             Container(
               color: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
@@ -324,7 +321,7 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
                 children: [
                   _ThirdParty(
                     asset: 'assets/icons/alexa_logo.png',
-                    label: 'Alexa',
+                    label: AppL10n.of(context).alexa,
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute<void>(
@@ -335,22 +332,22 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
                   const SizedBox(width: 34),
                   _ThirdParty(
                     asset: 'assets/icons/google_assistant_logo.png',
-                    label: 'Google Assistant',
+                    label: AppL10n.of(context).googleAssistant,
                     onTap: _comingSoon,
                   ),
                 ],
               ),
             ),
 
-            _sectionHeader('Device Offline Notification'),
+            _sectionHeader(AppL10n.of(context).deviceOfflineNotification),
             Container(
               color: Colors.white,
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
                 child: Row(
                   children: [
-                    const Expanded(
-                      child: Text('Offline Notification',
+                    Expanded(
+                      child: Text(AppL10n.of(context).offlineNotification,
                           style:
                               TextStyle(fontSize: 17, color: Colors.black87)),
                     ),
@@ -365,14 +362,14 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
               ),
             ),
 
-            _sectionHeader('Others'),
+            _sectionHeader(AppL10n.of(context).others),
             Container(
               color: Colors.white,
               child: Column(
                 children: [
-                  _row('Share Device', onTap: _comingSoon),
+                  _row(AppL10n.of(context).shareDevice, onTap: _comingSoon),
                   _row(
-                    'Create Group',
+                    AppL10n.of(context).createGroup,
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute<bool>(
@@ -382,22 +379,22 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
                     ),
                   ),
                   _row(
-                    'FAQ & Feedback',
+                    AppL10n.of(context).faqFeedback,
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute<void>(
-                        builder: (_) => const InAppWebPage(
-                          title: 'FAQ & Feedback',
+                        builder: (_) => InAppWebPage(
+                          title: AppL10n.of(context).faqFeedback,
                           url: 'https://osprey.life/pages/main-faqs',
                         ),
                       ),
                     ),
                   ),
-                  _row('Add to Home Screen', onTap: _openAddToHomeScreen),
-                  _row('Check Device Network',
-                      value: 'Check Now', onTap: _comingSoon),
+                  _row(AppL10n.of(context).addToHomeScreen, onTap: _openAddToHomeScreen),
+                  _row(AppL10n.of(context).checkDeviceNetwork,
+                      value: AppL10n.of(context).checkNow, onTap: _comingSoon),
                   _row(
-                    'Device Update',
+                    AppL10n.of(context).deviceUpdate,
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute<void>(
@@ -424,8 +421,8 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
                             height: 20,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Text(
-                            'Remove Device',
+                        : Text(
+                            AppL10n.of(context).removeDevice,
                             style: TextStyle(
                                 fontSize: 17, color: AppColors.error),
                           ),
@@ -470,7 +467,7 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
             ),
             if (value != null)
               Padding(
-                padding: const EdgeInsets.only(right: 6),
+                padding: const EdgeInsetsDirectional.only(end: 6),
                 child: Text(value,
                     style: TextStyle(
                         fontSize: 16, color: Colors.grey.shade500)),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../bloc/voice_command_bloc.dart';
+import '../../../../l10n/gen/app_l10n.dart';
 
 /// Floating mic button — tap to start, tap to stop / cancel.
 /// Shows a pulsing halo while listening.
@@ -41,9 +42,9 @@ class VoiceCommandButton extends StatelessWidget {
           icon: Icon(listening ? Icons.stop_rounded : Icons.mic_rounded),
           label: Text(
             listening
-                ? (state.partial.isEmpty ? 'Listening…' : state.partial)
+                ? (state.partial.isEmpty ? AppL10n.of(context).listening : state.partial)
                 : parsing
-                    ? 'Parsing…'
+                    ? AppL10n.of(context).parsing
                     : 'Voice ✨',
           ),
         );

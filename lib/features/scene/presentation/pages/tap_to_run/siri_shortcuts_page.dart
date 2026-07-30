@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../../l10n/gen/app_l10n.dart';
 import 'package:get_it/get_it.dart';
 
 import '../../../../../core/theme/scene_style.dart';
@@ -68,15 +69,15 @@ class _SiriShortcutsPageState extends State<SiriShortcutsPage> {
         elevation: 0,
         centerTitle: true,
         foregroundColor: Colors.black87,
-        title: const Text(
-          'Siri Shortcut',
+        title:  Text(
+          AppL10n.of(context).siriShortcut,
           style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
         ),
         actions: [
           TextButton(
             onPressed: _showHelp,
-            child: const Text(
-              'Help',
+            child: Text(
+              AppL10n.of(context).help,
               style: TextStyle(fontSize: 16, color: Colors.black87),
             ),
           ),
@@ -85,9 +86,9 @@ class _SiriShortcutsPageState extends State<SiriShortcutsPage> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : widget.scenes.isEmpty
-              ? const Center(
+              ?  Center(
                   child: Text(
-                    'Create a Tap-to-Run scene first.',
+                    AppL10n.of(context).createTapToRunFirst,
                     style: TextStyle(color: Colors.black54),
                   ),
                 )
@@ -138,18 +139,15 @@ class _SiriShortcutsPageState extends State<SiriShortcutsPage> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
-        title: const Text('Using Siri'),
-        content: const Text(
-          'Tap a scene to record a voice phrase, then say '
-          '"Hey Siri" followed by that phrase to run the scene — '
-          'even when the app is closed.\n\n'
-          'Tap a scene you already added to change its phrase or remove it.',
+        title: Text(AppL10n.of(context).usingSiri),
+        content:  Text(
+          AppL10n.of(context).siriShortcutsHelp,
           style: TextStyle(fontSize: 14, height: 1.45),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('OK'),
+            child: Text(AppL10n.of(context).ok),
           ),
         ],
       ),

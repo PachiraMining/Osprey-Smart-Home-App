@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/gen/app_l10n.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_curtain_app/core/widgets/app_dialog.dart';
 
@@ -18,7 +19,7 @@ class ManageRoomsPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Room Management'),
+        title: Text(AppL10n.of(context).roomManagement),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black87,
         elevation: 0.5,
@@ -38,7 +39,7 @@ class ManageRoomsPage extends StatelessWidget {
           final rooms = state.rooms;
 
           if (rooms.isEmpty) {
-            return const Center(
+            return  Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -46,12 +47,12 @@ class ManageRoomsPage extends StatelessWidget {
                       size: 64, color: Colors.black26),
                   SizedBox(height: 12),
                   Text(
-                    'No rooms yet',
+                    AppL10n.of(context).noRoomsYet,
                     style: TextStyle(color: Colors.black54, fontSize: 16),
                   ),
                   SizedBox(height: 4),
                   Text(
-                    'Tap + to add a new room',
+                    AppL10n.of(context).tapPlusToAddRoom,
                     style: TextStyle(color: Colors.black38, fontSize: 14),
                   ),
                 ],
@@ -76,8 +77,8 @@ class ManageRoomsPage extends StatelessWidget {
                 },
                 background: Container(
                   color: Colors.red,
-                  alignment: Alignment.centerRight,
-                  padding: const EdgeInsets.only(right: 20),
+                  alignment: AlignmentDirectional.centerEnd,
+                  padding: const EdgeInsetsDirectional.only(end: 20),
                   child: const Icon(Icons.delete, color: Colors.white),
                 ),
                 child: ListTile(
@@ -101,9 +102,9 @@ class ManageRoomsPage extends StatelessWidget {
   Future<bool?> _confirmDelete(BuildContext context, String roomName) {
     return AppDialog.confirm(
       context,
-      title: 'Delete Room',
-      message: 'Are you sure you want to delete "$roomName"?',
-      confirmText: 'Delete',
+      title: AppL10n.of(context).deleteRoom,
+      message: AppL10n.of(context).deleteConfirmNamed(roomName),
+      confirmText: AppL10n.of(context).delete,
       destructive: true,
     );
   }
@@ -111,9 +112,9 @@ class ManageRoomsPage extends StatelessWidget {
   Future<void> _showCreateDialog(BuildContext context) async {
     final name = await AppDialog.prompt(
       context,
-      title: 'Add Room',
-      hintText: 'Room Name',
-      confirmText: 'Add',
+      title: AppL10n.of(context).addRoom,
+      hintText: AppL10n.of(context).roomName,
+      confirmText: AppL10n.of(context).add,
     );
     if (name == null || !context.mounted) return;
     context.read<HomeManagementBloc>().add(
@@ -125,10 +126,10 @@ class ManageRoomsPage extends StatelessWidget {
       BuildContext context, String roomId, String currentName) async {
     final name = await AppDialog.prompt(
       context,
-      title: 'Rename Room',
+      title: AppL10n.of(context).renameRoom,
       initialValue: currentName,
-      hintText: 'Room Name',
-      confirmText: 'Save',
+      hintText: AppL10n.of(context).roomName,
+      confirmText: AppL10n.of(context).save,
     );
     if (name == null || !context.mounted) return;
     context.read<HomeManagementBloc>().add(

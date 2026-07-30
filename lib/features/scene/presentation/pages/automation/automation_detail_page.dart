@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../../l10n/gen/app_l10n.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_curtain_app/core/theme/app_colors.dart';
 import 'package:smart_curtain_app/core/widgets/app_dialog.dart';
@@ -108,27 +109,27 @@ class _AutomationDetailPageState extends State<AutomationDetailPage> {
 
   String get _effectiveTimeText {
     final et = widget.automation?.effectiveTime;
-    if (et == null || et.isAllDay) return 'All day';
+    if (et == null || et.isAllDay) return AppL10n.of(context).allDay;
     return '${et.startTime ?? ''} - ${et.endTime ?? ''}';
   }
 
   String get _conditionLogicText {
     return _conditionLogic == 'OR'
-        ? 'When any condition is met'
-        : 'When all conditions are met';
+        ? AppL10n.of(context).whenAnyConditionMet
+        : AppL10n.of(context).whenAllConditionsMet;
   }
 
   // ─── Save ───
   void _save() {
     if (_conditions.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please add at least 1 condition')),
+        SnackBar(content: Text(AppL10n.of(context).pleaseAddAtLeast1Condition)),
       );
       return;
     }
     if (_actions.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please add at least 1 action')),
+        SnackBar(content: Text(AppL10n.of(context).pleaseAddAtLeast1Action)),
       );
       return;
     }
@@ -149,7 +150,7 @@ class _AutomationDetailPageState extends State<AutomationDetailPage> {
     } else {
       if (name.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please enter a name')),
+          SnackBar(content: Text(AppL10n.of(context).pleaseEnterAName)),
         );
         return;
       }
@@ -170,10 +171,10 @@ class _AutomationDetailPageState extends State<AutomationDetailPage> {
   Future<void> _showRenameDialog() async {
     final name = await AppDialog.prompt(
       context,
-      title: 'Rename',
+      title: AppL10n.of(context).rename,
       initialValue: _nameController.text,
-      hintText: 'Enter name',
-      confirmText: 'OK',
+      hintText: AppL10n.of(context).enterName,
+      confirmText: AppL10n.of(context).ok,
     );
     if (name != null && mounted) {
       setState(() => _nameController.text = name);
@@ -184,9 +185,9 @@ class _AutomationDetailPageState extends State<AutomationDetailPage> {
   Future<void> _showNameInputDialog() async {
     final name = await AppDialog.prompt(
       context,
-      title: 'Scene Name',
-      hintText: 'Enter scene name',
-      confirmText: 'Confirm',
+      title: AppL10n.of(context).sceneName,
+      hintText: AppL10n.of(context).enterSceneName,
+      confirmText: AppL10n.of(context).confirm,
     );
     if (name != null && mounted) {
       _nameController.text = name;
@@ -211,7 +212,7 @@ class _AutomationDetailPageState extends State<AutomationDetailPage> {
             children: [
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 18),
-                child: Text('Add Condition',
+                child: Text(AppL10n.of(context).addCondition,
                     style: const TextStyle(fontSize: 16, color: AppColors.textSecondary)),
               ),
               // Launch Tap-to-Run — disabled
@@ -222,8 +223,8 @@ class _AutomationDetailPageState extends State<AutomationDetailPage> {
                   children: [
                     const Icon(Icons.touch_app, size: 28, color: AppColors.textMuted),
                     const SizedBox(width: 16),
-                    const Expanded(
-                      child: Text('Launch Tap-to-Run',
+                    Expanded(
+                      child: Text(AppL10n.of(context).launchTapToRun,
                           style: TextStyle(
                               fontSize: 16, color: AppColors.textMuted)),
                     ),
@@ -236,7 +237,7 @@ class _AutomationDetailPageState extends State<AutomationDetailPage> {
                 ctx: ctx,
                 icon: Icons.access_time,
                 iconColor: AppColors.primary,
-                label: 'Schedule',
+                label: AppL10n.of(context).schedule,
                 onTap: () {
                   Navigator.pop(ctx);
                   _addScheduleCondition();
@@ -319,14 +320,14 @@ class _AutomationDetailPageState extends State<AutomationDetailPage> {
             children: [
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 18),
-                child: Text('Add Task',
+                child: Text(AppL10n.of(context).addTask,
                     style: const TextStyle(fontSize: 16, color: AppColors.textSecondary)),
               ),
               _buildTaskRow(
                 ctx: ctx,
                 icon: Icons.lightbulb_outline,
                 iconColor: const Color(0xFFFFB300),
-                label: 'Control Single Device',
+                label: AppL10n.of(context).controlSingleDevice,
                 onTap: () {
                   Navigator.pop(ctx);
                   _addDeviceAction();
@@ -336,7 +337,7 @@ class _AutomationDetailPageState extends State<AutomationDetailPage> {
                 ctx: ctx,
                 icon: Icons.wb_sunny_outlined,
                 iconColor: const Color(0xFFFF7043),
-                label: 'Select smart scenes',
+                label: AppL10n.of(context).selectSmartScenes,
                 onTap: () {
                   Navigator.pop(ctx);
                   _addRunSceneAction();
@@ -346,7 +347,7 @@ class _AutomationDetailPageState extends State<AutomationDetailPage> {
                 ctx: ctx,
                 icon: Icons.hourglass_bottom,
                 iconColor: AppColors.primary,
-                label: 'Delay the action',
+                label: AppL10n.of(context).delayTheAction,
                 onTap: () {
                   Navigator.pop(ctx);
                   _addDelayAction();
@@ -395,7 +396,7 @@ class _AutomationDetailPageState extends State<AutomationDetailPage> {
     if (devices.isEmpty) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No devices available')),
+        SnackBar(content: Text(AppL10n.of(context).noDevicesAvailable)),
       );
       return;
     }
@@ -440,7 +441,7 @@ class _AutomationDetailPageState extends State<AutomationDetailPage> {
     if (scenes.isEmpty) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No scenes available')),
+        SnackBar(content: Text(AppL10n.of(context).noScenesAvailable)),
       );
       return;
     }
@@ -454,9 +455,9 @@ class _AutomationDetailPageState extends State<AutomationDetailPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Padding(
+            Padding(
               padding: EdgeInsets.all(16),
-              child: Text('Select Scene',
+              child: Text(AppL10n.of(context).selectScene,
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             ),
             ...scenes.map(
@@ -547,13 +548,13 @@ class _AutomationDetailPageState extends State<AutomationDetailPage> {
                   child: Row(
                     children: [
                       const Spacer(),
-                      const Text('More Settings',
+                      Text(AppL10n.of(context).moreSettings,
                           style: TextStyle(
                               fontSize: 17, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                       const Spacer(),
                       TextButton(
                         onPressed: () => Navigator.pop(ctx),
-                        child: const Text('Done',
+                        child: Text(AppL10n.of(context).done,
                             style: TextStyle(
                                 color: AppColors.primary,
                                 fontSize: 16,
@@ -578,10 +579,10 @@ class _AutomationDetailPageState extends State<AutomationDetailPage> {
                           ),
                           child: Row(
                             children: [
-                              const Text('Executed By',
+                              Text(AppL10n.of(context).executedBy,
                                   style: TextStyle(fontSize: 16, color: AppColors.textPrimary)),
                               const Spacer(),
-                              const Text('Local Association',
+                              Text(AppL10n.of(context).localAssociation,
                                   style: TextStyle(
                                       fontSize: 15,
                                       color: AppColors.textSecondary)),
@@ -604,7 +605,7 @@ class _AutomationDetailPageState extends State<AutomationDetailPage> {
                               color: AppColors.surface,
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: const Text('Delete',
+                            child: Text(AppL10n.of(context).delete,
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                     fontSize: 16,
@@ -629,8 +630,8 @@ class _AutomationDetailPageState extends State<AutomationDetailPage> {
       context,
       title: "Are you sure you want to remove '$name'?",
       message:
-          'After the scenario is deleted, the device tasks can no longer be executed properly.',
-      confirmText: 'Confirm',
+          AppL10n.of(context).deleteSceneWarning,
+      confirmText: AppL10n.of(context).confirm,
       destructive: true,
     );
     if (ok && mounted) {
@@ -664,14 +665,14 @@ class _AutomationDetailPageState extends State<AutomationDetailPage> {
           leadingWidth: 80,
           leading: TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel',
+            child: Text(AppL10n.of(context).cancel,
                 style: TextStyle(fontSize: 16, color: AppColors.textPrimary)),
           ),
           actions: [
             if (!_isCreating)
               TextButton(
                 onPressed: _save,
-                child: const Text('Save',
+                child: Text(AppL10n.of(context).save,
                     style: TextStyle(
                         fontSize: 16,
                         color: AppColors.primary,
@@ -688,7 +689,7 @@ class _AutomationDetailPageState extends State<AutomationDetailPage> {
 
               // ── Name ──
               if (_isCreating)
-                const Text('Create Scene',
+                Text(AppL10n.of(context).createScene,
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold))
               else
                 GestureDetector(
@@ -743,7 +744,7 @@ class _AutomationDetailPageState extends State<AutomationDetailPage> {
 
               // ── More Settings ──
               _buildOptionRow(
-                title: 'More Settings',
+                title: AppL10n.of(context).moreSettings,
                 onTap: _showMoreSettings,
               ),
 
@@ -764,7 +765,7 @@ class _AutomationDetailPageState extends State<AutomationDetailPage> {
                           borderRadius: BorderRadius.circular(26),
                         ),
                       ),
-                      child: const Text('Save',
+                      child: Text(AppL10n.of(context).save,
                           style: TextStyle(
                               fontSize: 17, fontWeight: FontWeight.w600)),
                     ),
@@ -838,7 +839,7 @@ class _IfCard extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                const Text('If',
+                Text(AppL10n.of(context).conditionIf,
                     style:
                         TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                 const Spacer(),
@@ -872,8 +873,8 @@ class _IfCard extends StatelessWidget {
                 direction: DismissDirection.endToStart,
                 onDismissed: (_) => onRemoveCondition(entry.key),
                 background: Container(
-                  alignment: Alignment.centerRight,
-                  padding: const EdgeInsets.only(right: 16),
+                  alignment: AlignmentDirectional.centerEnd,
+                  padding: const EdgeInsetsDirectional.only(end: 16),
                   color: Colors.red,
                   child: const Icon(Icons.delete, color: Colors.white),
                 ),
@@ -900,7 +901,7 @@ class _IfCard extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('Schedule',
+                            Text(AppL10n.of(context).schedule,
                                 style: TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w500,
@@ -958,7 +959,7 @@ class _ThenCard extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                const Text('Then',
+                Text(AppL10n.of(context).conditionThen,
                     style:
                         TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                 const Spacer(),
@@ -1003,8 +1004,8 @@ class _ThenCard extends StatelessWidget {
                     style: BorderStyle.solid,
                   ),
                 ),
-                child: const Center(
-                  child: Text('Add Task',
+                child: Center(
+                  child: Text(AppL10n.of(context).addTask,
                       style: TextStyle(
                           fontSize: 15, color: AppColors.textMuted)),
                 ),
@@ -1031,7 +1032,7 @@ class _ActionRow extends StatelessWidget {
   });
 
   (IconData, Color, String, String) _resolveDisplay(
-      List<HomeDeviceEntity> devices) {
+      List<HomeDeviceEntity> devices, AppL10n l10n) {
     switch (action.actionType) {
       case 'DEVICE_CONTROL':
         final dp = action.executorProperty;
@@ -1049,14 +1050,14 @@ class _ActionRow extends StatelessWidget {
         return (
           Icons.hourglass_bottom,
           AppColors.primary,
-          'Delay the action',
+          l10n.delayTheAction,
           subtitle
         );
       case 'SCENE_RUN':
         return (
           Icons.play_circle_outline,
           Colors.orange,
-          'Run Scene',
+          l10n.runScene,
           action.deviceName ?? ''
         );
       case 'SCENE_TOGGLE':
@@ -1064,8 +1065,8 @@ class _ActionRow extends StatelessWidget {
         return (
           Icons.toggle_on_outlined,
           Colors.teal,
-          'Toggle Automation',
-          en == true ? 'Enable' : 'Disable'
+          l10n.toggleAutomation,
+          en == true ? l10n.enable : l10n.disable
         );
       default:
         return (Icons.help_outline, Colors.grey, action.actionType, '');
@@ -1075,7 +1076,8 @@ class _ActionRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final devices = context.watch<HomeManagementBloc>().state.devices;
-    final (icon, iconColor, title, subtitle) = _resolveDisplay(devices);
+    final (icon, iconColor, title, subtitle) =
+        _resolveDisplay(devices, AppL10n.of(context));
     final actionDevice = deviceForAction(action, devices);
     final showCurtainArt = action.actionType == 'DEVICE_CONTROL' &&
         (actionDevice?.isCurtainTrack ?? false);
@@ -1095,8 +1097,8 @@ class _ActionRow extends StatelessWidget {
       direction: DismissDirection.endToStart,
       onDismissed: (_) => onRemove(),
       background: Container(
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 16),
+        alignment: AlignmentDirectional.centerEnd,
+        padding: const EdgeInsetsDirectional.only(end: 16),
         color: Colors.red,
         child: const Icon(Icons.delete, color: Colors.white),
       ),
@@ -1156,7 +1158,7 @@ class _AllDevicesPage extends StatelessWidget {
     final profileId = device.deviceProfileId;
     if (profileId == null || profileId.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Device has no profile information')),
+        SnackBar(content: Text(AppL10n.of(context).deviceHasNoProfileInformation)),
       );
       return;
     }
@@ -1182,7 +1184,7 @@ class _AllDevicesPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('All Devices',
+        title: Text(AppL10n.of(context).allDevices,
             style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
         centerTitle: true,
         backgroundColor: Colors.transparent,

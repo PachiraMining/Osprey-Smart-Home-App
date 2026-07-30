@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/gen/app_l10n.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/widgets/app_dialog.dart';
@@ -53,10 +54,10 @@ class _DeviceEditPageState extends State<DeviceEditPage> {
   Future<void> _rename() async {
     final name = await AppDialog.prompt(
       context,
-      title: 'Name',
+      title: AppL10n.of(context).name,
       initialValue: _name,
-      hintText: 'Enter device name',
-      confirmText: 'Save',
+      hintText: AppL10n.of(context).enterDeviceName,
+      confirmText: AppL10n.of(context).save,
     );
     final homeId = _homeId;
     if (name == null || name.trim().isEmpty || homeId == null || !mounted) {
@@ -78,7 +79,7 @@ class _DeviceEditPageState extends State<DeviceEditPage> {
     if (homeId == null) return;
     if (rooms.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Create a room first.')),
+        SnackBar(content: Text(AppL10n.of(context).createARoomFirst)),
       );
       return;
     }
@@ -103,7 +104,7 @@ class _DeviceEditPageState extends State<DeviceEditPage> {
             children: [
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                child: Text('Location',
+                child: Text(AppL10n.of(context).location,
                     style:
                         TextStyle(fontSize: 15, color: Colors.grey.shade500)),
               ),
@@ -144,8 +145,8 @@ class _DeviceEditPageState extends State<DeviceEditPage> {
   void _iconNotSupported() {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(const SnackBar(
-        content: Text('Custom device icons are not supported yet.'),
+      ..showSnackBar(SnackBar(
+        content: Text(AppL10n.of(context).customDeviceIconsAreNotSupportedYet),
       ));
   }
 
@@ -186,11 +187,11 @@ class _DeviceEditPageState extends State<DeviceEditPage> {
             color: Colors.white,
             child: Column(
               children: [
-                _EditRow(label: 'Icon', onTap: _iconNotSupported),
-                _EditRow(label: 'Name', value: _name, onTap: _rename),
+                _EditRow(label: AppL10n.of(context).icon, onTap: _iconNotSupported),
+                _EditRow(label: AppL10n.of(context).name, value: _name, onTap: _rename),
                 _EditRow(
-                  label: 'Location',
-                  value: _room?.name ?? 'Unassigned',
+                  label: AppL10n.of(context).location,
+                  value: _room?.name ?? AppL10n.of(context).unassigned,
                   onTap: _pickRoom,
                 ),
               ],
@@ -223,12 +224,12 @@ class _EditRow extends StatelessWidget {
             if (value != null && value!.isNotEmpty)
               Flexible(
                 child: Padding(
-                  padding: const EdgeInsets.only(left: 12, right: 6),
+                  padding: const EdgeInsetsDirectional.only(start: 12, end: 6),
                   child: Text(
                     value!,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.right,
+                    textAlign: TextAlign.end,
                     style: const TextStyle(fontSize: 17, color: Colors.black87),
                   ),
                 ),

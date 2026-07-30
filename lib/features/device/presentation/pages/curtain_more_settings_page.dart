@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/gen/app_l10n.dart';
 import 'package:get_it/get_it.dart';
 
 import '../../../../core/widgets/app_popup.dart';
@@ -27,7 +28,9 @@ class _CurtainMoreSettingsPageState extends State<CurtainMoreSettingsPage> {
 
   /// dpId 5 — `forward` / `back`.
   static const _motorDpId = 5;
-  static const _motorOptions = [('forward', 'Forward'), ('back', 'Back')];
+  /// Giá trị gửi lên server là `forward`/`back`; nhãn thì dịch theo ngôn ngữ.
+  List<(String, String)> _motorOptions(AppL10n l10n) =>
+      [('forward', l10n.forward), ('back', l10n.back)];
 
   String? _motorDirection;
   bool _loading = true;
@@ -59,7 +62,7 @@ class _CurtainMoreSettingsPageState extends State<CurtainMoreSettingsPage> {
   /// Rỗng khi CHƯA đọc được trạng thái — thà để trống hơn là hiện "Forward"
   /// đoán bừa rồi nói sai với người dùng.
   String get _motorLabel {
-    for (final (value, label) in _motorOptions) {
+    for (final (value, label) in _motorOptions(AppL10n.of(context))) {
       if (value == _motorDirection) return label;
     }
     return '';
@@ -87,11 +90,11 @@ class _CurtainMoreSettingsPageState extends State<CurtainMoreSettingsPage> {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 child: Text(
-                  'Motor Direction',
+                  AppL10n.of(context).motorDirection,
                   style: TextStyle(fontSize: 15, color: Colors.grey.shade500),
                 ),
               ),
-              for (final (value, label) in _motorOptions)
+              for (final (value, label) in _motorOptions(AppL10n.of(context)))
                 InkWell(
                   onTap: () => Navigator.pop(ctx, value),
                   child: Padding(
@@ -140,8 +143,8 @@ class _CurtainMoreSettingsPageState extends State<CurtainMoreSettingsPage> {
         setState(() => _motorDirection = previous);
         AppPopup.error(
           context,
-          title: 'Failed',
-          message: 'Could not change the motor direction. Please try again.',
+          title: AppL10n.of(context).failed,
+          message: AppL10n.of(context).couldNotChangeTheMotorDirectionPleaseTryAgai,
         );
       },
       // KHÔNG đọc lại trạng thái ở đây: endpoint status có thể còn trả giá trị
@@ -160,8 +163,8 @@ class _CurtainMoreSettingsPageState extends State<CurtainMoreSettingsPage> {
         elevation: 0,
         centerTitle: true,
         foregroundColor: Colors.black87,
-        title: const Text(
-          'Setting',
+        title:  Text(
+          AppL10n.of(context).setting,
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
         ),
       ),
@@ -172,7 +175,7 @@ class _CurtainMoreSettingsPageState extends State<CurtainMoreSettingsPage> {
           Container(
             color: Colors.white,
             child: _SettingRow(
-              label: 'Motor Direction',
+              label: AppL10n.of(context).motorDirection,
               value: _motorLabel,
               busy: _sendingMotor,
               onTap: (_loading || _sendingMotor) ? null : _pickMotorDirection,
@@ -182,7 +185,7 @@ class _CurtainMoreSettingsPageState extends State<CurtainMoreSettingsPage> {
           Container(
             color: Colors.white,
             child: _SettingRow(
-              label: 'Schedule',
+              label: AppL10n.of(context).schedule,
               onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute<void>(
@@ -231,7 +234,7 @@ class _SettingRow extends StatelessWidget {
             ),
             if (value != null && value!.isNotEmpty)
               Padding(
-                padding: const EdgeInsets.only(right: 6),
+                padding: const EdgeInsetsDirectional.only(end: 6),
                 child: Text(
                   value!,
                   style: TextStyle(fontSize: 16, color: Colors.grey.shade500),

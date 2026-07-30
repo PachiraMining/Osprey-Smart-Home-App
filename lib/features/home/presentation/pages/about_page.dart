@@ -3,6 +3,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/config/app_config.dart';
+import '../../../../l10n/gen/app_l10n.dart';
 
 /// Thông tin phiên bản app + liên kết pháp lý.
 class AboutPage extends StatefulWidget {
@@ -35,12 +36,13 @@ class _AboutPageState extends State<AboutPage> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-            const SnackBar(content: Text('Could not open the link.')));
+            SnackBar(content: Text(AppL10n.of(context).couldNotOpenLink)));
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context);
     final info = _info;
     return Scaffold(
       backgroundColor: _pageBg,
@@ -53,8 +55,9 @@ class _AboutPageState extends State<AboutPage> {
           icon: const Icon(Icons.arrow_back_ios_new, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('About',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+        title: Text(l10n.about,
+            style:
+                const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
       ),
       body: ListView(
         padding: EdgeInsets.zero,
@@ -83,7 +86,7 @@ class _AboutPageState extends State<AboutPage> {
                 Text(
                   info == null
                       ? ''
-                      : 'Version ${info.version} (${info.buildNumber})',
+                      : l10n.aboutVersion(info.version, info.buildNumber),
                   style: TextStyle(fontSize: 15, color: Colors.grey.shade600),
                 ),
               ],
@@ -95,11 +98,11 @@ class _AboutPageState extends State<AboutPage> {
             child: Column(
               children: [
                 _AboutRow(
-                  label: 'Privacy Policy',
+                  label: l10n.privacyPolicy,
                   onTap: () => _open(AppConfig.privacyPolicyUrl),
                 ),
                 _AboutRow(
-                  label: 'Terms of Service',
+                  label: l10n.termsOfService,
                   onTap: () => _open(AppConfig.userAgreementUrl),
                 ),
               ],
@@ -110,11 +113,12 @@ class _AboutPageState extends State<AboutPage> {
             color: Colors.white,
             child: Column(
               children: [
-                _AboutRow(label: 'Bundle ID', value: info?.packageName ?? ''),
+                _AboutRow(
+                    label: l10n.bundleId, value: info?.packageName ?? ''),
                 // Hữu ích khi hỗ trợ người dùng: biết app đang nói chuyện với
                 // server nào (production hay test).
                 _AboutRow(
-                  label: 'Server',
+                  label: l10n.server,
                   value: Uri.parse(AppConfig.thingsboardBaseUrl).host,
                 ),
               ],
@@ -150,7 +154,7 @@ class _AboutRow extends StatelessWidget {
                   value!,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.right,
+                  textAlign: TextAlign.end,
                   style:
                       TextStyle(fontSize: 16, color: Colors.grey.shade500),
                 ),

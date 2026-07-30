@@ -11,6 +11,7 @@ import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/auth/presentation/bloc/auth_event.dart';
 import 'features/auth/presentation/bloc/auth_state.dart';
 import 'features/auth/presentation/pages/login_page.dart';
+import 'l10n/gen/app_l10n.dart';
 
 class SmartSplashScreen extends StatefulWidget {
   const SmartSplashScreen({super.key});
@@ -303,7 +304,7 @@ class _SmartSplashScreenState extends State<SmartSplashScreen>
                                 elevation: 0,
                               ),
                               child: Text(
-                                'Get started',
+                                AppL10n.of(context).getStarted,
                                 style: AppTypography.labelLarge.copyWith(
                                   color: AppColors.textInverse,
                                   fontSize: 15,

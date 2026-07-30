@@ -1,4 +1,5 @@
 import 'dart:async';
+import '../../../../l10n/gen/app_l10n.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -71,9 +72,9 @@ class _SignUpPageState extends State<SignUpPage> {
     final email = emailController.text.trim();
     setState(() {
       _emailError = email.isEmpty
-          ? 'Enter your email address'
+          ? AppL10n.of(context).enterYourEmailAddress
           : (!_emailRegex.hasMatch(email)
-              ? 'Enter a valid email address'
+              ? AppL10n.of(context).enterValidEmail
               : null);
       _serverError = null;
     });
@@ -131,10 +132,10 @@ class _SignUpPageState extends State<SignUpPage> {
     final code = codeController.text.trim();
     final password = passwordController.text;
     setState(() {
-      _codeError = code.length != 6 ? 'Enter the 6-digit code' : null;
+      _codeError = code.length != 6 ? AppL10n.of(context).enterSixDigitCode : null;
       _passwordError = password.isEmpty
-          ? 'Enter a password'
-          : (password.length < 6 ? 'At least 6 characters' : null);
+          ? AppL10n.of(context).enterAPassword
+          : (password.length < 6 ? AppL10n.of(context).atLeast6Characters : null);
     });
     if (_codeError != null || _passwordError != null) return;
     FocusScope.of(context).unfocus();
@@ -181,8 +182,8 @@ class _SignUpPageState extends State<SignUpPage> {
         }
         if (state is AuthFailure) {
           // Hiếm: tạo tài khoản OK nhưng auto-login lỗi → về màn login.
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('Account created — please sign in.'),
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(AppL10n.of(context).accountCreatedPleaseSignIn),
             backgroundColor: AppColors.primaryDark,
             behavior: SnackBarBehavior.floating,
           ));
@@ -255,13 +256,13 @@ class _SignUpPageState extends State<SignUpPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Create your account',
+          AppL10n.of(context).createYourAccount,
           style: AppTypography.displayMedium
               .copyWith(color: AppColors.textPrimary),
         ),
         const SizedBox(height: 28),
         AuthField(
-          label: 'Email address',
+          label: AppL10n.of(context).emailAddress,
           controller: emailController,
           hintText: 'you@example.com',
           keyboardType: TextInputType.emailAddress,
@@ -291,7 +292,7 @@ class _SignUpPageState extends State<SignUpPage> {
         AuthErrorBanner(message: _serverError),
         const SizedBox(height: 22),
         AuthPrimaryButton(
-          label: 'Send verification code',
+          label: AppL10n.of(context).sendVerificationCode,
           busy: _sending,
           onPressed: busy ? null : _sendCode,
         ),
@@ -306,7 +307,7 @@ class _SignUpPageState extends State<SignUpPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Check your email',
+          AppL10n.of(context).checkYourEmail,
           style: AppTypography.displayMedium
               .copyWith(color: AppColors.textPrimary),
         ),
@@ -345,9 +346,9 @@ class _SignUpPageState extends State<SignUpPage> {
         ),
         const SizedBox(height: 16),
         AuthField(
-          label: 'Password',
+          label: AppL10n.of(context).password,
           controller: passwordController,
-          hintText: 'At least 6 characters',
+          hintText: AppL10n.of(context).atLeast6Characters,
           obscureText: _obscurePassword,
           textInputAction: TextInputAction.next,
           autofillHints: const [AutofillHints.newPassword],
@@ -377,9 +378,9 @@ class _SignUpPageState extends State<SignUpPage> {
           children: [
             Expanded(
               child: AuthField(
-                label: 'First name (optional)',
+                label: AppL10n.of(context).firstNameOptional,
                 controller: firstNameController,
-                hintText: 'First name',
+                hintText: AppL10n.of(context).firstName,
                 textInputAction: TextInputAction.next,
                 autofillHints: const [AutofillHints.givenName],
                 enabled: !busy,
@@ -388,9 +389,9 @@ class _SignUpPageState extends State<SignUpPage> {
             const SizedBox(width: 12),
             Expanded(
               child: AuthField(
-                label: 'Last name (optional)',
+                label: AppL10n.of(context).lastNameOptional,
                 controller: lastNameController,
-                hintText: 'Last name',
+                hintText: AppL10n.of(context).lastName,
                 textInputAction: TextInputAction.done,
                 autofillHints: const [AutofillHints.familyName],
                 enabled: !busy,
@@ -402,7 +403,7 @@ class _SignUpPageState extends State<SignUpPage> {
         AuthErrorBanner(message: _serverError),
         const SizedBox(height: 22),
         AuthPrimaryButton(
-          label: 'Create account',
+          label: AppL10n.of(context).createAccount,
           busy: busy,
           onPressed: busy ? null : _createAccount,
         ),
@@ -413,7 +414,7 @@ class _SignUpPageState extends State<SignUpPage> {
                 ? null
                 : () => _sendCode(resend: true),
             child: Text(
-              _resendIn > 0 ? 'Resend code in ${_resendIn}s' : 'Resend code',
+              _resendIn > 0 ? AppL10n.of(context).resendCodeIn(_resendIn) : AppL10n.of(context).resendCode,
               style: AppTypography.labelMedium.copyWith(
                 color: _resendIn > 0 ? AppColors.textMuted : AppColors.primary,
                 fontWeight: FontWeight.w600,
@@ -494,7 +495,7 @@ class _CodeField extends StatelessWidget {
         ),
         if (errorText != null)
           Padding(
-            padding: const EdgeInsets.only(left: 4, top: 6),
+            padding: const EdgeInsetsDirectional.only(start: 4, top: 6),
             child: Text(
               errorText!,
               style: AppTypography.bodySmall.copyWith(color: AppColors.error),

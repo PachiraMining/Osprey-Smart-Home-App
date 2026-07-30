@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/gen/app_l10n.dart';
 import 'package:get_it/get_it.dart';
 
 import '../../data/device_info_service.dart';
@@ -63,8 +64,8 @@ class _DeviceNetworkInfoPageState extends State<DeviceNetworkInfoPage> {
           icon: const Icon(Icons.arrow_back_ios_new, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Device Network Information',
+        title:  Text(
+          AppL10n.of(context).deviceNetworkInformation,
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
         ),
       ),
@@ -78,15 +79,15 @@ class _DeviceNetworkInfoPageState extends State<DeviceNetworkInfoPage> {
                   child: Column(
                     children: [
                       _Row(
-                        label: 'Device Network',
-                        value: info?.currentSsid ?? 'Unknown',
+                        label: AppL10n.of(context).deviceNetwork,
+                        value: info?.currentSsid ?? AppL10n.of(context).unknown,
                         onTap: _openNetworks,
                       ),
                       _Row(
-                        label: 'Signal strength',
+                        label: AppL10n.of(context).signalStrength2,
                         // Firmware chưa báo RSSI → nói thẳng, không hiện số giả.
                         value: info?.rssiDbm == null
-                            ? 'Not reported'
+                            ? AppL10n.of(context).notReported
                             : '${info!.rssiDbm}dbm',
                       ),
                     ],
@@ -96,15 +97,14 @@ class _DeviceNetworkInfoPageState extends State<DeviceNetworkInfoPage> {
                 Container(
                   color: Colors.white,
                   child: _Row(
-                    label: 'Alternate Network',
+                    label: AppL10n.of(context).alternateNetwork,
                     onTap: _openNetworks,
                   ),
                 ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
                   child: Text(
-                    'If the current network is unavailable, the device will be '
-                    'automatically connected to an alternate network.',
+                    AppL10n.of(context).alternateNetworkHint,
                     style: TextStyle(
                       fontSize: 15,
                       height: 1.4,
@@ -139,12 +139,12 @@ class _Row extends StatelessWidget {
             if (value != null)
               Flexible(
                 child: Padding(
-                  padding: const EdgeInsets.only(left: 12),
+                  padding: const EdgeInsetsDirectional.only(start: 12),
                   child: Text(
                     value!,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.right,
+                    textAlign: TextAlign.end,
                     style: TextStyle(
                         fontSize: 16, color: Colors.grey.shade500),
                   ),

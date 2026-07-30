@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/gen/app_l10n.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 
@@ -64,16 +65,16 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
 
     if (_selected.length < 2) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Add at least two devices to a group.')),
+        SnackBar(content: Text(AppL10n.of(context).addAtLeastTwoDevicesToAGroup)),
       );
       return;
     }
 
     final name = await AppDialog.prompt(
       context,
-      title: 'Group Name',
-      hintText: 'Enter a group name',
-      confirmText: 'Save',
+      title: AppL10n.of(context).groupName,
+      hintText: AppL10n.of(context).enterAGroupName,
+      confirmText: AppL10n.of(context).save,
     );
     if (name == null || name.trim().isEmpty || !mounted) return;
 
@@ -89,8 +90,8 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
 
     if (group == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Could not create the group. Please try again.'),
+        SnackBar(
+          content: Text(AppL10n.of(context).couldNotCreateTheGroupPleaseTryAgain),
           backgroundColor: Colors.red,
         ),
       );
@@ -115,14 +116,14 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
         leadingWidth: 90,
         leading: TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel',
+          child: Text(AppL10n.of(context).cancel,
               style: TextStyle(fontSize: 17, color: Colors.black87)),
         ),
         actions: [
           TextButton(
             onPressed: _saving ? null : _save,
             child: Text(
-              'Save',
+              AppL10n.of(context).save,
               style: TextStyle(
                 fontSize: 17,
                 color: _saving ? Colors.grey : _link,
@@ -134,9 +135,9 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 28),
         children: [
-          const Center(
+           Center(
             child: Text(
-              'Create Group',
+              AppL10n.of(context).createGroup,
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
             ),
           ),
@@ -148,7 +149,7 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
               const SizedBox(width: 6),
               Flexible(
                 child: Text(
-                  'Devices in the same group can be controlled together.',
+                  AppL10n.of(context).groupControlHint,
                   style:
                       TextStyle(fontSize: 15, color: Colors.grey.shade600),
                 ),
@@ -170,7 +171,7 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
           ]),
           const SizedBox(height: 22),
           Text(
-            'Devices to Be Added',
+            AppL10n.of(context).devicesToBeAdded,
             style: TextStyle(fontSize: 15, color: Colors.grey.shade600),
           ),
           const SizedBox(height: 10),
@@ -178,7 +179,7 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 20),
               child: Text(
-                'No other devices of the same type in this home.',
+                AppL10n.of(context).noSameTypeDevices,
                 style: TextStyle(fontSize: 15, color: Colors.grey.shade500),
               ),
             )

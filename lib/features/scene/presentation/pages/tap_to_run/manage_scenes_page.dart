@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../../l10n/gen/app_l10n.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../control/presentation/widgets/offline_scenes_banner.dart';
 import '../../../domain/entities/tap_to_run_scene_entity.dart';
@@ -18,16 +19,16 @@ class ManageScenesPage extends StatelessWidget {
         automaticallyImplyLeading: false,
         backgroundColor: Colors.white,
         elevation: 0.5,
-        title: const Text(
-          'Tap-to-Run',
+        title:  Text(
+          AppL10n.of(context).tapToRun,
           style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: Colors.black87),
         ),
         centerTitle: true,
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'Finish',
+            child:  Text(
+              AppL10n.of(context).finish,
               style: TextStyle(color: Color(0xFF1B4332), fontSize: 16, fontWeight: FontWeight.w600),
             ),
           ),
@@ -47,7 +48,7 @@ class ManageScenesPage extends StatelessWidget {
 
                 if (scenes.isEmpty) {
                   return Center(
-                    child: Text('No scenes',
+                    child: Text(AppL10n.of(context).noScenes,
                         style: TextStyle(
                             color: Colors.grey.shade400, fontSize: 16)),
                   );
@@ -125,7 +126,7 @@ class _SceneManageRowState extends State<_SceneManageRow> {
               ),
               // Drag handle
               Padding(
-                padding: const EdgeInsets.only(right: 16),
+                padding: const EdgeInsetsDirectional.only(end: 16),
                 child: Icon(Icons.menu, size: 22, color: Colors.grey.shade400),
               ),
               // Delete button (slides in)
@@ -137,8 +138,8 @@ class _SceneManageRowState extends State<_SceneManageRow> {
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     color: Colors.red,
                     alignment: Alignment.center,
-                    child: const Text(
-                      'Delete',
+                    child: Text(
+                      AppL10n.of(context).delete,
                       style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
                     ),
                   ),

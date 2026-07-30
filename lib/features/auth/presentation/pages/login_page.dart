@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/gen/app_l10n.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -74,8 +75,8 @@ class _LoginPageState extends State<LoginPage> {
     final email = usernameController.text.trim();
     final password = passwordController.text.trim();
     setState(() {
-      _emailError = email.isEmpty ? 'Enter your email or username' : null;
-      _passwordError = password.isEmpty ? 'Enter your password' : null;
+      _emailError = email.isEmpty ? AppL10n.of(context).enterEmailOrUsername : null;
+      _passwordError = password.isEmpty ? AppL10n.of(context).enterYourPassword : null;
       _serverError = null;
     });
     if (_emailError != null || _passwordError != null) return;
@@ -107,7 +108,7 @@ class _LoginPageState extends State<LoginPage> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('$name sign-in is not available yet.'),
+          content: Text(AppL10n.of(context).signInNotAvailable(name)),
           behavior: SnackBarBehavior.floating,
           backgroundColor: AppColors.primaryDark,
         ),
@@ -152,19 +153,19 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     const SizedBox(height: 36),
                     Text(
-                      'Welcome',
+                      AppL10n.of(context).welcome,
                       style: AppTypography.displayMedium
                           .copyWith(color: AppColors.textPrimary),
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Sign in to your osprey.life account.',
+                      AppL10n.of(context).signInSubtitle,
                       style: AppTypography.bodyMedium
                           .copyWith(color: AppColors.textSecondary),
                     ),
                     const SizedBox(height: 28),
                     AuthField(
-                      label: 'Email or username',
+                      label: AppL10n.of(context).emailOrUsername,
                       controller: usernameController,
                       hintText: 'you@example.com',
                       keyboardType: TextInputType.emailAddress,
@@ -191,9 +192,9 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     const SizedBox(height: 16),
                     AuthField(
-                      label: 'Password',
+                      label: AppL10n.of(context).password,
                       controller: passwordController,
-                      hintText: 'Enter your password',
+                      hintText: AppL10n.of(context).enterYourPassword,
                       obscureText: obscurePassword,
                       textInputAction: TextInputAction.done,
                       autofillHints: const [AutofillHints.password],
@@ -241,7 +242,7 @@ class _LoginPageState extends State<LoginPage> {
                     AuthErrorBanner(message: _serverError),
                     const SizedBox(height: 22),
                     AuthPrimaryButton(
-                      label: 'Sign in',
+                      label: AppL10n.of(context).signIn,
                       busy: busy,
                       onPressed: busy ? null : _signIn,
                     ),
@@ -259,7 +260,7 @@ class _LoginPageState extends State<LoginPage> {
                                 ),
                               ),
                               TextSpan(
-                                text: 'Create one',
+                                text: AppL10n.of(context).createOne,
                                 style: AppTypography.labelMedium.copyWith(
                                   color: AppColors.primary,
                                   fontWeight: FontWeight.w700,
@@ -275,7 +276,7 @@ class _LoginPageState extends State<LoginPage> {
                       child: TextButton(
                         onPressed: busy ? null : _showResetPasswordSheet,
                         child: Text(
-                          'Forgot password?',
+                          AppL10n.of(context).forgotPassword,
                           style: AppTypography.labelMedium.copyWith(
                             color: AppColors.textSecondary,
                           ),
@@ -293,7 +294,7 @@ class _LoginPageState extends State<LoginPage> {
                             padding:
                                 const EdgeInsets.symmetric(horizontal: 16),
                             child: Text(
-                              'or continue with',
+                              AppL10n.of(context).orContinueWith,
                               style: AppTypography.labelSmall
                                   .copyWith(color: AppColors.textMuted),
                             ),
@@ -388,7 +389,7 @@ class _ResetPasswordSheetState extends State<_ResetPasswordSheet> {
   Future<void> _submit() async {
     final email = widget.emailController.text.trim();
     if (email.isEmpty || !email.contains('@')) {
-      setState(() => _error = 'Enter a valid email address');
+      setState(() => _error = AppL10n.of(context).enterValidEmail);
       return;
     }
     FocusScope.of(context).unfocus();
@@ -432,7 +433,7 @@ class _ResetPasswordSheetState extends State<_ResetPasswordSheet> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Reset your password',
+          AppL10n.of(context).resetYourPassword,
           style: AppTypography.displayMedium.copyWith(
             fontSize: 22,
             color: AppColors.textPrimary,
@@ -446,7 +447,7 @@ class _ResetPasswordSheetState extends State<_ResetPasswordSheet> {
         ),
         const SizedBox(height: 20),
         AuthField(
-          label: 'Email address',
+          label: AppL10n.of(context).emailAddress,
           controller: widget.emailController,
           hintText: 'you@example.com',
           keyboardType: TextInputType.emailAddress,
@@ -462,7 +463,7 @@ class _ResetPasswordSheetState extends State<_ResetPasswordSheet> {
         ),
         const SizedBox(height: 20),
         AuthPrimaryButton(
-          label: 'Send reset link',
+          label: AppL10n.of(context).sendResetLink,
           busy: _sending,
           onPressed: _sending ? null : _submit,
         ),
@@ -487,7 +488,7 @@ class _ResetPasswordSheetState extends State<_ResetPasswordSheet> {
         ),
         const SizedBox(height: 16),
         Text(
-          'Check your inbox',
+          AppL10n.of(context).checkYourInbox,
           style: AppTypography.displayMedium.copyWith(
             fontSize: 20,
             color: AppColors.textPrimary,
@@ -495,15 +496,15 @@ class _ResetPasswordSheetState extends State<_ResetPasswordSheet> {
         ),
         const SizedBox(height: 8),
         Text(
-          'If an account exists for ${widget.emailController.text.trim()}, '
-          'a password reset link is on its way.',
+          AppL10n.of(context)
+              .resetLinkSent(widget.emailController.text.trim()),
           textAlign: TextAlign.center,
           style:
               AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary),
         ),
         const SizedBox(height: 20),
         AuthPrimaryButton(
-          label: 'Done',
+          label: AppL10n.of(context).done,
           busy: false,
           onPressed: () => Navigator.pop(context),
         ),

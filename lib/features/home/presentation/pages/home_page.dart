@@ -1,5 +1,6 @@
 // home_page.dart
 import 'package:flutter/material.dart';
+import '../../../../l10n/gen/app_l10n.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:smart_curtain_app/core/theme/app_colors.dart';
@@ -129,9 +130,10 @@ class HomePageState extends State<HomePage> {
     );
   }
 
-  PopupMenuEntry<String> _buildPopupItem(IconData icon, String title) {
+  PopupMenuEntry<String> _buildPopupItem(
+      IconData icon, String title, String value) {
     return PopupMenuItem<String>(
-      value: title,
+      value: value,
       height: 48,
       child: Row(
         children: [
@@ -148,12 +150,12 @@ class HomePageState extends State<HomePage> {
 
   Future<void> _onMenuSelected(BuildContext context, String value) async {
     switch (value) {
-      case 'Add Device':
+      case 'add-device':
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const OspreyAddDevicePage()),
         );
-      case 'Create Scene':
+      case 'create-scene':
         _seedAutomationBloc(context);
         await Navigator.push(
           context,
@@ -285,11 +287,13 @@ class HomePageState extends State<HomePage> {
                             itemBuilder: (_) => [
                               _buildPopupItem(
                                 Icons.devices_other_outlined,
-                                'Add Device',
+                                AppL10n.of(context).addDevice,
+                                'add-device',
                               ),
                               _buildPopupItem(
                                 Icons.edit_square,
-                                'Create Scene',
+                                AppL10n.of(context).createScene,
+                                'create-scene',
                               ),
                             ],
                             child: Container(
@@ -389,15 +393,17 @@ class _BrandBottomNav extends StatelessWidget {
 
   const _BrandBottomNav({required this.currentIndex, required this.onTap});
 
-  static const _items = [
-    (Icons.cottage_outlined, Icons.cottage, 'Home'),
-    (Icons.auto_awesome_outlined, Icons.auto_awesome, 'Scenes'),
-    (Icons.chat_bubble_outline_rounded, Icons.chat_bubble_rounded, 'Chat'),
-    (Icons.person_outline_rounded, Icons.person_rounded, 'Me'),
+  /// Nhãn lấy theo ngôn ngữ nên KHÔNG thể là `const` — dựng trong build.
+  static List<(IconData, IconData, String)> _itemsFor(AppL10n l10n) => [
+    (Icons.cottage_outlined, Icons.cottage, l10n.navHome),
+    (Icons.auto_awesome_outlined, Icons.auto_awesome, l10n.navScenes),
+    (Icons.chat_bubble_outline_rounded, Icons.chat_bubble_rounded, l10n.navChat),
+    (Icons.person_outline_rounded, Icons.person_rounded, l10n.navMe),
   ];
 
   @override
   Widget build(BuildContext context) {
+    final items = _itemsFor(AppL10n.of(context));
     return SafeArea(
       top: false,
       child: Padding(
@@ -409,9 +415,9 @@ class _BrandBottomNav extends StatelessWidget {
             height: 53,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: List.generate(_items.length, (i) {
+              children: List.generate(items.length, (i) {
                 final selected = currentIndex == i;
-                final (outlined, filled, label) = _items[i];
+                final (outlined, filled, label) = items[i];
                 return Expanded(
                   child: InkWell(
                     borderRadius: BorderRadius.circular(AppRadius.lg),
@@ -535,7 +541,7 @@ class _SceneTabState extends State<SceneTab> {
                 GestureDetector(
                   onTap: () => setState(() => _selectedSubTab = 0),
                   child: Text(
-                    'Automation',
+                    AppL10n.of(context).automation,
                     style: TextStyle(
                       fontSize: _selectedSubTab == 0 ? 16 : 14,
                       fontWeight: _selectedSubTab == 0
@@ -551,7 +557,7 @@ class _SceneTabState extends State<SceneTab> {
                 GestureDetector(
                   onTap: () => setState(() => _selectedSubTab = 1),
                   child: Text(
-                    'Tap-to-Run',
+                    AppL10n.of(context).tapToRun,
                     style: TextStyle(
                       fontSize: _selectedSubTab == 1 ? 16 : 14,
                       fontWeight: _selectedSubTab == 1
@@ -606,7 +612,7 @@ class _SceneTabState extends State<SceneTab> {
                             color: Colors.grey.shade700,
                           ),
                           const SizedBox(width: 12),
-                          const Text('Manage', style: TextStyle(fontSize: 15)),
+                          Text(AppL10n.of(context).manage, style: TextStyle(fontSize: 15)),
                         ],
                       ),
                     ),
@@ -621,7 +627,7 @@ class _SceneTabState extends State<SceneTab> {
                             color: Colors.grey.shade700,
                           ),
                           const SizedBox(width: 12),
-                          const Text('Logs', style: TextStyle(fontSize: 15)),
+                          Text(AppL10n.of(context).logs, style: TextStyle(fontSize: 15)),
                         ],
                       ),
                     ),
@@ -664,7 +670,7 @@ class _SceneTabState extends State<SceneTab> {
                 const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: _loadAutomationScenes,
-                  child: const Text('Retry'),
+                  child: Text(AppL10n.of(context).retry),
                 ),
               ],
             ),
@@ -701,7 +707,7 @@ class _SceneTabState extends State<SceneTab> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 30),
           child: Text(
-            'Home automation saves your time and effort by automating routine tasks.',
+            AppL10n.of(context).automationEmptyHint,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 15,
@@ -724,8 +730,8 @@ class _SceneTabState extends State<SceneTab> {
               ),
             ),
             onPressed: () => _openAutomationDetail(),
-            child: const Text(
-              'Create Scene',
+            child: Text(
+              AppL10n.of(context).createScene,
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
           ),
@@ -758,7 +764,7 @@ class _SceneTabState extends State<SceneTab> {
                 const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: () => _loadTapToRunScenes(),
-                  child: const Text('Retry'),
+                  child: Text(AppL10n.of(context).retry),
                 ),
               ],
             ),
@@ -782,8 +788,8 @@ class _SceneTabState extends State<SceneTab> {
           children: [
             _buildTapToRunList(context, scenes, state),
             if (GetIt.instance<SiriShortcutsService>().isSupported)
-              Positioned(
-                right: 16,
+              PositionedDirectional(
+                end: 16,
                 // Đỉnh thanh navigation = safe area + padding 8 + cao 53 = 61,
                 // nên 20 cho nút nằm hẳn trong vùng nav bar.
                 bottom: MediaQuery.of(context).padding.bottom + 20,
@@ -811,7 +817,7 @@ class _SceneTabState extends State<SceneTab> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 30),
           child: Text(
-            'Create a Tap-to-Run scene to control your devices quickly with a single tap.',
+            AppL10n.of(context).tapToRunEmptyHint,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 15,
@@ -834,8 +840,8 @@ class _SceneTabState extends State<SceneTab> {
               ),
             ),
             onPressed: () => _navigateToCreateTapToRun(),
-            child: const Text(
-              'Create Scene',
+            child: Text(
+              AppL10n.of(context).createScene,
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
           ),
@@ -897,7 +903,7 @@ class _SceneTabState extends State<SceneTab> {
       }
     }
     scene ??= state.scenes.isNotEmpty ? state.scenes.first : null;
-    final sceneName = scene?.name ?? 'Scene';
+    final sceneName = scene?.name ?? AppL10n.of(context).scene;
     final actions = scene?.actions ?? [];
 
     final homeState = context.read<HomeManagementBloc>().state;
@@ -932,7 +938,7 @@ class _SceneTabState extends State<SceneTab> {
                   vertical: 12,
                 ),
                 child: Text(
-                  state.details.isNotEmpty ? state.details : 'Execution failed',
+                  state.details.isNotEmpty ? state.details : AppL10n.of(context).executionFailed,
                   style: TextStyle(fontSize: 15, color: Colors.red.shade400),
                   textAlign: TextAlign.center,
                 ),
@@ -950,17 +956,17 @@ class _SceneTabState extends State<SceneTab> {
                     title = actionFunctionLabel(action, dpNames);
                     final live = deviceOfAction(action, devices);
                     subtitle =
-                        live?.displayName ?? action.deviceName ?? 'Device';
+                        live?.displayName ?? action.deviceName ?? AppL10n.of(context).device;
                     if (live?.isCurtainTrack ?? false) {
                       asset = kCurtainTrackAsset;
                     }
                   case 'DELAY':
-                    title = 'Delay';
+                    title = AppL10n.of(context).delay;
                     final m = action.executorProperty?['minutes'] ?? 0;
                     final s = action.executorProperty?['seconds'] ?? 0;
                     subtitle = m > 0 ? '${m}m ${s}s' : '${s}s';
                   case 'SCENE_RUN':
-                    title = 'Run Scene';
+                    title = AppL10n.of(context).runScene;
                     subtitle = action.deviceName ?? '';
                   default:
                     title = action.actionType;
@@ -1038,8 +1044,8 @@ class _SceneTabState extends State<SceneTab> {
               width: double.infinity,
               child: TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text(
-                  'OK',
+                child: Text(
+                  AppL10n.of(context).ok,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -1095,8 +1101,8 @@ class _SceneTabState extends State<SceneTab> {
             key: Key('automation_${automation.id}'),
             direction: DismissDirection.endToStart,
             background: Container(
-              alignment: Alignment.centerRight,
-              padding: const EdgeInsets.only(right: 20),
+              alignment: AlignmentDirectional.centerEnd,
+              padding: const EdgeInsetsDirectional.only(end: 20),
               decoration: BoxDecoration(
                 color: Colors.red,
                 borderRadius: BorderRadius.circular(16),
@@ -1106,10 +1112,10 @@ class _SceneTabState extends State<SceneTab> {
             confirmDismiss: (_) async {
               return await AppDialog.confirm(
                 context,
-                title: 'Delete scene?',
-                message:
-                    'Are you sure you want to delete "${automation.name}"?',
-                confirmText: 'Delete',
+                title: AppL10n.of(context).deleteScene,
+                message: AppL10n.of(context)
+                    .deleteConfirmNamed(automation.name),
+                confirmText: AppL10n.of(context).delete,
                 destructive: true,
               );
             },
@@ -1150,7 +1156,7 @@ class _SceneTabState extends State<SceneTab> {
                               ),
                               const SizedBox(height: 5),
                               Text(
-                                '${automation.actions.length} tasks',
+                                AppL10n.of(context).taskCount(automation.actions.length),
                                 style: TextStyle(
                                   fontSize: 13.5,
                                   color: Colors.grey[600],
@@ -1276,7 +1282,7 @@ class _SceneTabState extends State<SceneTab> {
       }
       tiles.add(
         Padding(
-          padding: EdgeInsets.only(left: shown == 0 ? 0 : 6),
+          padding: EdgeInsetsDirectional.only(start: shown == 0 ? 0 : 6),
           child: _AutomationTile(child: child),
         ),
       );
@@ -1286,7 +1292,7 @@ class _SceneTabState extends State<SceneTab> {
     if (rest > 0) {
       tiles.add(
         Padding(
-          padding: const EdgeInsets.only(left: 6),
+          padding: const EdgeInsetsDirectional.only(start: 6),
           child: _AutomationTile(
             child: Text(
               '+$rest',
@@ -1321,7 +1327,7 @@ class _AddToSiriButton extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(4),
         // Bản nửa cỡ nhân thêm 30%: cao ~26.
-        child: const Padding(
+        child:  Padding(
           padding: EdgeInsets.fromLTRB(8, 5, 9, 5),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -1333,7 +1339,7 @@ class _AddToSiriButton extends StatelessWidget {
               ),
               SizedBox(width: 6),
               Text(
-                'Add to Siri',
+                AppL10n.of(context).addToSiri,
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 13,
@@ -1429,7 +1435,7 @@ class _TapToRunCard extends StatelessWidget {
             const SizedBox(height: 2),
             // Task count
             Text(
-              '${scene.actions.length} task${scene.actions.length != 1 ? 's' : ''}',
+              AppL10n.of(context).taskCount(scene.actions.length),
               style: TextStyle(
                 color: Colors.white.withAlpha(180),
                 fontSize: 12,
@@ -1454,9 +1460,9 @@ class MallTab extends StatelessWidget {
         children: [
           // Top right "..." button
           Align(
-            alignment: Alignment.topRight,
+            alignment: AlignmentDirectional.topEnd,
             child: Padding(
-              padding: const EdgeInsets.only(right: 16, top: 8),
+              padding: const EdgeInsetsDirectional.only(end: 16, top: 8),
               child: Icon(
                 Icons.more_horiz,
                 size: 24,
@@ -1476,7 +1482,7 @@ class MallTab extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 40),
             child: Text(
-              'The store is under preparation, please stay tuned.',
+              AppL10n.of(context).storeUnderPreparation,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 16,
@@ -1584,9 +1590,9 @@ class ProfileTab extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Third-Party Services',
-                  style: TextStyle(
+                Text(
+                  AppL10n.of(context).thirdPartyServices,
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: Colors.black87,
@@ -1613,8 +1619,8 @@ class ProfileTab extends StatelessWidget {
                               height: 44,
                             ),
                             const SizedBox(height: 8),
-                            const Text(
-                              'Alexa',
+                            Text(
+                              AppL10n.of(context).alexa,
                               style: TextStyle(
                                 fontSize: 14,
                                 color: Colors.black87,
@@ -1643,8 +1649,8 @@ class ProfileTab extends StatelessWidget {
                               height: 44,
                             ),
                             const SizedBox(height: 8),
-                            const Text(
-                              'Google Assistant',
+                            Text(
+                              AppL10n.of(context).googleAssistant,
                               style: TextStyle(
                                 fontSize: 14,
                                 color: Colors.black87,
@@ -1673,7 +1679,7 @@ class ProfileTab extends StatelessWidget {
               children: [
                 _buildMenuRow(
                   Icons.home_outlined,
-                  'Home Management',
+                  AppL10n.of(context).homeManagement,
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -1686,7 +1692,7 @@ class ProfileTab extends StatelessWidget {
                   animation: GetIt.instance<MessageCenter>()..ensureLoaded(),
                   builder: (context, _) => _buildMenuRow(
                     Icons.chat_outlined,
-                    'Message Center',
+                    AppL10n.of(context).messageCenter,
                     hasNotification:
                         GetIt.instance<MessageCenter>().unreadCount > 0,
                     onTap: () => Navigator.push(
@@ -1700,12 +1706,12 @@ class ProfileTab extends StatelessWidget {
                 _divider(),
                 _buildMenuRow(
                   Icons.help_outline,
-                  'FAQ & Feedback',
+                  AppL10n.of(context).faqFeedback,
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const InAppWebPage(
-                        title: 'FAQ & Feedback',
+                      builder: (_) => InAppWebPage(
+                        title: AppL10n.of(context).faqFeedback,
                         url: 'https://osprey.life/pages/contact',
                       ),
                     ),
@@ -1714,7 +1720,7 @@ class ProfileTab extends StatelessWidget {
                 _divider(),
                 _buildMenuRow(
                   Icons.storefront_outlined,
-                  'App Mall',
+                  AppL10n.of(context).appMall,
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(builder: (_) => const AppMallPage()),
@@ -1758,7 +1764,7 @@ class ProfileTab extends StatelessWidget {
               Container(
                 width: 8,
                 height: 8,
-                margin: const EdgeInsets.only(right: 8),
+                margin: const EdgeInsetsDirectional.only(end: 8),
                 decoration: const BoxDecoration(
                   color: Colors.red,
                   shape: BoxShape.circle,

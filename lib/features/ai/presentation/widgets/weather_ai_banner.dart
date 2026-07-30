@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/gen/app_l10n.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -38,7 +39,7 @@ class WeatherAiBanner extends StatelessWidget {
                   const SizedBox(width: 12),
                   TextButton(
                     onPressed: () => onApply?.call(r.position),
-                    child: const Text('Apply'),
+                    child: Text(AppL10n.of(context).apply),
                   ),
                 ],
               ),

@@ -1,4 +1,5 @@
 import 'dart:ui' show ImageFilter;
+import '../../../../l10n/gen/app_l10n.dart';
 
 import 'package:flutter/material.dart';
 
@@ -190,7 +191,7 @@ class _ManageHomeRow extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       borderRadius: const BorderRadius.all(Radius.circular(24)),
-      child: const Padding(
+      child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 24, vertical: 18),
         child: Row(
           children: [
@@ -199,7 +200,7 @@ class _ManageHomeRow extends StatelessWidget {
               child: Icon(Icons.tune_rounded, color: Colors.black87, size: 24),
             ),
             Text(
-              'Home Management',
+              AppL10n.of(context).homeManagement,
               style: TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.w500,

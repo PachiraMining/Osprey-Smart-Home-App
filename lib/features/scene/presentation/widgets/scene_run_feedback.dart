@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/gen/app_l10n.dart';
 
 import '../../../../core/widgets/app_popup.dart';
 
@@ -14,7 +15,7 @@ Future<void> showSceneRunFeedback({
   required String sceneName,
   required Future<bool> Function() run,
 }) async {
-  AppPopup.loading(context, title: 'Running', message: sceneName);
+  AppPopup.loading(context, title: AppL10n.of(context).running, message: sceneName);
 
   final ok = await run();
   if (!context.mounted) return;
@@ -25,14 +26,14 @@ Future<void> showSceneRunFeedback({
   if (ok) {
     AppPopup.success(
       context,
-      title: 'Done',
-      message: '"$sceneName" executed',
+      title: AppL10n.of(context).done,
+      message: AppL10n.of(context).sceneExecuted(sceneName),
     );
   } else {
     AppPopup.error(
       context,
-      title: 'Failed',
-      message: 'Could not run "$sceneName". Please try again.',
+      title: AppL10n.of(context).failed,
+      message: AppL10n.of(context).couldNotRunScene(sceneName),
     );
   }
 }

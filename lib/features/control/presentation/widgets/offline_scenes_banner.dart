@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../domain/entities/cloud_health.dart';
 import '../bloc/cloud_health_cubit.dart';
+import '../../../../l10n/gen/app_l10n.dart';
 
 /// Banner cảnh báo trên màn Smart Scenes khi cloud-down — Smart Scenes
 /// (Tap-to-run + schedules) chỉ chạy khi backend online (backend note §2).
@@ -33,9 +34,9 @@ class OfflineScenesBanner extends StatelessWidget {
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children:  [
                     Text(
-                      'Smart Scenes require internet',
+                      AppL10n.of(context).smartScenesRequireInternet,
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
@@ -44,9 +45,7 @@ class OfflineScenesBanner extends StatelessWidget {
                     ),
                     SizedBox(height: 2),
                     Text(
-                      'Scenes and schedules pause until your WiFi is back. '
-                      'Local Bluetooth control still works for direct '
-                      'open/close/stop on each device.',
+                      AppL10n.of(context).offlineScenesBody,
                       style: TextStyle(
                         fontSize: 12,
                         color: Color(0xFF92400E),

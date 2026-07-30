@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:network_info_plus/network_info_plus.dart';
 
 import '../../../../core/config/app_config.dart';
+import '../../../../l10n/gen/app_l10n.dart';
 import '../../../../core/network/api_endpoints.dart';
 import '../../../control/domain/entities/transport_state.dart';
 import '../../../control/domain/repositories/transport_router.dart';
@@ -48,6 +49,7 @@ class _NetworkDiagnosisPageState extends State<NetworkDiagnosisPage> {
 
   Future<void> _run() async {
     if (_running) return;
+    final l10n = AppL10n.of(context);
     setState(() {
       _running = true;
       _results.clear();
@@ -60,21 +62,22 @@ class _NetworkDiagnosisPageState extends State<NetworkDiagnosisPage> {
       final ssid = await NetworkInfo().getWifiName();
       final clean = (ssid ?? '').replaceAll('"', '');
       _push(clean.isEmpty
-          ? const _CheckResult('Local network', _CheckState.warn,
-              'Not on Wi-Fi (mobile data or permission denied)')
-          : _CheckResult('Local network', _CheckState.pass, clean));
+          ? _CheckResult(l10n.diagLocalNetwork, _CheckState.warn,
+              l10n.diagLocalNetworkNoWifi)
+          : _CheckResult(l10n.diagLocalNetwork, _CheckState.pass, clean));
     } catch (e) {
-      _push(const _CheckResult(
-          'Local network', _CheckState.warn, 'Could not read Wi-Fi name'));
+      _push(_CheckResult(l10n.diagLocalNetwork, _CheckState.warn,
+          l10n.diagLocalNetworkUnreadable));
     }
 
     // 2. Phân giải tên miền
     try {
       final addresses = await InternetAddress.lookup(host);
-      _push(_CheckResult('DNS lookup', _CheckState.pass,
+      _push(_CheckResult(l10n.diagDnsLookup, _CheckState.pass,
           addresses.map((a) => a.address).join(', ')));
     } catch (e) {
-      _push(_CheckResult('DNS lookup', _CheckState.fail, 'Cannot resolve $host'));
+      _push(_CheckResult(
+          l10n.diagDnsLookup, _CheckState.fail, l10n.diagDnsFailed(host)));
       _finish();
       return;
     }
@@ -87,12 +90,15 @@ class _NetworkDiagnosisPageState extends State<NetworkDiagnosisPage> {
           .timeout(const Duration(seconds: 8));
       sw.stop();
       // Bất kỳ phản hồi HTTP nào cũng chứng minh đã tới được server.
-      _push(_CheckResult('Server reachable', _CheckState.pass,
-          '${sw.elapsedMilliseconds} ms · HTTP ${res.statusCode}'));
+      _push(_CheckResult(
+          l10n.diagServerReachable,
+          _CheckState.pass,
+          l10n.diagServerLatency(
+              '${sw.elapsedMilliseconds}', '${res.statusCode}')));
     } catch (e) {
       sw.stop();
-      _push(const _CheckResult(
-          'Server reachable', _CheckState.fail, 'No response from server'));
+      _push(_CheckResult(l10n.diagServerReachable, _CheckState.fail,
+          l10n.diagServerNoResponse));
       _finish();
       return;
     }
@@ -107,28 +113,29 @@ class _NetworkDiagnosisPageState extends State<NetworkDiagnosisPage> {
           )
           .timeout(const Duration(seconds: 8));
       _push(res.statusCode == 200
-          ? const _CheckResult('Signed in', _CheckState.pass, 'Session valid')
-          : _CheckResult('Signed in', _CheckState.fail,
-              'HTTP ${res.statusCode} — please sign in again'));
+          ? _CheckResult(
+              l10n.diagSignedIn, _CheckState.pass, l10n.diagSessionValid)
+          : _CheckResult(l10n.diagSignedIn, _CheckState.fail,
+              l10n.diagSessionInvalid('${res.statusCode}')));
     } catch (e) {
-      _push(const _CheckResult(
-          'Signed in', _CheckState.warn, 'Could not verify session'));
+      _push(_CheckResult(
+          l10n.diagSignedIn, _CheckState.warn, l10n.diagSessionUnverified));
     }
 
     // 5. Kênh điều khiển thiết bị (cloud MQTT hay BLE dự phòng)
     try {
       final transport = GetIt.instance<TransportRouter>().currentTransport;
       _push(switch (transport) {
-        TransportState.cloud => const _CheckResult(
-            'Control channel', _CheckState.pass, 'Cloud (MQTT) connected'),
-        TransportState.bleFallback => const _CheckResult('Control channel',
-            _CheckState.warn, 'Cloud down — using Bluetooth fallback'),
-        TransportState.unreachable => const _CheckResult('Control channel',
-            _CheckState.fail, 'No cloud and no Bluetooth in range'),
+        TransportState.cloud => _CheckResult(l10n.diagControlChannel,
+            _CheckState.pass, l10n.diagCloudConnected),
+        TransportState.bleFallback => _CheckResult(l10n.diagControlChannel,
+            _CheckState.warn, l10n.diagBleFallback),
+        TransportState.unreachable => _CheckResult(l10n.diagControlChannel,
+            _CheckState.fail, l10n.diagUnreachable),
       });
     } catch (e) {
-      _push(const _CheckResult(
-          'Control channel', _CheckState.warn, 'Status unknown'));
+      _push(_CheckResult(
+          l10n.diagControlChannel, _CheckState.warn, l10n.diagStatusUnknown));
     }
 
     _finish();
@@ -151,8 +158,9 @@ class _NetworkDiagnosisPageState extends State<NetworkDiagnosisPage> {
           icon: const Icon(Icons.arrow_back_ios_new, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Network Diagnosis',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+        title: Text(AppL10n.of(context).networkDiagnosis,
+            style:
+                const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
@@ -192,8 +200,9 @@ class _NetworkDiagnosisPageState extends State<NetworkDiagnosisPage> {
                 ),
               ),
               onPressed: _running ? null : _run,
-              child: const Text('Run Again',
-                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
+              child: Text(AppL10n.of(context).runAgain,
+                  style: const TextStyle(
+                      fontSize: 17, fontWeight: FontWeight.w500)),
             ),
           ),
         ],

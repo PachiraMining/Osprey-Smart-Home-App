@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/gen/app_l10n.dart';
 
 import '../../../../core/widgets/app_pull_refresh.dart';
 
@@ -69,7 +70,7 @@ class _DeviceNetworkPageState extends State<DeviceNetworkPage> {
     } catch (_) {
       if (!mounted) return;
       setState(() {
-        _loadError = 'Could not load network details. Pull to refresh.';
+        _loadError = AppL10n.of(context).couldNotLoadNetworkDetails;
         _loading = false;
       });
     }
@@ -78,15 +79,14 @@ class _DeviceNetworkPageState extends State<DeviceNetworkPage> {
   // ─── Switch flow ─────────────────────────────────────────────
   Future<void> _onSwitchTap(SavedWifiNetwork net) async {
     if (net.active) {
-      _snack('Already on this network.');
+      _snack(AppL10n.of(context).alreadyOnThisNetwork);
       return;
     }
     final confirmed = await AppDialog.confirm(
       context,
       title: "Switch to '${net.ssid}'?",
-      message: 'The device will disconnect from its current WiFi and try to join '
-          'the new one. This usually takes 5–30 seconds.',
-      confirmText: 'Switch',
+      message: AppL10n.of(context).switchNetworkWarning,
+      confirmText: AppL10n.of(context).switchNetwork,
     );
     if (!confirmed || !mounted) return;
 
@@ -128,7 +128,7 @@ class _DeviceNetworkPageState extends State<DeviceNetworkPage> {
         await _showTimeoutDialog();
         break;
       case WifiSwitchOutcome.offline:
-        _snack('Device is offline — please try again later.');
+        _snack(AppL10n.of(context).deviceOfflineTryLater);
         break;
     }
   }
@@ -138,26 +138,25 @@ class _DeviceNetworkPageState extends State<DeviceNetworkPage> {
     final reason = _reasonText(result.reason);
     final stayedOn = result.currentSsid ?? net.ssid;
     final tip = result.reason == 'no_ap_found'
-        ? "\n\nMake sure '${net.ssid}' is on and within range."
+        ? AppL10n.of(context).makeSureNetworkInRange(net.ssid)
         : '';
     await AppDialog.alert(
       context,
-      title: 'Could not connect',
-      message: "The device couldn't connect to '${net.ssid}'.\n\n"
-          'Reason: $reason\n\n'
-          "The device is still on '$stayedOn'.$tip",
-      buttonText: 'Got it',
+      title: AppL10n.of(context).couldNotConnect,
+      message: AppL10n.of(context)
+              .deviceCouldNotConnectTo(net.ssid, reason, stayedOn) +
+          tip,
+      buttonText: AppL10n.of(context).gotIt,
     );
   }
 
   Future<void> _showTimeoutDialog() async {
     final refresh = await AppDialog.confirm(
       context,
-      title: 'Timed out',
-      message: "We didn't get a response from the device. Refresh in a moment to "
-          'see its current status.',
-      confirmText: 'Refresh',
-      cancelText: 'Got it',
+      title: AppL10n.of(context).timedOut,
+      message: AppL10n.of(context).noResponseFromDevice,
+      confirmText: AppL10n.of(context).refresh,
+      cancelText: AppL10n.of(context).gotIt,
     );
     if (refresh) await _load();
   }
@@ -166,9 +165,9 @@ class _DeviceNetworkPageState extends State<DeviceNetworkPage> {
   String _reasonText(String? reason) {
     switch (reason) {
       case 'auth_failure':
-        return 'Wrong password';
+        return AppL10n.of(context).wrongPassword;
       case 'no_ap_found':
-        return 'Network not found';
+        return AppL10n.of(context).networkNotFound;
       case 'dhcp_timeout':
         return "Couldn't get an IP address";
       default:
@@ -181,15 +180,15 @@ class _DeviceNetworkPageState extends State<DeviceNetworkPage> {
     final confirmed = await AppDialog.confirm(
       context,
       title: "Remove '${net.ssid}'?",
-      message: 'This saved network will be removed from the device.',
-      confirmText: 'Delete',
+      message: AppL10n.of(context).thisSavedNetworkWillBeRemovedFromTheDevice,
+      confirmText: AppL10n.of(context).delete,
       destructive: true,
     );
     if (!confirmed || !mounted) return;
     try {
       await _ds.deleteWifi(_deviceId, net.id);
       if (!mounted) return;
-      _snack('Network removed.', success: true);
+      _snack(AppL10n.of(context).networkRemoved, success: true);
       await _load();
     } on DeviceWifiException catch (e) {
       if (!mounted) return;
@@ -218,7 +217,7 @@ class _DeviceNetworkPageState extends State<DeviceNetworkPage> {
             if (!net.active)
               ListTile(
                 leading: const Icon(Icons.swap_horiz, color: AppColors.primary),
-                title: const Text('Switch to this network'),
+                title: Text(AppL10n.of(context).switchToThisNetwork),
                 onTap: () {
                   Navigator.pop(sheetCtx);
                   _onSwitchTap(net);
@@ -226,7 +225,7 @@ class _DeviceNetworkPageState extends State<DeviceNetworkPage> {
               ),
             ListTile(
               leading: const Icon(Icons.delete_outline, color: AppColors.error),
-              title: const Text('Delete',
+              title: Text(AppL10n.of(context).delete,
                   style: TextStyle(color: AppColors.error)),
               onTap: () {
                 Navigator.pop(sheetCtx);
@@ -275,8 +274,8 @@ class _DeviceNetworkPageState extends State<DeviceNetworkPage> {
               const Icon(Icons.arrow_back_ios, size: 20, color: Colors.black87),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Network',
+        title:  Text(
+          AppL10n.of(context).network,
           style: TextStyle(
               fontSize: 17, fontWeight: FontWeight.w600, color: Colors.black87),
         ),
@@ -303,15 +302,15 @@ class _DeviceNetworkPageState extends State<DeviceNetworkPage> {
             _errorBanner(_loadError!),
             const SizedBox(height: 16),
           ],
-          _sectionHeader('Connected to'),
+          _sectionHeader(AppL10n.of(context).connectedTo),
           _card(child: _connectedCard()),
           const SizedBox(height: 24),
-          _sectionHeader('Saved networks'),
+          _sectionHeader(AppL10n.of(context).savedNetworks),
           if (_networks.isEmpty)
             _card(
-              child: const Padding(
+              child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-                child: Text('No saved networks yet.',
+                child: Text(AppL10n.of(context).noSavedNetworksYet,
                     style: TextStyle(fontSize: 14, color: AppColors.textMuted)),
               ),
             )
@@ -322,14 +321,14 @@ class _DeviceNetworkPageState extends State<DeviceNetworkPage> {
             child: InkWell(
               onTap: _onAddTap,
               borderRadius: BorderRadius.circular(14),
-              child: const Padding(
+              child:  Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 18),
                 child: Row(
                   children: [
                     Icon(Icons.add, color: AppColors.primary, size: 20),
                     SizedBox(width: 8),
                     Text(
-                      'Add a network',
+                      AppL10n.of(context).addANetwork,
                       style: TextStyle(
                           fontSize: 15.5,
                           fontWeight: FontWeight.w600,
@@ -365,7 +364,7 @@ class _DeviceNetworkPageState extends State<DeviceNetworkPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  hasSsid ? ssid : 'Not connected',
+                  hasSsid ? ssid : AppL10n.of(context).notConnected,
                   style: TextStyle(
                     fontSize: 15.5,
                     fontWeight: FontWeight.w600,
@@ -441,12 +440,12 @@ class _DeviceNetworkPageState extends State<DeviceNetworkPage> {
             ),
             const SizedBox(width: 8),
             if (net.active)
-              const Row(
+              Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(Icons.check_circle, size: 18, color: AppColors.success),
                   SizedBox(width: 4),
-                  Text('Connected',
+                  Text(AppL10n.of(context).connected,
                       style: TextStyle(
                           fontSize: 13.5,
                           fontWeight: FontWeight.w600,
@@ -464,7 +463,7 @@ class _DeviceNetworkPageState extends State<DeviceNetworkPage> {
                       borderRadius: BorderRadius.circular(18)),
                 ),
                 onPressed: () => _onSwitchTap(net),
-                child: const Text('Switch',
+                child: Text(AppL10n.of(context).switchNetwork,
                     style: TextStyle(
                         fontSize: 13.5, fontWeight: FontWeight.w600)),
               ),
@@ -500,8 +499,8 @@ class _DeviceNetworkPageState extends State<DeviceNetworkPage> {
                       color: AppColors.textPrimary),
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  'Please keep the app open.',
+                 Text(
+                  AppL10n.of(context).pleaseKeepAppOpen,
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 13, color: AppColors.textMuted),
                 ),
@@ -535,7 +534,7 @@ class _DeviceNetworkPageState extends State<DeviceNetworkPage> {
       );
 
   Widget _sectionHeader(String text) => Padding(
-        padding: const EdgeInsets.only(left: 4, bottom: 8, top: 4),
+        padding: const EdgeInsetsDirectional.only(start: 4, bottom: 8, top: 4),
         child: Text(text,
             style: const TextStyle(fontSize: 13, color: AppColors.textMuted)),
       );
@@ -562,7 +561,7 @@ class _SignalBars extends StatelessWidget {
       children: List.generate(4, (i) {
         final filled = i < level;
         return Container(
-          margin: const EdgeInsets.only(left: 3),
+          margin: const EdgeInsetsDirectional.only(start: 3),
           width: 5,
           height: 6.0 + i * 4,
           decoration: BoxDecoration(

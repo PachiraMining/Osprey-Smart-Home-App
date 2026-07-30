@@ -1,4 +1,5 @@
 import 'dart:convert';
+import '../../../../l10n/gen/app_l10n.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -125,16 +126,16 @@ class _WeatherLocationPickerPageState
           onPressed: () => Navigator.pop(context),
         ),
         centerTitle: true,
-        title: const Text(
-          'Location',
+        title: Text(
+          AppL10n.of(context).location,
           style: TextStyle(
               fontSize: 18, fontWeight: FontWeight.w600, color: Colors.black87),
         ),
         actions: [
           TextButton(
             onPressed: _confirm,
-            child: const Text(
-              'Confirm',
+            child: Text(
+              AppL10n.of(context).confirm,
               style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
@@ -201,7 +202,7 @@ class _WeatherLocationPickerPageState
                     textInputAction: TextInputAction.search,
                     onSubmitted: _runSearch,
                     decoration: InputDecoration(
-                      hintText: 'Search address',
+                      hintText: AppL10n.of(context).searchAddress,
                       hintStyle: TextStyle(color: Colors.grey.shade400),
                       prefixIcon:
                           Icon(Icons.search, color: Colors.grey.shade500),
@@ -291,15 +292,15 @@ class _WeatherLocationPickerPageState
             ),
 
           // Use current location
-          Positioned(
-            right: 16,
+          PositionedDirectional(
+            end: 16,
             bottom: 28,
             child: FloatingActionButton.small(
               heroTag: 'weather-loc-gps',
               backgroundColor: Colors.white,
               foregroundColor: AppColors.primary,
               onPressed: _useCurrentLocation,
-              tooltip: 'Use current location',
+              tooltip: AppL10n.of(context).useCurrentLocation,
               child: const Icon(Icons.my_location),
             ),
           ),

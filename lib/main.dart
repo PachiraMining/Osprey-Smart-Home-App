@@ -13,6 +13,8 @@ import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'core/config/app_config.dart';
+import 'core/settings/app_settings_store.dart';
+import 'l10n/gen/app_l10n.dart';
 import 'core/di/injector.dart';
 import 'core/base/bloc_observer.dart';
 import 'core/auth/session_manager.dart';
@@ -142,8 +144,8 @@ class _SmartAppState extends State<SmartApp> {
     _messengerKey.currentState
       ?..hideCurrentSnackBar()
       ..showSnackBar(
-        const SnackBar(
-          content: Text('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.'),
+        SnackBar(
+          content: Text(AppL10n.of(context).sessionExpiredSignInAgain),
         ),
       );
     navigator.pushAndRemoveUntil(
@@ -160,6 +162,13 @@ class _SmartAppState extends State<SmartApp> {
 
   @override
   Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: GetIt.instance<AppSettingsStore>(),
+      builder: (context, _) => _buildApp(),
+    );
+  }
+
+  Widget _buildApp() {
     return MultiBlocProvider(
       providers: [
         // KHÔNG dispatch LoadHomesEvent ở provider create (từng gây double-load).
@@ -212,6 +221,10 @@ class _SmartAppState extends State<SmartApp> {
           title: 'osprey.life',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.light,
+          // Ngôn ngữ: null = theo hệ thống (AppSettingsStore quyết định).
+          locale: GetIt.instance<AppSettingsStore>().locale,
+          localizationsDelegates: AppL10n.localizationsDelegates,
+          supportedLocales: AppL10n.supportedLocales,
           navigatorKey: _navigatorKey,
           scaffoldMessengerKey: _messengerKey,
           home: const SmartSplashScreen(),

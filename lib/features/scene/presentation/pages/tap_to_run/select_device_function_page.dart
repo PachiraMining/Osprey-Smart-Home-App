@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../../l10n/gen/app_l10n.dart';
 import 'package:get_it/get_it.dart';
 import 'package:smart_curtain_app/features/scene/domain/entities/data_point_entity.dart';
 import 'package:smart_curtain_app/features/scene/domain/entities/scene_action_entity.dart';
@@ -62,7 +63,7 @@ class _SelectDeviceFunctionPageState extends State<SelectDeviceFunctionPage> {
     // Find the last selected function and return it
     if (_selectedValues.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a function')),
+        SnackBar(content: Text(AppL10n.of(context).pleaseSelectAFunction)),
       );
       return;
     }
@@ -87,8 +88,8 @@ class _SelectDeviceFunctionPageState extends State<SelectDeviceFunctionPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6FA),
       appBar: AppBar(
-        title: const Text(
-          'Select Function',
+        title:  Text(
+          AppL10n.of(context).selectFunction,
           style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
         ),
         centerTitle: true,
@@ -99,7 +100,7 @@ class _SelectDeviceFunctionPageState extends State<SelectDeviceFunctionPage> {
           TextButton(
             onPressed: _selectedValues.isNotEmpty ? _onNext : null,
             child: Text(
-              'Next',
+              AppL10n.of(context).next,
               style: TextStyle(
                 color: _selectedValues.isNotEmpty
                     ? const Color(0xFF1B4332)
@@ -122,13 +123,13 @@ class _SelectDeviceFunctionPageState extends State<SelectDeviceFunctionPage> {
                       const SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: _loadDataPoints,
-                        child: const Text('Retry'),
+                        child: Text(AppL10n.of(context).retry),
                       ),
                     ],
                   ),
                 )
               : _dataPoints == null || _dataPoints!.isEmpty
-                  ? const Center(child: Text('No functions available'))
+                  ? Center(child: Text(AppL10n.of(context).noFunctionsAvailable))
                   : ListView.separated(
                       itemCount: _dataPoints!.length,
                       separatorBuilder: (_, __) => Divider(
@@ -200,9 +201,9 @@ class _SelectDeviceFunctionPageState extends State<SelectDeviceFunctionPage> {
                     style: TextStyle(fontSize: 15, color: Colors.grey.shade500),
                   ),
                 ),
-                _radioRow('On', true, selected, (v) => setLocal(() => selected = v)),
+                _radioRow(AppL10n.of(context).on, true, selected, (v) => setLocal(() => selected = v)),
                 Divider(height: 1, color: Colors.grey.shade200),
-                _radioRow('Off', false, selected, (v) => setLocal(() => selected = v)),
+                _radioRow(AppL10n.of(context).off, false, selected, (v) => setLocal(() => selected = v)),
                 const SizedBox(height: 16),
                 _bottomButtons(ctx, () => selected),
               ],
@@ -395,7 +396,7 @@ class _SelectDeviceFunctionPageState extends State<SelectDeviceFunctionPage> {
                   maxLength: maxLen,
                   autofocus: true,
                   decoration: InputDecoration(
-                    hintText: 'Enter value...',
+                    hintText: AppL10n.of(context).enterValue,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -469,8 +470,8 @@ class _SelectDeviceFunctionPageState extends State<SelectDeviceFunctionPage> {
           Expanded(
             child: TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text(
-                'Cancel',
+              child: Text(
+                AppL10n.of(context).cancel,
                 style: TextStyle(fontSize: 16, color: Colors.black54),
               ),
             ),
@@ -482,8 +483,8 @@ class _SelectDeviceFunctionPageState extends State<SelectDeviceFunctionPage> {
                 final val = getValue();
                 if (val != null) Navigator.pop(ctx, val);
               },
-              child: const Text(
-                'Save',
+              child: Text(
+                AppL10n.of(context).save,
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -530,7 +531,7 @@ class _FunctionRow extends StatelessWidget {
               ),
               if (selectedValue != null)
                 Padding(
-                  padding: const EdgeInsets.only(right: 8),
+                  padding: const EdgeInsetsDirectional.only(end: 8),
                   child: Text(
                     '$selectedValue',
                     style: TextStyle(fontSize: 14, color: Colors.grey.shade500),

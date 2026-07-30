@@ -1,12 +1,21 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/gen/app_l10n.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/liquid_glass.dart';
 import '../../domain/entities/automation_suggestion.dart';
 import '../bloc/ai_suggestion_bloc.dart';
 
-const _weekdayShort = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+/// Tên thứ viết tắt theo locale đang dùng. `weekday` là 1=Mon..7=Sun như
+/// `DateTime.weekday`.
+String _weekdayShort(BuildContext context, int weekday) {
+  // 2024-01-01 là thứ Hai, nên cộng offset ra đúng thứ cần hiển thị.
+  final day = DateTime(2024, 1, weekday);
+  return DateFormat.E(Localizations.localeOf(context).toLanguageTag())
+      .format(day);
+}
 
 class AiSuggestionCard extends StatelessWidget {
   final ValueChanged<AutomationSuggestion>? onAccept;
@@ -20,7 +29,8 @@ class AiSuggestionCard extends StatelessWidget {
         if (state is! AiSuggestionsLoaded) return const SizedBox.shrink();
         final top = state.suggestions.first;
         final theme = Theme.of(context);
-        final weekday = _weekdayShort[(top.weekdays.first - 1).clamp(0, 6)];
+        final weekday =
+            _weekdayShort(context, top.weekdays.first.clamp(1, 7));
         return Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
           child: LiquidGlass(
@@ -35,7 +45,7 @@ class AiSuggestionCard extends StatelessWidget {
                     children: [
                       const Text('✨ ', style: TextStyle(fontSize: 18)),
                       Text(
-                        'AI Suggestion',
+                        AppL10n.of(context).aiSuggestion,
                         style: theme.textTheme.titleSmall?.copyWith(
                           color: AppColors.primary,
                         ),
@@ -44,26 +54,26 @@ class AiSuggestionCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'You usually run "${top.action}" at $weekday ${top.hour.toString().padLeft(2, '0')}:00 — '
-                    'automate it?',
+                    AppL10n.of(context).aiSuggestionBody(top.action, weekday,
+                        top.hour.toString().padLeft(2, '0')),
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${top.occurrences} times in 30 days',
+                    AppL10n.of(context).occurrencesIn30Days(top.occurrences),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: AppColors.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 12),
                   Align(
-                    alignment: Alignment.centerRight,
+                    alignment: AlignmentDirectional.centerEnd,
                     child: FilledButton.tonalIcon(
                       onPressed: () => onAccept?.call(top),
                       icon: const Icon(Icons.auto_awesome),
-                      label: const Text('Create scene'),
+                      label: Text(AppL10n.of(context).createScene2),
                     ),
                   ),
                 ],

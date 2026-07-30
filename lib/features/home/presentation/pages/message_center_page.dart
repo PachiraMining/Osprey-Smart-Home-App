@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/gen/app_l10n.dart';
 import 'package:get_it/get_it.dart';
 
 import '../../../../core/notifications/message_center.dart';
 import '../../../../core/theme/app_colors.dart';
+import 'package:intl/intl.dart';
 
 /// Tuya-style in-app notification feed: events grouped by day, card per event
 /// with an icon tile, bold title, "HH:mm:ss | message" body, home footer and
@@ -17,10 +19,6 @@ class MessageCenterPage extends StatefulWidget {
 class _MessageCenterPageState extends State<MessageCenterPage> {
   final MessageCenter _center = GetIt.instance<MessageCenter>();
 
-  static const _months = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December',
-  ];
 
   @override
   void initState() {
@@ -48,8 +46,8 @@ class _MessageCenterPageState extends State<MessageCenterPage> {
           onPressed: () => Navigator.pop(context),
         ),
         centerTitle: true,
-        title: const Text(
-          'Message Center',
+        title:  Text(
+          AppL10n.of(context).messageCenter,
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -58,7 +56,7 @@ class _MessageCenterPageState extends State<MessageCenterPage> {
         ),
         actions: [
           IconButton(
-            tooltip: 'Mark all as read',
+            tooltip: AppL10n.of(context).markAllAsRead,
             icon: const Icon(Icons.checklist_rtl,
                 size: 22, color: Colors.black87),
             onPressed: _center.markAllRead,
@@ -78,7 +76,7 @@ class _MessageCenterPageState extends State<MessageCenterPage> {
                       size: 56, color: Colors.grey.shade400),
                   const SizedBox(height: 14),
                   Text(
-                    'No notifications yet',
+                    AppL10n.of(context).noNotificationsYet,
                     style:
                         TextStyle(fontSize: 15, color: Colors.grey.shade600),
                   ),
@@ -96,7 +94,8 @@ class _MessageCenterPageState extends State<MessageCenterPage> {
               currentDay = day;
               children.add(_DayHeader(
                 day: m.time.day,
-                month: _months[m.time.month - 1],
+                month: DateFormat.MMMM(Localizations.localeOf(context).toLanguageTag())
+                    .format(m.time),
               ));
             }
             children.add(_MessageCard(message: m));
@@ -219,7 +218,7 @@ class _MessageCard extends StatelessWidget {
             Container(
               width: 8,
               height: 8,
-              margin: const EdgeInsets.only(left: 6, top: 2),
+              margin: const EdgeInsetsDirectional.only(start: 6, top: 2),
               decoration: const BoxDecoration(
                 color: Colors.red,
                 shape: BoxShape.circle,

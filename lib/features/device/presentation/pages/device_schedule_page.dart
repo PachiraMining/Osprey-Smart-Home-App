@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/gen/app_l10n.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 
@@ -123,9 +124,9 @@ class _DeviceSchedulePageState extends State<DeviceSchedulePage> {
   Future<void> _delete(AutomationSceneEntity schedule) async {
     final confirmed = await AppDialog.confirm(
       context,
-      title: 'Delete Schedule',
-      message: 'Delete this schedule?',
-      confirmText: 'Delete',
+      title: AppL10n.of(context).deleteSchedule,
+      message: AppL10n.of(context).deleteThisSchedule,
+      confirmText: AppL10n.of(context).delete,
       destructive: true,
     );
     if (!confirmed || !mounted) return;
@@ -152,8 +153,8 @@ class _DeviceSchedulePageState extends State<DeviceSchedulePage> {
           icon: const Icon(Icons.arrow_back_ios_new, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Schedule',
+        title: Text(
+          AppL10n.of(context).schedule,
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
         ),
       ),
@@ -169,11 +170,11 @@ class _DeviceSchedulePageState extends State<DeviceSchedulePage> {
                 color: Colors.white,
                 child: InkWell(
                   onTap: _openEditor,
-                  child: const Padding(
+                  child:  Padding(
                     padding: EdgeInsets.symmetric(vertical: 18),
                     child: Center(
                       child: Text(
-                        'Add Schedule',
+                        AppL10n.of(context).addSchedule,
                         style:
                             TextStyle(fontSize: 17, color: Colors.black87),
                       ),
@@ -192,7 +193,7 @@ class _DeviceSchedulePageState extends State<DeviceSchedulePage> {
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 14, 20, 12),
           child: Text(
-            'Time variance is  ±30s',
+            AppL10n.of(context).timeVarianceHint,
             style: TextStyle(fontSize: 15, color: Colors.grey.shade600),
           ),
         ),
@@ -231,11 +232,13 @@ class _ScheduleRow extends StatelessWidget {
     required this.onDelete,
   });
 
-  static const _controlLabels = {
-    'open': 'Open',
-    'stop': 'Stop',
-    'close': 'Close',
-  };
+  /// `dpValue` từ server -> nhãn hiển thị theo ngôn ngữ.
+  static String _controlLabel(String? dpValue, AppL10n l10n) => switch (dpValue) {
+        'open' => l10n.open,
+        'stop' => l10n.stop,
+        'close' => l10n.close,
+        _ => dpValue ?? '',
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -243,10 +246,10 @@ class _ScheduleRow extends StatelessWidget {
     final time = condition?.time ?? '--:--';
     final repeat = condition == null
         ? ''
-        : (condition.isOneTime ? 'Once' : condition.displayLoops);
+        : (condition.isOneTime ? AppL10n.of(context).once : condition.displayLoops);
     final raw =
         schedule.actions.firstOrNull?.executorProperty?['dpValue'] as String?;
-    final control = _controlLabels[raw] ?? raw ?? '';
+    final control = _controlLabel(raw, AppL10n.of(context));
 
     return Dismissible(
       key: ValueKey(schedule.id),
@@ -257,8 +260,8 @@ class _ScheduleRow extends StatelessWidget {
       },
       background: Container(
         color: Colors.red,
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
+        alignment: AlignmentDirectional.centerEnd,
+        padding: const EdgeInsetsDirectional.only(end: 20),
         child: const Icon(Icons.delete, color: Colors.white),
       ),
       child: InkWell(
@@ -323,7 +326,7 @@ class _EmptyState extends StatelessWidget {
           Icon(Icons.inbox_outlined, size: 64, color: Colors.grey.shade400),
           const SizedBox(height: 12),
           Text(
-            'No timer data',
+            AppL10n.of(context).noTimerData,
             style: TextStyle(fontSize: 17, color: Colors.grey.shade600),
           ),
           const SizedBox(height: 28),
@@ -340,8 +343,8 @@ class _EmptyState extends StatelessWidget {
                 ),
               ),
               onPressed: onAdd,
-              child: const Text(
-                'Add',
+              child: Text(
+                AppL10n.of(context).add,
                 style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500),
               ),
             ),

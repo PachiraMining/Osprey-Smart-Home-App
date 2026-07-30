@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/gen/app_l10n.dart';
 
 /// Chọn ngày lặp cho một lịch hẹn giờ.
 ///
@@ -18,15 +19,15 @@ class _ScheduleRepeatPageState extends State<ScheduleRepeatPage> {
 
   /// Thứ tự hiển thị bắt đầu từ Chủ nhật, nhưng `loops` lại bắt đầu từ Thứ hai
   /// → mỗi dòng mang sẵn chỉ số của nó trong `loops`.
-  static const _rows = <(String, int)>[
-    ('Sun.', 6),
-    ('Mon.', 0),
-    ('Tues.', 1),
-    ('Wed.', 2),
-    ('Thurs.', 3),
-    ('Fri.', 4),
-    ('Sat.', 5),
-  ];
+  static List<(String, int)> _rowsFor(AppL10n l10n) => <(String, int)>[
+        (l10n.daySunShort, 6),
+        (l10n.dayMonShort, 0),
+        (l10n.dayTueShort, 1),
+        (l10n.dayWedShort, 2),
+        (l10n.dayThuShort, 3),
+        (l10n.dayFriShort, 4),
+        (l10n.daySatShort, 5),
+      ];
 
   late List<bool> _selected;
 
@@ -59,8 +60,8 @@ class _ScheduleRepeatPageState extends State<ScheduleRepeatPage> {
             icon: const Icon(Icons.arrow_back_ios_new, size: 20),
             onPressed: () => Navigator.pop(context, _loops),
           ),
-          title: const Text(
-            'Repeat',
+          title: Text(
+            AppL10n.of(context).repeat,
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
           ),
         ),
@@ -70,8 +71,7 @@ class _ScheduleRepeatPageState extends State<ScheduleRepeatPage> {
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 14),
               child: Text(
-                'The action will be carried out only once if you do not '
-                'select it.',
+                AppL10n.of(context).runOnceIfNoDayPicked,
                 style: TextStyle(fontSize: 15, color: Colors.grey.shade600),
               ),
             ),
@@ -79,7 +79,7 @@ class _ScheduleRepeatPageState extends State<ScheduleRepeatPage> {
               color: Colors.white,
               child: Column(
                 children: [
-                  for (final (label, index) in _rows)
+                  for (final (label, index) in _rowsFor(AppL10n.of(context)))
                     InkWell(
                       onTap: () => setState(
                           () => _selected[index] = !_selected[index]),

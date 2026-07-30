@@ -7,6 +7,7 @@ import '../../../../core/config/app_config.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../l10n/gen/app_l10n.dart';
 
 /// Nút back vuông bo góc dùng chung cho các màn auth.
 class AuthBackButton extends StatelessWidget {
@@ -75,7 +76,7 @@ class AgreementRow extends StatelessWidget {
               GestureDetector(
                 onTap: () => launchUrl(Uri.parse(AppConfig.privacyPolicyUrl)),
                 child: Text(
-                  'Privacy Policy',
+                  AppL10n.of(context).privacyPolicy,
                   style: AppTypography.bodySmall.copyWith(
                     color: AppColors.primary,
                     fontWeight: FontWeight.w600,
@@ -90,7 +91,7 @@ class AgreementRow extends StatelessWidget {
               GestureDetector(
                 onTap: () => launchUrl(Uri.parse(AppConfig.userAgreementUrl)),
                 child: Text(
-                  'User Agreement',
+                  AppL10n.of(context).userAgreement,
                   style: AppTypography.bodySmall.copyWith(
                     color: AppColors.primary,
                     fontWeight: FontWeight.w600,
@@ -314,7 +315,7 @@ class _AuthFieldState extends State<AuthField> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          padding: const EdgeInsetsDirectional.only(start: 4, bottom: 8),
           child: Text(
             widget.label,
             style: AppTypography.labelMedium.copyWith(
@@ -377,7 +378,7 @@ class _AuthFieldState extends State<AuthField> {
         ),
         if (hasError)
           Padding(
-            padding: const EdgeInsets.only(left: 4, top: 6),
+            padding: const EdgeInsetsDirectional.only(start: 4, top: 6),
             child: Text(
               widget.errorText!,
               style: AppTypography.bodySmall.copyWith(color: AppColors.error),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/gen/app_l10n.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_curtain_app/core/widgets/app_dialog.dart';
 
@@ -26,8 +27,8 @@ class HomeManagementPage extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
         centerTitle: true,
-        title: const Text(
-          'Home Management',
+        title: Text(
+          AppL10n.of(context).homeManagement,
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -93,7 +94,7 @@ class HomeManagementPage extends StatelessWidget {
 
               // ── Create a home ──
               _ActionRow(
-                label: 'Create a home',
+                label: AppL10n.of(context).createAHome,
                 onTap: () => _showCreateHomeDialog(context),
               ),
 
@@ -101,11 +102,11 @@ class HomeManagementPage extends StatelessWidget {
 
               // ── Join a home ──
               _ActionRow(
-                label: 'Join a home',
+                label: AppL10n.of(context).joinAHome,
                 onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
+                  SnackBar(
                       content:
-                          Text('Joining a home by invite is coming soon.')),
+                          Text(AppL10n.of(context).joiningAHomeByInviteIsComingSoon)),
                 ),
               ),
             ],
@@ -119,9 +120,9 @@ class HomeManagementPage extends StatelessWidget {
     final bloc = context.read<HomeManagementBloc>();
     final name = await AppDialog.prompt(
       context,
-      title: 'Create a home',
-      hintText: 'Home name',
-      confirmText: 'Create',
+      title: AppL10n.of(context).createAHome,
+      hintText: AppL10n.of(context).homeName2,
+      confirmText: AppL10n.of(context).create,
     );
     if (name == null) return;
     // Timezone omitted → bloc stamps the device's IANA zone automatically.

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/gen/app_l10n.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/cache/hidden_device_store.dart';
@@ -46,12 +47,10 @@ class _AllDevicesManagePageState extends State<AllDevicesManagePage> {
         devices.where((d) => _selected.contains(d.deviceId)).toList();
     final ok = await AppDialog.confirm(
       context,
-      title: targets.length == 1
-          ? 'Remove device?'
-          : 'Remove ${targets.length} devices?',
+      title: AppL10n.of(context).removeDevicesQ(targets.length),
       message:
-          'They will be removed from this home and returned to pairing mode.',
-      confirmText: 'Remove',
+          AppL10n.of(context).removeDevicesWarning,
+      confirmText: AppL10n.of(context).remove,
       destructive: true,
     );
     if (!ok || !context.mounted) return;
@@ -62,10 +61,8 @@ class _AllDevicesManagePageState extends State<AllDevicesManagePage> {
     setState(_selected.clear);
     AppPopup.success(
       context,
-      title: 'Removed',
-      message: targets.length == 1
-          ? '1 device removed'
-          : '${targets.length} devices removed',
+      title: AppL10n.of(context).removed,
+      message: AppL10n.of(context).devicesRemoved(targets.length),
     );
   }
 
@@ -74,7 +71,7 @@ class _AllDevicesManagePageState extends State<AllDevicesManagePage> {
     if (_selected.isEmpty) return;
     if (rooms.isEmpty) {
       AppPopup.error(context,
-          title: 'No rooms', message: 'Create a room first.');
+          title: AppL10n.of(context).noRooms, message: AppL10n.of(context).createARoomFirst);
       return;
     }
     final bloc = context.read<HomeManagementBloc>();
@@ -90,9 +87,9 @@ class _AllDevicesManagePageState extends State<AllDevicesManagePage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Padding(
+            Padding(
               padding: EdgeInsets.all(16),
-              child: Text('Move to room',
+              child: Text(AppL10n.of(context).moveToRoom,
                   style:
                       TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
             ),
@@ -124,7 +121,7 @@ class _AllDevicesManagePageState extends State<AllDevicesManagePage> {
       ));
     }
     setState(_selected.clear);
-    AppPopup.success(context, title: 'Moved', message: 'Room updated');
+    AppPopup.success(context, title: AppL10n.of(context).moved, message: AppL10n.of(context).roomUpdated);
   }
 
   /// Move to Top: rewrite sortOrder of the selected devices to below the
@@ -153,10 +150,8 @@ class _AllDevicesManagePageState extends State<AllDevicesManagePage> {
     }
     setState(_selected.clear);
     AppPopup.success(context,
-        title: 'Moved to top',
-        message: targets.length == 1
-            ? '1 device'
-            : '${targets.length} devices');
+        title: AppL10n.of(context).movedToTop,
+        message: AppL10n.of(context).deviceCount(targets.length));
   }
 
   bool _allSelectedHidden(String? homeId) =>
@@ -181,10 +176,10 @@ class _AllDevicesManagePageState extends State<AllDevicesManagePage> {
     setState(_selected.clear);
     AppPopup.success(
       context,
-      title: wasAllHidden ? 'Shown' : 'Hidden',
+      title: wasAllHidden ? AppL10n.of(context).shown : AppL10n.of(context).hidden,
       message: wasAllHidden
-          ? 'Devices are back on Home'
-          : 'Hidden from Home',
+          ? AppL10n.of(context).devicesBackOnHome
+          : AppL10n.of(context).hiddenFromHome,
     );
   }
 
@@ -199,10 +194,10 @@ class _AllDevicesManagePageState extends State<AllDevicesManagePage> {
         leadingWidth: 88,
         leading: TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel',
+          child: Text(AppL10n.of(context).cancel,
               style: TextStyle(fontSize: 16, color: AppColors.textSecondary)),
         ),
-        title: const Text('All Devices',
+        title: Text(AppL10n.of(context).allDevices,
             style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
@@ -210,7 +205,7 @@ class _AllDevicesManagePageState extends State<AllDevicesManagePage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Done',
+            child: Text(AppL10n.of(context).done,
                 style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -235,8 +230,8 @@ class _AllDevicesManagePageState extends State<AllDevicesManagePage> {
           }
 
           if (devices.isEmpty) {
-            return const Center(
-              child: Text('No devices in this home.',
+            return Center(
+              child: Text(AppL10n.of(context).noDevicesInThisHome,
                   style: TextStyle(color: AppColors.textMuted)),
             );
           }
@@ -253,8 +248,8 @@ class _AllDevicesManagePageState extends State<AllDevicesManagePage> {
                   .isHidden(state.selectedHomeId, d.deviceId);
               final subtitle = [
                 if (roomName(d.roomId).isNotEmpty) roomName(d.roomId),
-                if (!online) 'Offline',
-                if (isHidden) 'Hidden',
+                if (!online) AppL10n.of(context).offline,
+                if (isHidden) AppL10n.of(context).hidden,
               ].join(' · ');
               return _DeviceRow(
                 device: d,
@@ -285,13 +280,13 @@ class _AllDevicesManagePageState extends State<AllDevicesManagePage> {
                 children: [
                   _ToolbarItem(
                     icon: Icons.vertical_align_top,
-                    label: 'Move to Top',
+                    label: AppL10n.of(context).moveToTop,
                     enabled: enabled,
                     onTap: () => _moveToTop(context, state.devices),
                   ),
                   _ToolbarItem(
                     icon: Icons.meeting_room_outlined,
-                    label: 'Change Room',
+                    label: AppL10n.of(context).changeRoom,
                     enabled: enabled,
                     onTap: () =>
                         _changeRoom(context, state.devices, state.rooms),
@@ -300,13 +295,13 @@ class _AllDevicesManagePageState extends State<AllDevicesManagePage> {
                     icon: allHidden
                         ? Icons.visibility_outlined
                         : Icons.visibility_off_outlined,
-                    label: allHidden ? 'Show' : 'Hide',
+                    label: allHidden ? AppL10n.of(context).show : AppL10n.of(context).hide,
                     enabled: enabled,
                     onTap: () => _toggleHide(context),
                   ),
                   _ToolbarItem(
                     icon: Icons.delete_outline,
-                    label: 'Remove Device',
+                    label: AppL10n.of(context).removeDevice,
                     enabled: enabled,
                     destructive: true,
                     onTap: () => _removeSelected(context, state.devices),

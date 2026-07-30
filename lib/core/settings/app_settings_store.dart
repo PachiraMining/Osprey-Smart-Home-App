@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Đơn vị nhiệt độ hiển thị trong app.
@@ -26,6 +27,27 @@ enum TemperatureUnit {
 class AppSettingsStore extends ChangeNotifier {
   static const _kTemperatureUnit = 'settings_temperature_unit';
   static const _kTouchTone = 'settings_touch_tone';
+  static const _kLocale = 'settings_locale';
+
+  /// Ngôn ngữ app hỗ trợ, kèm tên gọi BẰNG CHÍNH ngôn ngữ đó — người đang mắc
+  /// kẹt ở thứ tiếng lạ vẫn tìm được tiếng của mình. Thứ tự này là thứ tự hiện
+  /// trong trang Language.
+  static const supportedLanguages = <(Locale, String)>[
+    (Locale('en'), 'English'),
+    (Locale('zh'), '简体中文'),
+    (Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant'), '繁體中文'),
+    (Locale('es'), 'español'),
+    (Locale('fr'), 'français'),
+    (Locale('de'), 'Deutsch'),
+    (Locale('pt'), 'português'),
+    (Locale('it'), 'italiano'),
+    (Locale('ru'), 'русский язык'),
+    (Locale('ar'), 'العربية'),
+    (Locale('ja'), '日本語'),
+    (Locale('ko'), '한국어'),
+    (Locale('es', '419'), 'Español (latinoamérica)'),
+    (Locale('pt', 'BR'), 'Portugues (Brasil)'),
+  ];
 
   final SharedPreferences _prefs;
 
@@ -38,6 +60,45 @@ class AppSettingsStore extends ChangeNotifier {
     await _prefs.setString(_kTemperatureUnit, unit.code);
     notifyListeners();
   }
+
+  /// `null` = theo ngôn ngữ hệ thống (mặc định).
+  ///
+  /// Lưu dạng thẻ đầy đủ (`zh_Hant`, `pt_BR`) chứ KHÔNG chỉ mã ngôn ngữ, nếu
+  /// không sẽ mất phân biệt Hán phồn/giản và các biến thể vùng.
+  Locale? get locale {
+    final tag = _prefs.getString(_kLocale);
+    if (tag == null || tag.isEmpty) return null;
+    for (final (candidate, _) in supportedLanguages) {
+      if (_tagOf(candidate) == tag) return candidate;
+    }
+    return null;
+  }
+
+  /// Truyền `null` để quay về theo hệ thống.
+  Future<void> setLocale(Locale? value) async {
+    if (value == null) {
+      await _prefs.remove(_kLocale);
+    } else {
+      await _prefs.setString(_kLocale, _tagOf(value));
+    }
+    notifyListeners();
+  }
+
+  /// Tên hiển thị của ngôn ngữ đang chọn; `null` khi đang theo hệ thống.
+  String? get localeLabel {
+    final current = locale;
+    if (current == null) return null;
+    for (final (candidate, label) in supportedLanguages) {
+      if (_tagOf(candidate) == _tagOf(current)) return label;
+    }
+    return null;
+  }
+
+  static String _tagOf(Locale l) => [
+        l.languageCode,
+        if (l.scriptCode != null) l.scriptCode!,
+        if (l.countryCode != null) l.countryCode!,
+      ].join('_');
 
   bool get touchTone => _prefs.getBool(_kTouchTone) ?? false;
 

@@ -1,4 +1,5 @@
 import 'dart:math';
+import '../../../../../l10n/gen/app_l10n.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -63,7 +64,7 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
       _decodeStyleIcon(widget.existingScene!.icon);
       WidgetsBinding.instance.addPostFrameCallback((_) => _resolveDpNames());
     } else {
-      _nameController.text = 'Scene Name';
+      _nameController.text = AppL10n.of(context).sceneName;
       // New scenes get a random palette color (persisted in scene.icon on
       // save, so the card keeps this exact color on every reload).
       _selectedColor = _sceneColors[Random().nextInt(_sceneColors.length)];
@@ -122,8 +123,8 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
           elevation: 0,
           leading: TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'Cancel',
+            child: Text(
+              AppL10n.of(context).cancel,
               style: TextStyle(color: Colors.black87, fontSize: 16),
             ),
           ),
@@ -131,8 +132,8 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
           actions: [
             TextButton(
               onPressed: _saveScene,
-              child: const Text(
-                'Save',
+              child: Text(
+                AppL10n.of(context).save,
                 style: TextStyle(
                   color: _blueAccent,
                   fontSize: 16,
@@ -187,10 +188,10 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
   Future<void> _showNameEditDialog() async {
     final name = await AppDialog.prompt(
       context,
-      title: 'Scene Name',
+      title: AppL10n.of(context).sceneName,
       initialValue: _nameController.text,
-      hintText: 'Enter scene name',
-      confirmText: 'OK',
+      hintText: AppL10n.of(context).enterSceneName,
+      confirmText: AppL10n.of(context).ok,
     );
     if (name != null) {
       setState(() => _nameController.text = name);
@@ -215,7 +216,7 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 18),
                 child: Text(
-                  'Add Task',
+                  AppL10n.of(context).addTask,
                   style: TextStyle(fontSize: 16, color: Colors.grey.shade500),
                 ),
               ),
@@ -223,14 +224,14 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
               _buildTaskRow(
                 icon: Icons.lightbulb_outline,
                 iconColor: const Color(0xFFFFB300),
-                label: 'Control Single Device',
+                label: AppL10n.of(context).controlSingleDevice,
                 onTap: () { Navigator.pop(ctx); _addDeviceAction(); },
               ),
               // Select smart scenes
               _buildTaskRow(
                 icon: Icons.wb_sunny_outlined,
                 iconColor: const Color(0xFFFF7043),
-                label: 'Select smart scenes',
+                label: AppL10n.of(context).selectSmartScenes,
                 onTap: () { Navigator.pop(ctx); _addRunSceneAction(); },
               ),
               // Send notification (disabled)
@@ -242,7 +243,7 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
                     const SizedBox(width: 16),
                     Expanded(
                       child: Text(
-                        'Send notification',
+                        AppL10n.of(context).sendNotification,
                         style: TextStyle(fontSize: 16, color: Colors.grey.shade300),
                       ),
                     ),
@@ -254,7 +255,7 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
               _buildTaskRow(
                 icon: Icons.hourglass_bottom,
                 iconColor: const Color(0xFF1B4332),
-                label: 'Delay the action',
+                label: AppL10n.of(context).delayTheAction,
                 onTap: () { Navigator.pop(ctx); _addDelayAction(); },
               ),
               const SizedBox(height: 16),
@@ -298,7 +299,7 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
     if (devices.isEmpty) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No devices available')),
+        SnackBar(content: Text(AppL10n.of(context).noDevicesAvailable)),
       );
       return;
     }
@@ -349,7 +350,7 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
     if (scenes.isEmpty) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No other scenes available')),
+        SnackBar(content: Text(AppL10n.of(context).noOtherScenesAvailable)),
       );
       return;
     }
@@ -363,10 +364,10 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Padding(
+            Padding(
               padding: EdgeInsets.all(16),
               child: Text(
-                'Select Scene',
+                AppL10n.of(context).selectScene,
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ),
@@ -420,11 +421,11 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
                     child: Row(
                       children: [
                         const Spacer(),
-                        const Text('More Settings', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
+                        Text(AppL10n.of(context).moreSettings, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
                         const Spacer(),
                         TextButton(
                           onPressed: () => Navigator.pop(ctx),
-                          child: const Text('Done', style: TextStyle(color: Color(0xFF1B4332), fontSize: 16, fontWeight: FontWeight.w600)),
+                          child: Text(AppL10n.of(context).done, style: TextStyle(color: Color(0xFF1B4332), fontSize: 16, fontWeight: FontWeight.w600)),
                         ),
                       ],
                     ),
@@ -443,7 +444,7 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
                               decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
                               child: Row(
                                 children: [
-                                  const Text('Style', style: TextStyle(fontSize: 16)),
+                                  Text(AppL10n.of(context).style, style: TextStyle(fontSize: 16)),
                                   const Spacer(),
                                   Container(
                                     width: 32, height: 32,
@@ -463,7 +464,7 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
                             decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
                             child: Row(
                               children: [
-                                const Text('Show on Home Page', style: TextStyle(fontSize: 16)),
+                                Text(AppL10n.of(context).showOnHomePage, style: TextStyle(fontSize: 16)),
                                 const Spacer(),
                                 Switch(
                                   value: _showOnHomePage,
@@ -481,9 +482,9 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
                             decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
                             child: Row(
                               children: [
-                                const Text('Executed By', style: TextStyle(fontSize: 16)),
+                                Text(AppL10n.of(context).executedBy, style: TextStyle(fontSize: 16)),
                                 const Spacer(),
-                                Text('Cloud', style: TextStyle(fontSize: 15, color: Colors.grey.shade500)),
+                                Text(AppL10n.of(context).cloud, style: TextStyle(fontSize: 15, color: Colors.grey.shade500)),
                               ],
                             ),
                           ),
@@ -495,9 +496,9 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
                                 Navigator.pop(ctx);
                                 final ok = await AppDialog.confirm(
                                   context,
-                                  title: 'Delete scene?',
-                                  message: 'This action cannot be undone.',
-                                  confirmText: 'Delete',
+                                  title: AppL10n.of(context).deleteScene,
+                                  message: AppL10n.of(context).thisActionCannotBeUndone,
+                                  confirmText: AppL10n.of(context).delete,
                                   destructive: true,
                                 );
                                 if (!ok) return;
@@ -512,7 +513,7 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
                                 width: double.infinity,
                                 padding: const EdgeInsets.symmetric(vertical: 16),
                                 decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
-                                child: Text('Delete', textAlign: TextAlign.center, style: TextStyle(fontSize: 16, color: Colors.grey.shade500)),
+                                child: Text(AppL10n.of(context).delete, textAlign: TextAlign.center, style: TextStyle(fontSize: 16, color: Colors.grey.shade500)),
                               ),
                             ),
                           const SizedBox(height: 24),
@@ -554,7 +555,7 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
                       GestureDetector(
                         onTap: () => setLocal(() => selectedTab = 0),
                         child: Text(
-                          'Color',
+                          AppL10n.of(context).color,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: selectedTab == 0 ? FontWeight.bold : FontWeight.w400,
@@ -566,7 +567,7 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
                       GestureDetector(
                         onTap: () => setLocal(() => selectedTab = 1),
                         child: Text(
-                          'Icon',
+                          AppL10n.of(context).icon,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: selectedTab == 1 ? FontWeight.bold : FontWeight.w400,
@@ -686,13 +687,13 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a scene name')),
+        SnackBar(content: Text(AppL10n.of(context).pleaseEnterASceneName)),
       );
       return;
     }
     if (_actions.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please add at least 1 action')),
+        SnackBar(content: Text(AppL10n.of(context).pleaseAddAtLeast1Action)),
       );
       return;
     }
@@ -728,7 +729,7 @@ class _SceneNameHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text =
-        controller.text.isEmpty ? 'Scene Name' : controller.text;
+        controller.text.isEmpty ? AppL10n.of(context).sceneName : controller.text;
     return GestureDetector(
       onTap: onTap,
       child: Padding(
@@ -771,8 +772,8 @@ class _IfCard extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                const Text(
-                  'If',
+                Text(
+                  AppL10n.of(context).conditionIf,
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const Spacer(),
@@ -799,8 +800,8 @@ class _IfCard extends StatelessWidget {
                   Icon(Icons.touch_app,
                       color: Colors.deepOrange.shade300, size: 28),
                   const SizedBox(width: 12),
-                  const Text(
-                    'Launch Tap-to-Run',
+                  Text(
+                    AppL10n.of(context).launchTapToRun,
                     style: TextStyle(fontSize: 15, color: Colors.black87),
                   ),
                 ],
@@ -841,8 +842,8 @@ class _ThenCard extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                const Text(
-                  'Then',
+                Text(
+                  AppL10n.of(context).conditionThen,
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const Spacer(),
@@ -916,12 +917,12 @@ class _ActionRow extends StatelessWidget {
         final seconds = action.executorProperty?['seconds'] ?? 0;
         final subtitle =
             minutes > 0 ? '${minutes}m ${seconds}s' : '${seconds}s';
-        return (Icons.timer_outlined, null, 'Wait', subtitle);
+        return (Icons.timer_outlined, null, AppL10n.of(context).wait, subtitle);
       case 'SCENE_RUN':
         return (
           Icons.play_circle_outline,
           null,
-          'Run Scene',
+          AppL10n.of(context).runScene,
           action.deviceName ?? action.entityId ?? '',
         );
       default:
@@ -940,8 +941,8 @@ class _ActionRow extends StatelessWidget {
           onDismissed: (_) => onRemove(),
           background: Container(
             color: Colors.red,
-            alignment: Alignment.centerRight,
-            padding: const EdgeInsets.only(right: 16),
+            alignment: AlignmentDirectional.centerEnd,
+            padding: const EdgeInsetsDirectional.only(end: 16),
             child: const Icon(Icons.delete, color: Colors.white),
           ),
           child: Padding(
@@ -1020,8 +1021,8 @@ class _MoreSettingsCard extends StatelessWidget {
             const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         child: Row(
           children: [
-            const Text(
-              'More Settings',
+            Text(
+              AppL10n.of(context).moreSettings,
               style: TextStyle(fontSize: 15, color: Colors.black87),
             ),
             const Spacer(),
@@ -1045,7 +1046,7 @@ class _AllDevicesPage extends StatelessWidget {
     final profileId = device.deviceProfileId;
     if (profileId == null || profileId.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Device has no profile information')),
+        SnackBar(content: Text(AppL10n.of(context).deviceHasNoProfileInformation)),
       );
       return;
     }
@@ -1073,8 +1074,8 @@ class _AllDevicesPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6FA),
       appBar: AppBar(
-        title: const Text(
-          'All Devices',
+        title: Text(
+          AppL10n.of(context).allDevices,
           style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
         ),
         centerTitle: true,

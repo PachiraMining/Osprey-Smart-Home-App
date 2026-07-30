@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import '../../../../l10n/gen/app_l10n.dart';
 
 /// In-app storefront: renders the Osprey shop website in a WebView.
 class AppMallPage extends StatefulWidget {
@@ -52,8 +53,8 @@ class _AppMallPageState extends State<AppMallPage> {
           onPressed: _goBack,
         ),
         centerTitle: true,
-        title: const Text(
-          'App Mall',
+        title:  Text(
+          AppL10n.of(context).appMall,
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,

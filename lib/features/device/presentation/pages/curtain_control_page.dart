@@ -1,4 +1,5 @@
 import 'dart:async';
+import '../../../../l10n/gen/app_l10n.dart';
 import 'dart:convert';
 import 'dart:developer' as dev;
 import 'dart:io';
@@ -147,7 +148,7 @@ class _CurtainControlPageState extends State<CurtainControlPage>
       // qua BLE_CONTROL_CMD char `...381`).
       final cmd = _mapDpToCommand(dpId, value);
       if (cmd == null) {
-        _showSnackBar('Local control does not support this action', Colors.red);
+        _showSnackBar(AppL10n.of(context).localControlUnsupportedAction, Colors.red);
         return;
       }
       dev.log('[CurtainCtrl] BLE sendCommand: $cmd (fallback=$fallbackToBle, '
@@ -168,7 +169,7 @@ class _CurtainControlPageState extends State<CurtainControlPage>
             _showRePairDialog();
           } else if (fallbackToBle && failure is DeviceUnreachableFailure) {
             _showSnackBar(
-                'No internet and Bluetooth not in range', Colors.red);
+                AppL10n.of(context).noInternetNoBluetooth, Colors.red);
           } else {
             _showSnackBar(failure.message, Colors.red);
           }
@@ -180,7 +181,7 @@ class _CurtainControlPageState extends State<CurtainControlPage>
       );
     } catch (e) {
       dev.log('[CurtainCtrl] unexpected error: $e', name: 'CurtainCtrl');
-      _showSnackBar('Connection error', Colors.red);
+      _showSnackBar(AppL10n.of(context).connectionError, Colors.red);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -202,13 +203,11 @@ class _CurtainControlPageState extends State<CurtainControlPage>
     if (!mounted) return;
     final ok = await AppDialog.confirm(
       context,
-      title: 'Re-pair required',
+      title: AppL10n.of(context).rePairRequired,
       message:
-          'Local Bluetooth control needs to be re-paired with this device. '
-          'This usually happens after the app data was cleared or the device '
-          'was factory reset.',
-      confirmText: 'Re-pair now',
-      cancelText: 'Later',
+          AppL10n.of(context).blePairingLostBody,
+      confirmText: AppL10n.of(context).rePairNow,
+      cancelText: AppL10n.of(context).later,
     );
     if (!ok) return;
     if (!mounted) return;

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/gen/app_l10n.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:smart_curtain_app/core/auth/token_manager.dart';
@@ -49,7 +50,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
 
   String get _timezoneLabel {
     final tz = _home?.timezone;
-    if (tz == null || tz.isEmpty) return 'Not set';
+    if (tz == null || tz.isEmpty) return AppL10n.of(context).notSet;
     return TimezonePickerPage.label(tz);
   }
 
@@ -93,7 +94,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
         // screens don't read a stale timezone after this out-of-bloc update.
         context.read<HomeManagementBloc>().add(const LoadHomesEvent());
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Time zone updated')),
+          SnackBar(content: Text(AppL10n.of(context).timeZoneUpdated)),
         );
       },
     );
@@ -114,8 +115,8 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
           onPressed: () => Navigator.pop(context),
         ),
         centerTitle: true,
-        title: const Text(
-          'Personal Information',
+        title:  Text(
+          AppL10n.of(context).personalInformation,
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -135,8 +136,8 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                   child: Row(
                     children: [
-                      const Text(
-                        'Profile Photo',
+                       Text(
+                        AppL10n.of(context).profilePhoto,
                         style: TextStyle(fontSize: 16, color: Colors.black87),
                       ),
                       const Spacer(),
@@ -157,8 +158,8 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
                   child: Row(
                     children: [
-                      const Text(
-                        'Nickname',
+                       Text(
+                        AppL10n.of(context).nickname,
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -191,8 +192,8 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                     const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
                 child: Row(
                   children: [
-                    const Text(
-                      'Time Zone',
+                    Text(
+                      AppL10n.of(context).timeZone,
                       style: TextStyle(fontSize: 16, color: Colors.black87),
                     ),
                     const Spacer(),

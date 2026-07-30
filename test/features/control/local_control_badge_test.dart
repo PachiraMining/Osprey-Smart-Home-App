@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:smart_curtain_app/l10n/gen/app_l10n.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:smart_curtain_app/features/control/domain/entities/transport_state.dart';
 import 'package:smart_curtain_app/features/control/presentation/widgets/local_control_badge.dart';
@@ -8,6 +9,8 @@ void main() {
       {VoidCallback? onRetry}) {
     return tester.pumpWidget(
       MaterialApp(
+    localizationsDelegates: AppL10n.localizationsDelegates,
+    supportedLocales: AppL10n.supportedLocales,
         home: Scaffold(
           body: LocalControlBadge(transport: transport, onRetry: onRetry),
         ),

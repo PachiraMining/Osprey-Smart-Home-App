@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/gen/app_l10n.dart';
+
 import '../theme/app_colors.dart';
 
 /// Custom-styled replacements for the app's stock [AlertDialog]s.
@@ -15,8 +17,8 @@ class AppDialog {
     BuildContext context, {
     required String title,
     String? message,
-    String confirmText = 'OK',
-    String cancelText = 'Cancel',
+    String? confirmText,
+    String? cancelText,
     bool destructive = false,
   }) async {
     final result = await showDialog<bool>(
@@ -35,8 +37,8 @@ class AppDialog {
                   color: AppColors.textSecondary,
                 ),
               ),
-        cancelText: cancelText,
-        confirmText: confirmText,
+        cancelText: cancelText ?? AppL10n.of(context).cancel,
+        confirmText: confirmText ?? AppL10n.of(context).ok,
         destructive: destructive,
         onConfirm: () => Navigator.pop(ctx, true),
         onCancel: () => Navigator.pop(ctx, false),
@@ -50,7 +52,7 @@ class AppDialog {
     BuildContext context, {
     required String title,
     String? message,
-    String buttonText = 'OK',
+    String? buttonText,
   }) {
     return showDialog<void>(
       context: context,
@@ -69,7 +71,7 @@ class AppDialog {
                 ),
               ),
         cancelText: '',
-        confirmText: buttonText,
+        confirmText: buttonText ?? AppL10n.of(context).ok,
         destructive: false,
         singleButton: true,
         onConfirm: () => Navigator.pop(ctx),
@@ -87,8 +89,8 @@ class AppDialog {
     String? message,
     Color? messageColor,
     String? hintText,
-    String confirmText = 'OK',
-    String cancelText = 'Cancel',
+    String? confirmText,
+    String? cancelText,
     bool destructive = false,
   }) async {
     final controller = TextEditingController();
@@ -130,8 +132,8 @@ class AppDialog {
             ),
           ],
         ),
-        cancelText: cancelText,
-        confirmText: confirmText,
+        cancelText: cancelText ?? AppL10n.of(context).cancel,
+        confirmText: confirmText ?? AppL10n.of(context).ok,
         destructive: destructive,
         onConfirm: () {
           final t = controller.text.trim();
@@ -148,8 +150,8 @@ class AppDialog {
     required String title,
     String? hintText,
     String? initialValue,
-    String confirmText = 'OK',
-    String cancelText = 'Cancel',
+    String? confirmText,
+    String? cancelText,
   }) {
     final controller = TextEditingController(text: initialValue);
     controller.selection = TextSelection(
@@ -186,8 +188,8 @@ class AppDialog {
               ),
             ),
           ),
-          cancelText: cancelText,
-          confirmText: confirmText,
+          cancelText: cancelText ?? AppL10n.of(context).cancel,
+          confirmText: confirmText ?? AppL10n.of(context).ok,
           destructive: false,
           onConfirm: submit,
           onCancel: () => Navigator.pop(ctx, null),

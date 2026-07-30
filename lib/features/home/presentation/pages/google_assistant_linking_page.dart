@@ -1,4 +1,5 @@
 import 'dart:convert';
+import '../../../../l10n/gen/app_l10n.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -93,7 +94,7 @@ class _GoogleAssistantLinkingPageState
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = 'Connection error';
+        _error = AppL10n.of(context).connectionError;
         _isLoading = false;
       });
     }
@@ -135,7 +136,7 @@ class _GoogleAssistantLinkingPageState
         );
         if (!launched) {
           _waitingForGoogleHome = false;
-          _setError('Could not open Google Home app');
+          _setError(AppL10n.of(context).couldNotOpenGoogleHome);
           return;
         }
         // Status will be re-checked in didChangeAppLifecycleState
@@ -160,7 +161,7 @@ class _GoogleAssistantLinkingPageState
           setState(() => _isLinking = false);
           await _checkStatus();
           if (_isLinked) {
-            _showSnackBar('Account linked successfully!', Colors.green);
+            _showSnackBar(AppL10n.of(context).accountLinkedSuccessfully, Colors.green);
           }
         }
       }
@@ -170,7 +171,7 @@ class _GoogleAssistantLinkingPageState
         if (mounted) setState(() => _isLinking = false);
         return;
       }
-      _setError('An error occurred. Please try again.');
+      _setError(AppL10n.of(context).anErrorOccurredTryAgain);
     }
   }
 
@@ -228,8 +229,8 @@ class _GoogleAssistantLinkingPageState
           if (_isLinked)
             TextButton(
               onPressed: _startLinking,
-              child: const Text(
-                'Re-Login',
+              child:  Text(
+                AppL10n.of(context).reLogin,
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -268,8 +269,8 @@ class _GoogleAssistantLinkingPageState
                 height: 40,
               ),
               const SizedBox(width: 10),
-              const Text(
-                'Google Assistant',
+              Text(
+                AppL10n.of(context).googleAssistant,
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.w500,
@@ -301,14 +302,11 @@ class _GoogleAssistantLinkingPageState
           ),
           const SizedBox(height: 40),
           // Description text
-          const Padding(
+           Padding(
             padding: EdgeInsets.symmetric(horizontal: 8),
             child: Text(
-              'After connecting your App account and Google  account, '
-              'you can use Google Home Smart Speakers to control '
-              'devices that work with Google Assistant.  For example, '
-              'you can say, "OK Google, please turn on  the light."',
-              textAlign: TextAlign.left,
+              AppL10n.of(context).googleLinkExplainer,
+              textAlign: TextAlign.start,
               style: TextStyle(
                 fontSize: 15,
                 color: Colors.black87,
@@ -344,8 +342,8 @@ class _GoogleAssistantLinkingPageState
                           strokeWidth: 2.5,
                         ),
                       )
-                    : const Text(
-                        'Link with Google Assistant',
+                    :  Text(
+                        AppL10n.of(context).linkWithGoogleAssistant,
                         style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w500,
@@ -359,7 +357,7 @@ class _GoogleAssistantLinkingPageState
           TextButton(
             onPressed: () {},
             child: Text(
-              'View more ways to link',
+              AppL10n.of(context).viewMoreWaysToLink,
               style: const TextStyle(
                 fontSize: 15,
                 color: Colors.black87,
@@ -388,8 +386,8 @@ class _GoogleAssistantLinkingPageState
           ),
           const SizedBox(height: 24),
           // Title
-          const Text(
-            'Linked with Google Assistant',
+           Text(
+            AppL10n.of(context).linkedWithGoogleAssistant,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 26,
@@ -399,8 +397,8 @@ class _GoogleAssistantLinkingPageState
           ),
           const SizedBox(height: 16),
           // Subtitle
-          const Text(
-            'You can now use Google Home voicebox to\ncontrol Google Assistant devices, like',
+           Text(
+            AppL10n.of(context).googleExamplesIntro,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 15,
@@ -419,7 +417,7 @@ class _GoogleAssistantLinkingPageState
           TextButton(
             onPressed: () {},
             child: Text(
-              'View more ways to link',
+              AppL10n.of(context).viewMoreWaysToLink,
               style: const TextStyle(
                 fontSize: 15,
                 color: Colors.black87,
@@ -444,8 +442,8 @@ class _GoogleAssistantLinkingPageState
                   ),
                   elevation: 0,
                 ),
-                child: const Text(
-                  'Back',
+                child:  Text(
+                  AppL10n.of(context).back,
                   style: TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.w500,
@@ -456,12 +454,10 @@ class _GoogleAssistantLinkingPageState
           ),
           const SizedBox(height: 20),
           // Note about unlinking
-          const Padding(
+           Padding(
             padding: EdgeInsets.symmetric(horizontal: 24),
             child: Text(
-              'Disable osprey.life skill on the Google Home app '
-              'or tap Me > the Setting button in the top right corner '
-              '> Account and Security to unauthorize it.',
+              AppL10n.of(context).googleUnlinkHint,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13,
@@ -497,14 +493,14 @@ class _GoogleAssistantLinkingPageState
             Icon(Icons.error_outline, size: 48, color: Colors.grey.shade400),
             const SizedBox(height: 16),
             Text(
-              _error ?? 'Something went wrong',
+              _error ?? AppL10n.of(context).somethingWentWrong,
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 15, color: Colors.black87),
             ),
             const SizedBox(height: 24),
             TextButton(
               onPressed: _checkStatus,
-              child: const Text('Retry'),
+              child: Text(AppL10n.of(context).retry),
             ),
           ],
         ),

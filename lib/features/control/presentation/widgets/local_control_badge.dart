@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/gen/app_l10n.dart';
 
 import '../../domain/entities/transport_state.dart';
 
@@ -28,22 +29,22 @@ class LocalControlBadge extends StatelessWidget {
       case TransportState.bleFallback:
         return _Badge(
           icon: Icons.bluetooth_audio,
-          label: 'Local control (offline)',
-          subLabel: 'Reconnecting…',
+          label: AppL10n.of(context).localControlOffline,
+          subLabel: AppL10n.of(context).reconnecting,
           tone: _BadgeTone.muted,
         );
 
       case TransportState.unreachable:
         return _Badge(
           icon: Icons.signal_wifi_connected_no_internet_4,
-          label: 'Device unreachable',
-          subLabel: 'Check WiFi or move closer for Bluetooth.',
+          label: AppL10n.of(context).deviceUnreachable,
+          subLabel: AppL10n.of(context).checkWifiOrBluetooth,
           tone: _BadgeTone.warning,
           trailing: onRetry == null
               ? null
               : TextButton(
                   onPressed: onRetry,
-                  child: const Text('Retry'),
+                  child: Text(AppL10n.of(context).retry),
                 ),
         );
     }

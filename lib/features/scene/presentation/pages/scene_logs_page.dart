@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/gen/app_l10n.dart';
 import 'package:get_it/get_it.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../data/scene_logs_service.dart';
+import 'package:intl/intl.dart';
 
 /// Execution logs timeline (Tuya style): scene/automation runs across the home,
 /// grouped by day with a green/red status dot on a vertical timeline.
@@ -23,16 +25,12 @@ class _SceneLogsPageState extends State<SceneLogsPage> {
     _future = GetIt.instance<SceneLogsService>().homeLogs(widget.homeId);
   }
 
-  static const _months = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-  ];
-  static const _weekdays = [
-    'Monday', 'Tuesday', 'Wednesday', 'Thursday',
-    'Friday', 'Saturday', 'Sunday',
-  ];
 
   String _two(int n) => n.toString().padLeft(2, '0');
+
+  /// Thẻ locale đang dùng, để tên tháng/thứ ra đúng ngôn ngữ.
+  static String _tag(BuildContext context) =>
+      Localizations.localeOf(context).toLanguageTag();
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +45,7 @@ class _SceneLogsPageState extends State<SceneLogsPage> {
               size: 20, color: Colors.black87),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Logs',
+        title: Text(AppL10n.of(context).logs,
             style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
@@ -108,7 +106,7 @@ class _SceneLogsPageState extends State<SceneLogsPage> {
 
   Widget _dayHeader(DateTime day) {
     return Padding(
-      padding: const EdgeInsets.only(top: 18, bottom: 6, left: 4, right: 4),
+      padding: const EdgeInsetsDirectional.only(top: 18, bottom: 6, start: 4, end: 4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.baseline,
         textBaseline: TextBaseline.alphabetic,
@@ -119,11 +117,11 @@ class _SceneLogsPageState extends State<SceneLogsPage> {
                   fontWeight: FontWeight.w800,
                   color: Colors.black87)),
           const SizedBox(width: 6),
-          Text(_months[day.month - 1],
+          Text(DateFormat.MMM(_tag(context)).format(day),
               style: const TextStyle(
                   fontSize: 15, color: AppColors.textMuted)),
           const Spacer(),
-          Text(_weekdays[day.weekday - 1],
+          Text(DateFormat.EEEE(_tag(context)).format(day),
               style: const TextStyle(
                   fontSize: 15, color: AppColors.textMuted)),
         ],

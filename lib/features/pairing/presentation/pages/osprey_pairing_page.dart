@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/gen/app_l10n.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -129,7 +130,7 @@ class _OspreyPairingViewState extends State<_OspreyPairingView> {
                 ),
                 // Trả true để trang trước refresh danh sách thiết bị.
                 onPressed: () => Navigator.pop(context, true),
-                child: const Text('Done',
+                child: Text(AppL10n.of(context).done,
                     style: TextStyle(
                         fontSize: 16, fontWeight: FontWeight.w600)),
               ),
@@ -168,8 +169,8 @@ class _OspreyPairingViewState extends State<_OspreyPairingView> {
                 .saveSsid(state.deviceId, _ssidController.text.trim());
             AppPopup.success(
               context,
-              title: 'Pairing successful',
-              message: 'Device is ready.',
+              title: AppL10n.of(context).pairingSuccessful,
+              message: AppL10n.of(context).deviceIsReady,
             );
           }
         },
@@ -204,14 +205,13 @@ class _OspreyPairingViewState extends State<_OspreyPairingView> {
               color: AppColors.primarySubtle,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Row(
+            child:  Row(
               children: [
                 Icon(Icons.wifi, color: AppColors.primary),
                 SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'The device will connect to the WiFi your phone is using. '
-                    'Only 2.4GHz networks are supported.',
+                    AppL10n.of(context).pairingWifiHint,
                     style: TextStyle(
                         fontSize: 13, color: AppColors.textSecondary),
                   ),
@@ -230,8 +230,7 @@ class _OspreyPairingViewState extends State<_OspreyPairingView> {
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    'This network looks like 5GHz — switch your phone to a '
-                    '2.4GHz network, then tap refresh.',
+                    AppL10n.of(context).looksLike5GhzHint,
                     style: TextStyle(
                         fontSize: 12, color: AppColors.warning.withAlpha(230)),
                   ),
@@ -244,7 +243,7 @@ class _OspreyPairingViewState extends State<_OspreyPairingView> {
             controller: _passwordController,
             obscureText: _obscurePassword,
             decoration: InputDecoration(
-              labelText: 'WiFi password',
+              labelText: AppL10n.of(context).wifiPassword,
               prefixIcon: const Icon(Icons.lock_outline),
               border: const OutlineInputBorder(),
               suffixIcon: IconButton(
@@ -256,7 +255,7 @@ class _OspreyPairingViewState extends State<_OspreyPairingView> {
               ),
             ),
             validator: (v) =>
-                (v == null || v.isEmpty) ? 'Enter the WiFi password' : null,
+                (v == null || v.isEmpty) ? AppL10n.of(context).enterWifiPassword : null,
           ),
           const SizedBox(height: 28),
           FilledButton(
@@ -265,7 +264,7 @@ class _OspreyPairingViewState extends State<_OspreyPairingView> {
               padding: const EdgeInsets.symmetric(vertical: 16),
             ),
             onPressed: _startPairing,
-            child: const Text('Start pairing',
+            child: Text(AppL10n.of(context).startPairing,
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
           ),
         ],
@@ -283,7 +282,7 @@ class _OspreyPairingViewState extends State<_OspreyPairingView> {
           border: Border.all(color: AppColors.border),
           borderRadius: BorderRadius.circular(4),
         ),
-        child: const Row(
+        child:  Row(
           children: [
             SizedBox(
               width: 18,
@@ -292,7 +291,7 @@ class _OspreyPairingViewState extends State<_OspreyPairingView> {
             ),
             SizedBox(width: 14),
             Text(
-              'Detecting current WiFi...',
+              AppL10n.of(context).detectingCurrentWifi,
               style: TextStyle(fontSize: 15, color: AppColors.textMuted),
             ),
           ],
@@ -307,16 +306,16 @@ class _OspreyPairingViewState extends State<_OspreyPairingView> {
       // không detect được → fallback cho nhập tay
       readOnly: detected,
       decoration: InputDecoration(
-        labelText: 'WiFi name (SSID)',
+        labelText: AppL10n.of(context).wifiNameSsid,
         helperText: detected
-            ? 'Auto-detected from the WiFi your phone is connected to'
-            : 'Could not detect WiFi — enter the network name manually',
+            ? AppL10n.of(context).autoDetectedWifi
+            : AppL10n.of(context).couldNotDetectWifi,
         prefixIcon: Icon(
           detected ? Icons.wifi : Icons.router_outlined,
           color: detected ? AppColors.success : null,
         ),
         suffixIcon: IconButton(
-          tooltip: 'Refresh',
+          tooltip: AppL10n.of(context).refresh,
           icon: const Icon(Icons.refresh),
           onPressed: _detectCurrentWifi,
         ),
@@ -324,7 +323,7 @@ class _OspreyPairingViewState extends State<_OspreyPairingView> {
       ),
       onChanged: (_) => setState(() {}), // refresh cảnh báo 5GHz
       validator: (v) =>
-          (v == null || v.trim().isEmpty) ? 'Enter the WiFi name' : null,
+          (v == null || v.trim().isEmpty) ? AppL10n.of(context).enterWifiName : null,
     );
   }
 
@@ -361,14 +360,14 @@ class _OspreyPairingViewState extends State<_OspreyPairingView> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 8),
-        const Text(
-          '1 device(s) being added',
+        Text(
+          AppL10n.of(context).devicesBeingAdded(1),
           style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
         ),
         const SizedBox(height: 12),
         _resultCard(
           done: false,
-          status: 'Being added',
+          status: AppL10n.of(context).beingAdded,
           trailing: TweenAnimationBuilder<double>(
             tween: Tween<double>(begin: 0, end: target),
             duration: duration,
@@ -426,9 +425,9 @@ class _OspreyPairingViewState extends State<_OspreyPairingView> {
                   ),
                 ),
                 if (done)
-                  Positioned(
+                  PositionedDirectional(
                     top: -2,
-                    right: -2,
+                    end: -2,
                     child: Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
@@ -483,12 +482,12 @@ class _OspreyPairingViewState extends State<_OspreyPairingView> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 8),
-        const Text(
-          '1 device(s) added successfully',
+        Text(
+          AppL10n.of(context).devicesAddedSuccessfully(1),
           style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
         ),
         const SizedBox(height: 12),
-        _resultCard(done: true, status: 'Added successfully'),
+        _resultCard(done: true, status: AppL10n.of(context).addedSuccessfully),
       ],
     );
   }
@@ -508,8 +507,8 @@ class _OspreyPairingViewState extends State<_OspreyPairingView> {
               size: 56, color: AppColors.error),
         ),
         const SizedBox(height: 24),
-        const Text(
-          'Pairing failed',
+         Text(
+          AppL10n.of(context).pairingFailed,
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 20,
@@ -531,11 +530,11 @@ class _OspreyPairingViewState extends State<_OspreyPairingView> {
           ),
           onPressed: () =>
               context.read<PairingBloc>().add(const ResetPairingEvent()),
-          child: const Text('Retry'),
+          child: Text(AppL10n.of(context).retry),
         ),
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Go back',
+          child: Text(AppL10n.of(context).goBack,
               style: TextStyle(color: AppColors.textMuted)),
         ),
       ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/gen/app_l10n.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/theme/aurora_glow.dart';
@@ -94,12 +95,11 @@ class _EmptyHint extends StatelessWidget {
   const _EmptyHint();
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    return  Center(
       child: Padding(
         padding: EdgeInsets.all(32),
         child: Text(
-          'Ask the osprey.life assistant anything about your curtains.\n'
-          'Powered by Apple Foundation Models, on-device.',
+          AppL10n.of(context).aiChatEmptyState,
           textAlign: TextAlign.center,
         ),
       ),
@@ -116,7 +116,7 @@ class _Bubble extends StatelessWidget {
     final isUser = message.role == ChatRole.user;
     final theme = Theme.of(context);
     return Align(
-      alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+      alignment: isUser ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 6),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -147,13 +147,13 @@ class _ThinkingDot extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
-      children: const [
+      children: [
         SizedBox(
           width: 18, height: 18,
           child: CircularProgressIndicator(strokeWidth: 2),
         ),
         SizedBox(width: 12),
-        Text('Thinking…'),
+        Text(AppL10n.of(context).thinking),
       ],
     );
   }
@@ -178,8 +178,8 @@ class _Composer extends StatelessWidget {
                 maxLines: 4,
                 textInputAction: TextInputAction.send,
                 onSubmitted: (_) => onSend(),
-                decoration: const InputDecoration(
-                  hintText: 'Ask about your curtains…',
+                decoration: InputDecoration(
+                  hintText: AppL10n.of(context).askAboutYourCurtains,
                 ),
               ),
             ),

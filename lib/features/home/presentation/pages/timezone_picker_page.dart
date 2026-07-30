@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/gen/app_l10n.dart';
 import 'package:get_it/get_it.dart';
 
 import '../../../../core/time/device_timezone.dart';
@@ -66,7 +67,7 @@ class _TimezonePickerPageState extends State<TimezonePickerPage> {
         backgroundColor: Colors.white,
         foregroundColor: Colors.black87,
         elevation: 0.5,
-        title: const Text('Time Zone'),
+        title: Text(AppL10n.of(context).timeZone),
       ),
       body: Column(
         children: [
@@ -75,7 +76,7 @@ class _TimezonePickerPageState extends State<TimezonePickerPage> {
             child: TextField(
               controller: _searchCtrl,
               decoration: InputDecoration(
-                hintText: 'Search city or region',
+                hintText: AppL10n.of(context).searchCityOrRegion,
                 prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
@@ -88,8 +89,8 @@ class _TimezonePickerPageState extends State<TimezonePickerPage> {
           if (_loading)
             const Expanded(child: Center(child: CircularProgressIndicator()))
           else if (_filtered.isEmpty)
-            const Expanded(
-              child: Center(child: Text('No matching time zones')),
+            Expanded(
+              child: Center(child: Text(AppL10n.of(context).noMatchingTimeZones)),
             )
           else
             Expanded(

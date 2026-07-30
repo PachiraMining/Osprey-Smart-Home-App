@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/gen/app_l10n.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_curtain_app/core/widgets/app_dialog.dart';
 
@@ -50,10 +51,10 @@ class _ManageHomePageState extends State<ManageHomePage> {
   Future<void> _confirmDelete() async {
     final confirmed = await AppDialog.confirm(
       context,
-      title: 'Delete Home',
+      title: AppL10n.of(context).deleteHome,
       message:
-          'Are you sure you want to delete "${widget.homeName}"? This action cannot be undone.',
-      confirmText: 'Delete',
+          AppL10n.of(context).deleteHomeConfirm(widget.homeName),
+      confirmText: AppL10n.of(context).delete,
       destructive: true,
     );
 
@@ -74,7 +75,7 @@ class _ManageHomePageState extends State<ManageHomePage> {
         if (state.mutationStatus == MutationStatus.error) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.errorMessage ?? 'An error occurred'),
+              content: Text(state.errorMessage ?? AppL10n.of(context).anErrorOccurred),
               backgroundColor: Colors.red,
             ),
           );
@@ -83,7 +84,7 @@ class _ManageHomePageState extends State<ManageHomePage> {
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
-          title: const Text('Home Management'),
+          title: Text(AppL10n.of(context).homeManagement),
           backgroundColor: Colors.white,
           foregroundColor: Colors.black87,
           elevation: 0.5,
@@ -93,8 +94,8 @@ class _ManageHomePageState extends State<ManageHomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text(
-                'Home Name',
+              Text(
+                AppL10n.of(context).homeName,
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
@@ -105,7 +106,7 @@ class _ManageHomePageState extends State<ManageHomePage> {
               TextField(
                 controller: _nameController,
                 decoration: InputDecoration(
-                  hintText: 'Enter home name',
+                  hintText: AppL10n.of(context).enterHomeName,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -130,7 +131,7 @@ class _ManageHomePageState extends State<ManageHomePage> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: const Text('Save', style: TextStyle(fontSize: 16)),
+                child: Text(AppL10n.of(context).save, style: TextStyle(fontSize: 16)),
               ),
               const SizedBox(height: 24),
               const Divider(),
@@ -138,7 +139,7 @@ class _ManageHomePageState extends State<ManageHomePage> {
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.door_front_door_outlined,
                     color: Colors.black87),
-                title: const Text('Room Management'),
+                title: Text(AppL10n.of(context).roomManagement),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute(
@@ -161,8 +162,8 @@ class _ManageHomePageState extends State<ManageHomePage> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: const Text(
-                  'Delete Home',
+                child: Text(
+                  AppL10n.of(context).deleteHome,
                   style: TextStyle(fontSize: 16),
                 ),
               ),

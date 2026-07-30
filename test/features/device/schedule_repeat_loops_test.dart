@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:smart_curtain_app/l10n/gen/app_l10n.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:smart_curtain_app/features/device/presentation/pages/schedule_repeat_page.dart';
 
@@ -8,6 +9,8 @@ Future<String?> _pickDays(WidgetTester tester, String initial,
     List<String> tapLabels) async {
   String? returned;
   await tester.pumpWidget(MaterialApp(
+    localizationsDelegates: AppL10n.localizationsDelegates,
+    supportedLocales: AppL10n.supportedLocales,
     home: Builder(
       builder: (context) => ElevatedButton(
         onPressed: () async {

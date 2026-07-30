@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../../l10n/gen/app_l10n.dart';
 import 'package:smart_curtain_app/core/theme/app_colors.dart';
 import 'package:smart_curtain_app/features/scene/domain/entities/schedule_condition_entity.dart';
 
@@ -74,12 +75,16 @@ class _ScheduleConditionPageState extends State<ScheduleConditionPage> {
 
   String get _repeatDisplayText {
     final loops = _loopsString;
-    if (_isOneTime) return 'Once';
-    if (loops == '1111111') return 'Every day';
-    if (loops == '0111110') return 'Mon - Fri';
-    if (loops == '0000011') return 'Sat - Sun';
+    if (_isOneTime) return AppL10n.of(context).once;
+    if (loops == '1111111') return AppL10n.of(context).everyDay;
+    if (loops == '0111110') return AppL10n.of(context).monToFri;
+    if (loops == '0000011') return AppL10n.of(context).satToSun;
     // Custom: show abbreviated day names
-    const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    final l10n = AppL10n.of(context);
+    final labels = [
+      l10n.dayMon, l10n.dayTue, l10n.dayWed, l10n.dayThu,
+      l10n.dayFri, l10n.daySat, l10n.daySun,
+    ];
     final active = <String>[];
     for (var i = 0; i < 7; i++) {
       if (_days[i]) active.add(labels[i]);
@@ -135,7 +140,7 @@ class _ScheduleConditionPageState extends State<ScheduleConditionPage> {
           onPressed: () => Navigator.pop(context),
         ),
         centerTitle: true,
-        title: const Text('Schedule',
+        title: Text(AppL10n.of(context).schedule,
             style: TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.w600,
@@ -143,7 +148,7 @@ class _ScheduleConditionPageState extends State<ScheduleConditionPage> {
         actions: [
           TextButton(
             onPressed: _next,
-            child: const Text('Next',
+            child: Text(AppL10n.of(context).next,
                 style: TextStyle(
                     fontSize: 16,
                     color: AppColors.primary,
@@ -162,7 +167,7 @@ class _ScheduleConditionPageState extends State<ScheduleConditionPage> {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               child: Row(
                 children: [
-                  const Text('Repeat',
+                  Text(AppL10n.of(context).repeat,
                       style: TextStyle(
                           fontSize: 16, fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
                   const Spacer(),
@@ -184,7 +189,7 @@ class _ScheduleConditionPageState extends State<ScheduleConditionPage> {
             width: double.infinity,
             color: AppColors.surface,
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-            child: const Text('Execution Time',
+            child: Text(AppL10n.of(context).executionTime,
                 style: TextStyle(fontSize: 14, color: AppColors.textSecondary)),
           ),
 
@@ -300,7 +305,11 @@ class _RepeatPageState extends State<_RepeatPage> {
   // UI shows Sun first, but API loops order is Mon(0)..Sun(6)
   // Map UI index → API index
   static const _uiOrder = [6, 0, 1, 2, 3, 4, 5]; // Sun, Mon, Tue, Wed, Thu, Fri, Sat
-  static const _uiLabels = ['Sun.', 'Mon.', 'Tues.', 'Wed.', 'Thurs.', 'Fri.', 'Sat.'];
+  /// Nhãn hiển thị (bắt đầu từ Chủ nhật) — dịch theo ngôn ngữ đang chọn.
+  static List<String> _uiLabelsFor(AppL10n l10n) => [
+        l10n.daySunShort, l10n.dayMonShort, l10n.dayTueShort, l10n.dayWedShort,
+        l10n.dayThuShort, l10n.dayFriShort, l10n.daySatShort,
+      ];
 
   @override
   void initState() {
@@ -326,7 +335,7 @@ class _RepeatPageState extends State<_RepeatPage> {
             onPressed: () => Navigator.pop(context, _days),
           ),
           centerTitle: true,
-          title: const Text('Repeat',
+          title: Text(AppL10n.of(context).repeat,
               style: TextStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.w600,
@@ -339,7 +348,7 @@ class _RepeatPageState extends State<_RepeatPage> {
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
               child: Text(
-                'The action will be carried out only once if you do not select any day of the week.',
+                AppL10n.of(context).runOnceIfNoDaySelected,
                 style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
               ),
             ),
@@ -352,7 +361,7 @@ class _RepeatPageState extends State<_RepeatPage> {
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Column(
-                children: List.generate(_uiLabels.length, (uiIndex) {
+                children: List.generate(7, (uiIndex) {
                   final apiIndex = _uiOrder[uiIndex];
                   final isSelected = _days[apiIndex];
                   return Column(
@@ -372,7 +381,7 @@ class _RepeatPageState extends State<_RepeatPage> {
                           child: Row(
                             children: [
                               Text(
-                                _uiLabels[uiIndex],
+                                _uiLabelsFor(AppL10n.of(context))[uiIndex],
                                 style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w500,

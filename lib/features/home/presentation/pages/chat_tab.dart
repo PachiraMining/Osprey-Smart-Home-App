@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/gen/app_l10n.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/theme/aurora_glow.dart';
@@ -89,12 +90,12 @@ class _ChatTabState extends State<ChatTab> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Devices', style: Theme.of(ctx).textTheme.titleLarge),
+              Text(AppL10n.of(context).devices, style: Theme.of(ctx).textTheme.titleLarge),
               const SizedBox(height: 12),
               if (devices.isEmpty)
-                const Padding(
+                Padding(
                   padding: EdgeInsets.symmetric(vertical: 16),
-                  child: Text('No devices found.'),
+                  child: Text(AppL10n.of(context).noDevicesFound),
                 )
               else
                 ...devices.map(
@@ -135,17 +136,15 @@ class _ChatTabState extends State<ChatTab> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Scenes', style: Theme.of(ctx).textTheme.titleLarge),
+              Text(AppL10n.of(context).scenes, style: Theme.of(ctx).textTheme.titleLarge),
               const SizedBox(height: 12),
-              const Text(
-                'Create and manage Tap-to-Run scenes from the Scenes tab. '
-                'Scenes let you chain multiple curtain actions with delays '
-                'into a single tap.',
+               Text(
+                AppL10n.of(context).chatScenesHelp,
               ),
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('Got it'),
+                child: Text(AppL10n.of(context).gotIt),
               ),
             ],
           ),
@@ -165,17 +164,15 @@ class _ChatTabState extends State<ChatTab> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Schedule', style: Theme.of(ctx).textTheme.titleLarge),
+              Text(AppL10n.of(context).schedule, style: Theme.of(ctx).textTheme.titleLarge),
               const SizedBox(height: 12),
-              const Text(
-                'Set up automated schedules for your curtains. '
-                'Open the Scenes tab to create daily, weekly, or one-time '
-                'automation schedules.',
+               Text(
+                AppL10n.of(context).chatScheduleHelp,
               ),
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('Got it'),
+                child: Text(AppL10n.of(context).gotIt),
               ),
             ],
           ),
@@ -195,26 +192,26 @@ class _ChatTabState extends State<ChatTab> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Slash commands',
+               Text(
+                AppL10n.of(context).slashCommands,
                 style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
               ),
               const SizedBox(height: 12),
-              const _HelpRow(
-                  cmd: '/devices', desc: 'Browse and control your curtains.'),
-              const _HelpRow(cmd: '/scenes', desc: 'Run a tap-to-run scene.'),
-              const _HelpRow(
-                  cmd: '/schedule', desc: 'Open the automation schedule.'),
-              const _HelpRow(cmd: '/help', desc: 'Show this list.'),
+               _HelpRow(
+                  cmd: '/devices', desc: AppL10n.of(context).slashDevicesHint),
+               _HelpRow(cmd: '/scenes', desc: AppL10n.of(context).slashSceneHint),
+               _HelpRow(
+                  cmd: '/schedule', desc: AppL10n.of(context).slashScheduleHint),
+               _HelpRow(cmd: '/help', desc: AppL10n.of(context).slashHelpHint),
               const SizedBox(height: 8),
-              const Text(
-                'You can also speak — tap the mic button.',
+               Text(
+                AppL10n.of(context).youCanAlsoSpeak,
                 style: TextStyle(color: Colors.black54),
               ),
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('Close'),
+                child: Text(AppL10n.of(context).close),
               ),
             ],
           ),
@@ -284,9 +281,9 @@ class _ChatTabState extends State<ChatTab> {
             ),
             // Mic trong flow layout (hàng riêng) — không bao giờ đè composer.
             Padding(
-              padding: const EdgeInsets.only(right: 16, bottom: 6),
+              padding: const EdgeInsetsDirectional.only(end: 16, bottom: 6),
               child: Align(
-                alignment: Alignment.centerRight,
+                alignment: AlignmentDirectional.centerEnd,
                 child: VoiceCommandButton(
                   onIntentReady: (ready) {
                     // Đưa transcript vào thread chat để user thấy 1 lịch sử
@@ -342,9 +339,8 @@ class _EmptyHint extends StatelessWidget {
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 6),
-            const Text(
-              'On-device AI for your motorized curtains.\n'
-              'Type, speak, or use slash commands.',
+             Text(
+              AppL10n.of(context).chatHeaderSubtitle,
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.black54),
             ),
@@ -377,7 +373,7 @@ class _Bubble extends StatelessWidget {
     final isUser = message.role == ChatRole.user;
     final theme = Theme.of(context);
     return Align(
-      alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+      alignment: isUser ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 6),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -409,14 +405,14 @@ class _ThinkingDot extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
-      children: const [
+      children: [
         SizedBox(
           width: 18,
           height: 18,
           child: CircularProgressIndicator(strokeWidth: 2),
         ),
         SizedBox(width: 12),
-        Text('Thinking…'),
+        Text(AppL10n.of(context).thinking),
       ],
     );
   }
@@ -448,8 +444,8 @@ class _Composer extends StatelessWidget {
                 maxLines: 4,
                 textInputAction: TextInputAction.send,
                 onSubmitted: (_) => onSend(),
-                decoration: const InputDecoration(
-                  hintText: 'Ask about your curtains, or try /help…',
+                decoration: InputDecoration(
+                  hintText: AppL10n.of(context).askAboutYourCurtainsOrTryHelp,
                 ),
               ),
             ),
@@ -484,19 +480,19 @@ class _QuickActions extends StatelessWidget {
         children: [
           _QuickChip(
             icon: Icons.curtains,
-            label: 'Devices',
+            label: AppL10n.of(context).devices,
             onTap: onDevices,
           ),
           const SizedBox(width: 8),
           _QuickChip(
             icon: Icons.play_circle_outline,
-            label: 'Scenes',
+            label: AppL10n.of(context).scenes,
             onTap: onScenes,
           ),
           const SizedBox(width: 8),
           _QuickChip(
             icon: Icons.help_outline,
-            label: 'Help',
+            label: AppL10n.of(context).help,
             onTap: onHelp,
           ),
         ],
@@ -580,7 +576,7 @@ class _DeviceControlTile extends StatelessWidget {
                   style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
                 Text(
-                  device.isOnline ? 'Online' : 'Offline',
+                  device.isOnline ? AppL10n.of(context).online : AppL10n.of(context).offline,
                   style: TextStyle(
                     fontSize: 12,
                     color: device.isOnline ? Colors.green : Colors.grey,
@@ -591,19 +587,19 @@ class _DeviceControlTile extends StatelessWidget {
           ),
           _CommandButton(
             icon: Icons.arrow_back,
-            label: 'Open',
+            label: AppL10n.of(context).open,
             onTap: () => onCommand('OPEN'),
           ),
           const SizedBox(width: 6),
           _CommandButton(
             icon: Icons.pause,
-            label: 'Stop',
+            label: AppL10n.of(context).stop,
             onTap: () => onCommand('STOP'),
           ),
           const SizedBox(width: 6),
           _CommandButton(
             icon: Icons.arrow_forward,
-            label: 'Close',
+            label: AppL10n.of(context).close,
             onTap: () => onCommand('CLOSE'),
           ),
         ],

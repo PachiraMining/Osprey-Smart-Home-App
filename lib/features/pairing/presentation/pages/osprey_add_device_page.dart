@@ -1,4 +1,5 @@
 import 'dart:io';
+import '../../../../l10n/gen/app_l10n.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -64,12 +65,12 @@ class _OspreyAddDeviceViewState extends State<_OspreyAddDeviceView> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(Platform.isIOS
-              ? 'Bluetooth permission is required to find devices'
-              : 'Bluetooth and Location permissions are required to find devices'),
+              ? AppL10n.of(context).blePermissionRequired
+              : AppL10n.of(context).bleAndLocationPermissionRequired),
           backgroundColor: AppColors.error,
           action: permanentlyDenied
               ? SnackBarAction(
-                  label: 'Open Settings',
+                  label: AppL10n.of(context).openSettings,
                   textColor: Colors.white,
                   onPressed: openAppSettings,
                 )
@@ -115,8 +116,8 @@ class _OspreyAddDeviceViewState extends State<_OspreyAddDeviceView> {
           onPressed: () => Navigator.pop(context),
         ),
         centerTitle: true,
-        title: const Text(
-          'Add device',
+        title:  Text(
+          AppL10n.of(context).addDeviceLower,
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -150,7 +151,7 @@ class _OspreyAddDeviceViewState extends State<_OspreyAddDeviceView> {
                       ),
                       onPressed: _requestAndScan,
                       icon: const Icon(Icons.refresh),
-                      label: const Text('Rescan'),
+                      label: Text(AppL10n.of(context).rescan),
                     ),
                   ),
               ],
@@ -166,10 +167,9 @@ class _OspreyAddDeviceViewState extends State<_OspreyAddDeviceView> {
     if (state is OspreyScanError) {
       text = state.message;
     } else if (isScanning) {
-      text = 'Searching for nearby Osprey devices. Make sure the device '
-          'is in pairing mode.';
+      text = AppL10n.of(context).searchingNearbyDevices;
     } else {
-      text = 'Scanning stopped.';
+      text = AppL10n.of(context).scanningStopped;
     }
 
     return Container(
@@ -229,7 +229,7 @@ class _OspreyAddDeviceViewState extends State<_OspreyAddDeviceView> {
               )
             : Align(
                 key: const ValueKey('found'),
-                alignment: Alignment.topLeft,
+                alignment: AlignmentDirectional.topStart,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                       horizontal: 24, vertical: 8),

@@ -11,6 +11,7 @@ import '../../../scene/domain/entities/tap_to_run_scene_entity.dart';
 import '../../../scene/domain/usecases/execute_tap_to_run_scene.dart';
 import '../../../scene/domain/usecases/get_automations.dart';
 import '../../../scene/domain/usecases/get_tap_to_run_scenes.dart';
+import '../../../../l10n/gen/app_l10n.dart';
 
 /// Các scene và automation có liên quan tới MỘT thiết bị.
 ///
@@ -116,7 +117,7 @@ class _DeviceScenesPageState extends State<DeviceScenesPage> {
           : (_tapToRun.isEmpty && _automations.isEmpty)
               ? Center(
                   child: Text(
-                    'No scenes use this device yet.',
+                    AppL10n.of(context).noScenesUseThisDevice,
                     style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
                   ),
                 )
@@ -124,7 +125,7 @@ class _DeviceScenesPageState extends State<DeviceScenesPage> {
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
                   children: [
                     if (_tapToRun.isNotEmpty) ...[
-                      const _SectionLabel('Tap to Run'),
+                       _SectionLabel(AppL10n.of(context).tapToRunLabel),
                       _grid([
                         for (final scene in _tapToRun)
                           _SceneCell(
@@ -137,7 +138,7 @@ class _DeviceScenesPageState extends State<DeviceScenesPage> {
                     ],
                     if (_automations.isNotEmpty) ...[
                       const SizedBox(height: 22),
-                      const _SectionLabel('Automation'),
+                       _SectionLabel(AppL10n.of(context).automation),
                       _grid([
                         for (final a in _automations)
                           _SceneCell(
@@ -243,8 +244,8 @@ class _SceneCell extends StatelessWidget {
                   ],
                 ],
               ),
-              Positioned(
-                right: 0,
+              PositionedDirectional(
+                end: 0,
                 bottom: 0,
                 child: busy
                     ? const SizedBox(

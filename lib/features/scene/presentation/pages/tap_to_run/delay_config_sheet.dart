@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../../l10n/gen/app_l10n.dart';
 
 /// Full-page delay picker with 3 scroll wheels: hours, minutes, seconds.
 /// Max delay: 5 minutes (300 seconds). Hours wheel is 0 only.
@@ -38,7 +39,7 @@ class _DelayConfigPageState extends State<DelayConfigPage> {
     final totalSeconds = _hours * 3600 + _minutes * 60 + _seconds;
     if (totalSeconds == 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a time > 0')),
+        SnackBar(content: Text(AppL10n.of(context).pleaseSelectATime0)),
       );
       return;
     }
@@ -56,8 +57,8 @@ class _DelayConfigPageState extends State<DelayConfigPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6FA),
       appBar: AppBar(
-        title: const Text(
-          'Delay the action',
+        title: Text(
+          AppL10n.of(context).delayTheAction,
           style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
         ),
         centerTitle: true,
@@ -67,8 +68,8 @@ class _DelayConfigPageState extends State<DelayConfigPage> {
         actions: [
           TextButton(
             onPressed: _onNext,
-            child: const Text(
-              'Next',
+            child: Text(
+              AppL10n.of(context).next,
               style: TextStyle(
                 color: Color(0xFF1B4332),
                 fontSize: 16,

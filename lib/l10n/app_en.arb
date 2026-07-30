@@ -1,0 +1,742 @@
+{
+  "@@locale": "en",
+  "settingsTitle": "Settings",
+  "personalInformation": "Personal Information",
+  "accountAndSecurity": "Account and Security",
+  "touchToneOnPanel": "Touch Tone on Panel",
+  "aiAssistant": "AI Assistant",
+  "temperatureUnit": "Temperature Unit",
+  "about": "About",
+  "networkDiagnosis": "Network Diagnosis",
+  "clearCache": "Clear Cache",
+  "language": "Language",
+  "logOut": "Log Out",
+  "languageSystemDefault": "Same as the system language",
+  "@languageSystemDefault": {
+    "description": "Locale option that follows the device language"
+  },
+  "languageEnglish": "English",
+  "languageVietnamese": "Vietnamese",
+  "clearCacheMessage": "Cached scenes, home data and images will be re-downloaded on next use. Your account and devices are not affected.",
+  "clear": "Clear",
+  "cancel": "Cancel",
+  "freedSpace": "Freed {size}",
+  "@freedSpace": {
+    "description": "Shown after clearing the cache",
+    "placeholders": {
+      "size": {
+        "type": "String",
+        "example": "26.75M"
+      }
+    }
+  },
+  "aboutVersion": "Version {version} ({build})",
+  "@aboutVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String",
+        "example": "1.0.5"
+      },
+      "build": {
+        "type": "String",
+        "example": "11"
+      }
+    }
+  },
+  "privacyPolicy": "Privacy Policy",
+  "termsOfService": "Terms of Service",
+  "bundleId": "Bundle ID",
+  "server": "Server",
+  "couldNotOpenLink": "Could not open the link.",
+  "diagLocalNetwork": "Local network",
+  "diagLocalNetworkNoWifi": "Not on Wi-Fi (mobile data or permission denied)",
+  "diagLocalNetworkUnreadable": "Could not read Wi-Fi name",
+  "diagDnsLookup": "DNS lookup",
+  "diagDnsFailed": "Cannot resolve {host}",
+  "@diagDnsFailed": {
+    "placeholders": {
+      "host": {
+        "type": "String",
+        "example": "iot.osprey.life"
+      }
+    }
+  },
+  "diagServerReachable": "Server reachable",
+  "diagServerLatency": "{ms} ms · HTTP {status}",
+  "@diagServerLatency": {
+    "placeholders": {
+      "ms": {
+        "type": "String",
+        "example": "180"
+      },
+      "status": {
+        "type": "String",
+        "example": "200"
+      }
+    }
+  },
+  "diagServerNoResponse": "No response from server",
+  "diagSignedIn": "Signed in",
+  "diagSessionValid": "Session valid",
+  "diagSessionInvalid": "HTTP {status} — please sign in again",
+  "@diagSessionInvalid": {
+    "placeholders": {
+      "status": {
+        "type": "String",
+        "example": "401"
+      }
+    }
+  },
+  "diagSessionUnverified": "Could not verify session",
+  "diagControlChannel": "Control channel",
+  "diagCloudConnected": "Cloud (MQTT) connected",
+  "diagBleFallback": "Cloud down — using Bluetooth fallback",
+  "diagUnreachable": "No cloud and no Bluetooth in range",
+  "diagStatusUnknown": "Status unknown",
+  "runAgain": "Run Again",
+  "accountCreatedPleaseSignIn": "Account created — please sign in.",
+  "add": "Add",
+  "addCondition": "Add Condition",
+  "addRoom": "Add Room",
+  "addTask": "Add Task",
+  "addAtLeastTwoDevicesToAGroup": "Add at least two devices to a group.",
+  "alexa": "Alexa",
+  "all": "All",
+  "allDevices": "All Devices",
+  "alternateNetwork": "Alternate Network",
+  "apply": "Apply",
+  "areYouSureYouWantToLogOut": "Are you sure you want to log out?",
+  "askAboutYourCurtainsOrTryHelp": "Ask about your curtains, or try /help…",
+  "askAboutYourCurtains": "Ask about your curtains…",
+  "atLeast6Characters": "At least 6 characters",
+  "authDiagnostics": "Auth Diagnostics",
+  "automationNotification": "Automation notification",
+  "changeRoom": "Change Room",
+  "close": "Close",
+  "cloud": "Cloud",
+  "confirm": "Confirm",
+  "connected": "Connected",
+  "control": "Control",
+  "controlSingleDevice": "Control Single Device",
+  "copiedToClipboard": "Copied to clipboard",
+  "copy": "Copy",
+  "couldNotChangeTheMotorDirectionPleaseTryAgai": "Could not change the motor direction. Please try again.",
+  "couldNotConnect": "Could not connect",
+  "couldNotCreateTheGroupPleaseTryAgain": "Could not create the group. Please try again.",
+  "couldNotOpenTheBrowser": "Could not open the browser.",
+  "couldNotSendTheCommandPleaseTryAgain": "Could not send the command. Please try again.",
+  "create": "Create",
+  "createScene": "Create Scene",
+  "createAHome": "Create a home",
+  "createARoomFirst": "Create a room first.",
+  "createAccount": "Create account",
+  "createScene2": "Create scene",
+  "curtainPosition": "Curtain position",
+  "curtainPositionSetting": "Curtain position setting",
+  "customDeviceIconsAreNotSupportedYet": "Custom device icons are not supported yet.",
+  "delayTheAction": "Delay the action",
+  "delete": "Delete",
+  "deleteAccount": "Delete Account",
+  "deleteHome": "Delete Home",
+  "deleteRoom": "Delete Room",
+  "deleteSchedule": "Delete Schedule",
+  "deleteScene": "Delete scene?",
+  "deleteThisSchedule": "Delete this schedule?",
+  "deviceNetwork": "Device Network",
+  "deviceHasNoProfileInformation": "Device has no profile information",
+  "deviceIsOffline": "Device is offline",
+  "deviceIsReady": "Device is ready.",
+  "deviceName": "Device name",
+  "deviceRemovedFromHome": "Device removed from home.",
+  "deviceUnreachable": "Device unreachable",
+  "devices": "Devices",
+  "disconnect": "Disconnect",
+  "disconnectDevice": "Disconnect device?",
+  "done": "Done",
+  "emailAddress": "Email address",
+  "emailOrUsername": "Email or username",
+  "enterAGroupName": "Enter a group name",
+  "enterANote": "Enter a note",
+  "enterDeviceName": "Enter device name",
+  "enterHomeName": "Enter home name",
+  "enterName": "Enter name",
+  "enterSceneName": "Enter scene name",
+  "enterValue": "Enter value...",
+  "enterYourPassword": "Enter your password",
+  "eraseDeviceData": "Erase device data?",
+  "error": "Error",
+  "executedBy": "Executed By",
+  "executionTime": "Execution Time",
+  "faqFeedback": "FAQ & Feedback",
+  "failed": "Failed",
+  "featureComingSoon": "Feature coming soon",
+  "firmware": "Firmware",
+  "firmwareUpdateIsComingSoon": "Firmware update is coming soon.",
+  "firstName": "First name",
+  "firstNameOptional": "First name (optional)",
+  "goBack": "Go back",
+  "googleAssistant": "Google Assistant",
+  "gotIt": "Got it",
+  "groupName": "Group Name",
+  "help": "Help",
+  "homeManagement": "Home Management",
+  "homeName": "Home Name",
+  "homeName2": "Home name",
+  "icon": "Icon",
+  "conditionIf": "If",
+  "joinAHome": "Join a home",
+  "joiningAHomeByInviteIsComingSoon": "Joining a home by invite is coming soon.",
+  "lastName": "Last name",
+  "lastNameOptional": "Last name (optional)",
+  "later": "Later",
+  "launchTapToRun": "Launch Tap-to-Run",
+  "localAssociation": "Local Association",
+  "localControlOffline": "Local control (offline)",
+  "location": "Location",
+  "logCopiedToClipboard": "Log copied to clipboard",
+  "logs": "Logs",
+  "manage": "Manage",
+  "managePermissions": "Manage Permissions",
+  "markAllAsRead": "Mark all as read",
+  "moreSettings": "More Settings",
+  "motorDirection": "Motor Direction",
+  "moveToTop": "Move to Top",
+  "moveToRoom": "Move to room",
+  "moved": "Moved",
+  "movedToTop": "Moved to top",
+  "name": "Name",
+  "next": "Next",
+  "noDevicesAvailable": "No devices available",
+  "noDevicesFound": "No devices found.",
+  "noDevicesInThisHome": "No devices in this home.",
+  "noDevicesYet": "No devices yet",
+  "noFunctionsAvailable": "No functions available",
+  "noHomeSelectedPleaseTryAgain": "No home selected, please try again",
+  "noMatchingTimeZones": "No matching time zones",
+  "noOtherScenesAvailable": "No other scenes available",
+  "noRooms": "No rooms",
+  "noSavedNetworksYet": "No saved networks yet.",
+  "noScenes": "No scenes",
+  "noScenesAvailable": "No scenes available",
+  "note": "Note",
+  "notification": "Notification",
+  "ok": "OK",
+  "offlineNotification": "Offline Notification",
+  "open": "Open",
+  "openSettings": "Open Settings",
+  "outdoorPm25": "Outdoor PM2.5",
+  "outdoorAirPressure": "Outdoor air pressure",
+  "outdoorHumidity": "Outdoor humidity",
+  "outdoorWindSpeed": "Outdoor wind speed",
+  "pairingSuccessful": "Pairing successful",
+  "password": "Password",
+  "sessionExpiredSignInAgain": "Your session has expired. Please sign in again.",
+  "pleaseAddAtLeast1Action": "Please add at least 1 action",
+  "pleaseAddAtLeast1Condition": "Please add at least 1 condition",
+  "pleaseEnterAName": "Please enter a name",
+  "pleaseEnterASceneName": "Please enter a scene name",
+  "pleaseSelectAFunction": "Please select a function",
+  "pleaseSelectATime0": "Please select a time > 0",
+  "rePairNow": "Re-pair now",
+  "rePairRequired": "Re-pair required",
+  "reasonOptional": "Reason (optional)",
+  "refresh": "Refresh",
+  "reload": "Reload",
+  "remove": "Remove",
+  "removeDevice": "Remove Device",
+  "removed": "Removed",
+  "rename": "Rename",
+  "renameRoom": "Rename Room",
+  "renameDevice": "Rename device",
+  "repeat": "Repeat",
+  "rescan": "Rescan",
+  "retry": "Retry",
+  "roomManagement": "Room Management",
+  "roomName": "Room Name",
+  "roomUpdated": "Room updated",
+  "running": "Running",
+  "save": "Save",
+  "sceneName": "Scene Name",
+  "scenes": "Scenes",
+  "schedule": "Schedule",
+  "searchAddress": "Search address",
+  "searchCityOrRegion": "Search city or region",
+  "selectScene": "Select Scene",
+  "selectSmartScenes": "Select smart scenes",
+  "sendResetLink": "Send reset link",
+  "sendVerificationCode": "Send verification code",
+  "showOnHomePage": "Show on Home Page",
+  "signIn": "Sign in",
+  "signalStrength": "Signal Strength",
+  "signalStrength2": "Signal strength",
+  "startPairing": "Start pairing",
+  "stop": "Stop",
+  "style": "Style",
+  "switchNetwork": "Switch",
+  "switchToThisNetwork": "Switch to this network",
+  "tapToRunNotification": "Tap-to-Run notification",
+  "conditionThen": "Then",
+  "thinking": "Thinking…",
+  "thisActionCannotBeUndone": "This action cannot be undone.",
+  "thisSavedNetworkWillBeRemovedFromTheDevice": "This saved network will be removed from the device.",
+  "timeZone": "Time Zone",
+  "timeZoneUpdated": "Time zone updated",
+  "timedOut": "Timed out",
+  "tryAgain": "Try again",
+  "useCurrentLocation": "Use current location",
+  "usingSiri": "Using Siri",
+  "virtualId": "Virtual ID",
+  "whenDeviceStatusChanges": "When device status changes",
+  "whenWeatherChanges": "When weather changes",
+  "wiFi": "Wi-Fi",
+  "wifiNameSsid": "WiFi name (SSID)",
+  "wifiPassword": "WiFi password",
+  "navHome": "Home",
+  "navScenes": "Scenes",
+  "navChat": "Chat",
+  "navMe": "Me",
+  "thirdPartyServices": "Third-Party Services",
+  "messageCenter": "Message Center",
+  "appMall": "App Mall",
+  "addDevice": "Add Device",
+  "tapToRun": "Tap-to-Run",
+  "automationEmptyHint": "Home automation saves your time and effort by automating routine tasks.",
+  "tapToRunEmptyHint": "Create a Tap-to-Run scene to control your devices quickly with a single tap.",
+  "scene": "Scene",
+  "executionFailed": "Execution failed",
+  "device": "Device",
+  "delay": "Delay",
+  "runScene": "Run Scene",
+  "addToSiri": "Add to Siri",
+  "storeUnderPreparation": "The store is under preparation, please stay tuned.",
+  "commonFunctions": "Common Functions",
+  "noConnection": "No connection",
+  "checkInternetAndRetry": "Check your internet connection and try again.",
+  "noConnectionCheckInternet": "No connection. Check your internet and try again.",
+  "addFirstCurtainHint": "Tap the + button to add your first curtain to this home.",
+  "hideInvisibleDevices": "Hide invisible devices",
+  "deviceRenamed": "Device renamed.",
+  "deviceDeletedReturningToPairing": "Device deleted. It is returning to pairing mode.",
+  "homeSettings": "Home Settings",
+  "toBeSet": "To Be Set",
+  "homeMember": "Home Member",
+  "memberDetails": "Member details",
+  "addMember": "Add Member",
+  "pending": "Pending",
+  "removesFromHomeHint": "Removes from home; device returns to pairing mode in 1-2 minutes",
+  "unlinkAndEraseData": "Unlink and erase data",
+  "erasesAllDataHint": "Erases all data, cannot be undone",
+  "somethingWentWrongTryAgain": "Something went wrong, please try again",
+  "tapToRunAndAutomation": "Tap-to-Run and Automation",
+  "thirdPartyControl": "Third-party Control",
+  "deviceOfflineNotification": "Device Offline Notification",
+  "others": "Others",
+  "shareDevice": "Share Device",
+  "addToHomeScreen": "Add to Home Screen",
+  "checkDeviceNetwork": "Check Device Network",
+  "checkNow": "Check Now",
+  "deviceUpdate": "Device Update",
+  "removeDevicesWarning": "They will be removed from this home and returned to pairing mode.",
+  "shown": "Shown",
+  "hidden": "Hidden",
+  "devicesBackOnHome": "Devices are back on Home",
+  "hiddenFromHome": "Hidden from Home",
+  "offline": "Offline",
+  "show": "Show",
+  "hide": "Hide",
+  "profilePhoto": "Profile Photo",
+  "nickname": "Nickname",
+  "noRoomsYet": "No rooms yet",
+  "tapPlusToAddRoom": "Tap + to add a new room",
+  "emailAddressLabel": "Email Address",
+  "notSet": "Not set",
+  "deviceInformation": "Device Information",
+  "unknown": "Unknown",
+  "notReported": "Not reported",
+  "noScenesUseThisDevice": "No scenes use this device yet.",
+  "tapToRunLabel": "Tap to Run",
+  "automation": "Automation",
+  "forward": "Forward",
+  "back": "Back",
+  "setting": "Setting",
+  "updateAvailable": "Update available",
+  "noUpdatesAvailable": "No updates available",
+  "updateNow": "Update Now",
+  "unassigned": "Unassigned",
+  "enterEmailOrUsername": "Enter your email or username",
+  "welcome": "Welcome",
+  "signInSubtitle": "Sign in to your osprey.life account.",
+  "createOne": "Create one",
+  "forgotPassword": "Forgot password?",
+  "orContinueWith": "or continue with",
+  "enterValidEmail": "Enter a valid email address",
+  "resetYourPassword": "Reset your password",
+  "checkYourInbox": "Check your inbox",
+  "enterYourEmailAddress": "Enter your email address",
+  "enterSixDigitCode": "Enter the 6-digit code",
+  "enterAPassword": "Enter a password",
+  "createYourAccount": "Create your account",
+  "checkYourEmail": "Check your email",
+  "resendCode": "Resend code",
+  "userAgreement": "User Agreement",
+  "reconnecting": "Reconnecting…",
+  "checkWifiOrBluetooth": "Check WiFi or move closer for Bluetooth.",
+  "smartScenesRequireInternet": "Smart Scenes require internet",
+  "enterWifiName": "Enter the WiFi name",
+  "wifiNameLengthError": "WiFi name must be 1–32 characters",
+  "passwordMin8": "Password must be at least 8 characters",
+  "passwordLength863": "Password must be 8–63 characters",
+  "networkAlreadySaved": "This network is already saved. To change its password, delete it and add it again.",
+  "addWifiNetwork": "Add WiFi network",
+  "atLeast8Characters": "At least 8 characters",
+  "only24GhzSupported": "Curtain devices only support 2.4GHz WiFi (WPA2).",
+  "labelOptional": "Label (optional)",
+  "createGroup": "Create Group",
+  "groupControlHint": "Devices in the same group can be controlled together.",
+  "devicesToBeAdded": "Devices to Be Added",
+  "noSameTypeDevices": "No other devices of the same type in this home.",
+  "couldNotLoadNetworkDetails": "Could not load network details. Pull to refresh.",
+  "alreadyOnThisNetwork": "Already on this network.",
+  "deviceOfflineTryLater": "Device is offline — please try again later.",
+  "wrongPassword": "Wrong password",
+  "networkNotFound": "Network not found",
+  "networkRemoved": "Network removed.",
+  "network": "Network",
+  "connectedTo": "Connected to",
+  "savedNetworks": "Saved networks",
+  "addANetwork": "Add a network",
+  "notConnected": "Not connected",
+  "pleaseKeepAppOpen": "Please keep the app open.",
+  "deviceNetworkInformation": "Device Network Information",
+  "once": "Once",
+  "editSchedule": "Edit Schedule",
+  "addSchedule": "Add Schedule",
+  "timeVarianceHint": "Time variance is  ±30s",
+  "noTimerData": "No timer data",
+  "localControlUnsupportedAction": "Local control does not support this action",
+  "noInternetNoBluetooth": "No internet and Bluetooth not in range",
+  "connectionError": "Connection error",
+  "exampleTapToRun": "Example: turn off all lights in the bedroom with one tap.",
+  "exampleWeather": "Example: when local temperature is greater than 28°C.",
+  "weatherTrigger": "Weather trigger",
+  "exampleSchedule": "Example: 7:00 a.m. every morning.",
+  "exampleDeviceStatus": "Example: when an unusual activity is detected.",
+  "deviceStatusTrigger": "Device-status trigger",
+  "noNotificationsYet": "No notifications yet",
+  "slashCommands": "Slash commands",
+  "slashDevicesHint": "Browse and control your curtains.",
+  "slashSceneHint": "Run a tap-to-run scene.",
+  "slashScheduleHint": "Open the automation schedule.",
+  "slashHelpHint": "Show this list.",
+  "youCanAlsoSpeak": "You can also speak — tap the mic button.",
+  "chatInputHint": "Type, speak, or use slash commands.",
+  "online": "Online",
+  "blePermissionRequired": "Bluetooth permission is required to find devices",
+  "bleAndLocationPermissionRequired": "Bluetooth and Location permissions are required to find devices",
+  "addDeviceLower": "Add device",
+  "scanningStopped": "Scanning stopped.",
+  "enterWifiPassword": "Enter the WiFi password",
+  "detectingCurrentWifi": "Detecting current WiFi...",
+  "autoDetectedWifi": "Auto-detected from the WiFi your phone is connected to",
+  "couldNotDetectWifi": "Could not detect WiFi — enter the network name manually",
+  "beingAdded": "Being added",
+  "addedSuccessfully": "Added successfully",
+  "pairingFailed": "Pairing failed",
+  "allDay": "All day",
+  "whenAnyConditionMet": "When any condition is met",
+  "whenAllConditionsMet": "When all conditions are met",
+  "deleteSceneWarning": "After the scenario is deleted, the device tasks can no longer be executed properly.",
+  "toggleAutomation": "Toggle Automation",
+  "enable": "Enable",
+  "disable": "Disable",
+  "everyDay": "Every day",
+  "monToFri": "Mon - Fri",
+  "satToSun": "Sat - Sun",
+  "runOnceIfNoDaySelected": "The action will be carried out only once if you do not select any day of the week.",
+  "sendNotification": "Send notification",
+  "color": "Color",
+  "wait": "Wait",
+  "finish": "Finish",
+  "selectFunction": "Select Function",
+  "on": "On",
+  "off": "Off",
+  "siriShortcut": "Siri Shortcut",
+  "createTapToRunFirst": "Create a Tap-to-Run scene first.",
+  "poweredByFoundationModels": "Powered by Apple Foundation Models, on-device.",
+  "weatherClearNight": "Clear night",
+  "weatherSunny": "Sunny",
+  "weatherPartlyCloudy": "Partly cloudy",
+  "weatherCloudy": "Cloudy",
+  "qualityExcellent": "Excellent",
+  "qualityGood": "Good",
+  "qualityModerate": "Moderate",
+  "qualityPoor": "Poor",
+  "qualityVeryPoor": "Very Poor",
+  "switchLocation": "Switch location",
+  "aiSuggestion": "AI Suggestion",
+  "listening": "Listening…",
+  "parsing": "Parsing…",
+  "getStarted": "Get started",
+  "aiChatEmptyState": "Ask the osprey.life assistant anything about your curtains.\nPowered by Apple Foundation Models, on-device.",
+  "chatHeaderSubtitle": "On-device AI for your motorized curtains.\nType, speak, or use slash commands.",
+  "daySunShort": "Sun.",
+  "dayMonShort": "Mon.",
+  "dayTueShort": "Tues.",
+  "dayWedShort": "Wed.",
+  "dayThuShort": "Thurs.",
+  "dayFriShort": "Fri.",
+  "daySatShort": "Sat.",
+  "dayMon": "Mon",
+  "dayTue": "Tue",
+  "dayWed": "Wed",
+  "dayThu": "Thu",
+  "dayFri": "Fri",
+  "daySat": "Sat",
+  "daySun": "Sun",
+  "accountLinkedSuccessfully": "Account linked successfully!",
+  "linkingFailed": "Linking failed",
+  "anErrorOccurredTryAgain": "An error occurred. Please try again.",
+  "signInWithAmazon": "Sign In With Amazon",
+  "viewMoreWaysToLink": "View more ways to link",
+  "alreadyLinkedWithAlexa": "Already linked with Amazon Alexa",
+  "somethingWentWrong": "Something went wrong",
+  "noAuthorizationCode": "No authorization code received",
+  "couldNotOpenGoogleHome": "Could not open Google Home app",
+  "reLogin": "Re-Login",
+  "linkWithGoogleAssistant": "Link with Google Assistant",
+  "linkedWithGoogleAssistant": "Linked with Google Assistant",
+  "anErrorOccurred": "An error occurred",
+  "deleteHomeConfirm": "Are you sure you want to delete \"{name}\"? This action cannot be undone.",
+  "@deleteHomeConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineScenesBody": "Scenes and schedules pause until your WiFi is back. Local Bluetooth control still works for direct open/close/stop on each device.",
+  "blePairingLostBody": "Local Bluetooth control needs to be re-paired with this device. This usually happens after the app data was cleared or the device was factory reset.",
+  "alternateNetworkHint": "If the current network is unavailable, the device will be automatically connected to an alternate network.",
+  "switchNetworkWarning": "The device will disconnect from its current WiFi and try to join the new one. This usually takes 5–30 seconds.",
+  "runOnceIfNoDayPicked": "The action will be carried out only once if you do not select it.",
+  "alexaUnlinkHint": "Disable osprey.life skill on the Amazon Alexa app or tap Me > the Setting button in the top right corner > Account and Security to unauthorize it.",
+  "alexaLinkExplainer": "Binding your app account to your Amazon account allows you to control Alexa-enabled devices through Amazon Echo speakers (ex. \"Alexa, turn on light.\")",
+  "chatScheduleHelp": "Set up automated schedules for your curtains. Open the Scenes tab to create daily, weekly, or one-time automation schedules.",
+  "chatScenesHelp": "Create and manage Tap-to-Run scenes from the Scenes tab. Scenes let you chain multiple curtain actions with delays into a single tap.",
+  "googleUnlinkHint": "Disable osprey.life skill on the Google Home app or tap Me > the Setting button in the top right corner > Account and Security to unauthorize it.",
+  "googleLinkExplainer": "After connecting your App account and Google  account, you can use Google Home Smart Speakers to control devices that work with Google Assistant.  For example, you can say, \"OK Google, please turn on  the light.\"",
+  "deviceDisconnectedFromHome": "Device disconnected from home. It will return to pairing mode in 1-2 minutes.",
+  "searchingNearbyDevices": "Searching for nearby Osprey devices. Make sure the device is in pairing mode.",
+  "looksLike5GhzHint": "This network looks like 5GHz — switch your phone to a 2.4GHz network, then tap refresh.",
+  "pairingWifiHint": "The device will connect to the WiFi your phone is using. Only 2.4GHz networks are supported.",
+  "siriShortcutsHelp": "Tap a scene to record a voice phrase, then say \"Hey Siri\" followed by that phrase to run the scene — even when the app is closed.\n\nTap a scene you already added to change its phrase or remove it.",
+  "deleteAccountWarning": "After deletion:\n• Your account will be deleted after 30 days\n• All your devices and scenes will be removed\n• You can cancel by logging in again within 30 days",
+  "aiSuggestionBody": "You usually run \"{action}\" at {weekday} {hour}:00 — automate it?",
+  "@aiSuggestionBody": {
+    "placeholders": {
+      "action": {
+        "type": "String"
+      },
+      "weekday": {
+        "type": "String"
+      },
+      "hour": {
+        "type": "String"
+      }
+    }
+  },
+  "removeDeviceConfirm": "\"{name}\" will be removed from your home and automatically return to pairing mode in about 1-2 minutes.",
+  "@removeDeviceConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "eraseDeviceConfirm": "All data for \"{name}\" will be erased and CANNOT be recovered. Are you sure?",
+  "@eraseDeviceConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "showInvisibleDevices": "Show invisible devices ({count})",
+  "@showInvisibleDevices": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "resetLinkSent": "If an account exists for {email}, a password reset link is on its way.",
+  "@resetLinkSent": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "signInNotAvailable": "{name} sign-in is not available yet.",
+  "@signInNotAvailable": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "resendCodeIn": "Resend code in {seconds}s",
+  "@resendCodeIn": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteConfirmNamed": "Are you sure you want to delete \"{name}\"?",
+  "@deleteConfirmNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "taskCount": "{count, plural, =1{1 task} other{{count} tasks}}",
+  "@taskCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "featureComingSoonShort": "{feature} is coming soon",
+  "@featureComingSoonShort": {
+    "placeholders": {
+      "feature": {
+        "type": "String"
+      }
+    }
+  },
+  "roomCount": "{count, plural, =1{1 Room} other{{count} Rooms}}",
+  "@roomCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "removeDevicesQ": "{count, plural, =1{Remove device?} other{Remove {count} devices?}}",
+  "@removeDevicesQ": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "devicesRemoved": "{count, plural, =1{1 device removed} other{{count} devices removed}}",
+  "@devicesRemoved": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deviceCount": "{count, plural, =1{1 device} other{{count} devices}}",
+  "@deviceCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "mainModuleVersion": "Main Module: V{version}",
+  "@mainModuleVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "outdoorTemperatureValue": "Outdoor temperature: {temp}°C",
+  "@outdoorTemperatureValue": {
+    "placeholders": {
+      "temp": {
+        "type": "int"
+      }
+    }
+  },
+  "occurrencesIn30Days": "{count, plural, =1{1 time in 30 days} other{{count} times in 30 days}}",
+  "@occurrencesIn30Days": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sceneExecuted": "\"{name}\" executed",
+  "@sceneExecuted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "couldNotRunScene": "Could not run \"{name}\". Please try again.",
+  "@couldNotRunScene": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "featureComingSoonNamed": "{feature} is coming soon.",
+  "@featureComingSoonNamed": {
+    "placeholders": {
+      "feature": {
+        "type": "String"
+      }
+    }
+  },
+  "couldNotLoadHome": "We couldn't load your home. Please try again.",
+  "deviceCouldNotConnectTo": "The device couldn't connect to '{ssid}'.\n\nReason: {reason}\n\nThe device is still on '{stayedOn}'.",
+  "@deviceCouldNotConnectTo": {
+    "placeholders": {
+      "ssid": {
+        "type": "String"
+      },
+      "reason": {
+        "type": "String"
+      },
+      "stayedOn": {
+        "type": "String"
+      }
+    }
+  },
+  "makeSureNetworkInRange": "\n\nMake sure '{ssid}' is on and within range.",
+  "@makeSureNetworkInRange": {
+    "placeholders": {
+      "ssid": {
+        "type": "String"
+      }
+    }
+  },
+  "noResponseFromDevice": "We didn't get a response from the device. Refresh in a moment to see its current status.",
+  "devicesBeingAdded": "{count, plural, =1{1 device being added} other{{count} devices being added}}",
+  "@devicesBeingAdded": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "devicesAddedSuccessfully": "{count, plural, =1{1 device added successfully} other{{count} devices added successfully}}",
+  "@devicesAddedSuccessfully": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "alexaExamplesIntro": "You can control Alexa-enabled devices with\nAmazon Alexa speakers, such as",
+  "googleExamplesIntro": "You can now use Google Home voicebox to\ncontrol Google Assistant devices, like"
+}

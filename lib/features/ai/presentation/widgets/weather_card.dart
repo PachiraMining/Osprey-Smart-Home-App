@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entities/weather_recommendation.dart';
 import '../bloc/weather_ai_bloc.dart';
 import '../pages/weather_detail_page.dart';
+import '../../../../l10n/gen/app_l10n.dart';
 
 /// Tuya-style weather cell for the Home tab: big outdoor temperature with a
 /// condition icon, and a row of outdoor metrics (PM2.5 quality / humidity /
@@ -66,20 +67,20 @@ class WeatherCard extends StatelessWidget {
                 Row(
                   children: [
                     _Metric(
-                      value: _pm25Label(w?.pm25),
-                      caption: 'Outdoor PM2.5',
+                      value: _pm25Label(w?.pm25, AppL10n.of(context)),
+                      caption: AppL10n.of(context).outdoorPm25,
                     ),
                     _Metric(
                       value: w?.humidityPercent != null
                           ? '${w!.humidityPercent!.toStringAsFixed(1)}%'
                           : '--',
-                      caption: 'Outdoor humidity',
+                      caption: AppL10n.of(context).outdoorHumidity,
                     ),
                     _Metric(
                       value: w?.pressureHpa != null
                           ? '${w!.pressureHpa!.round()}hPa'
                           : '--',
-                      caption: 'Outdoor air pressure',
+                      caption: AppL10n.of(context).outdoorAirPressure,
                     ),
                   ],
                 ),
@@ -92,13 +93,13 @@ class WeatherCard extends StatelessWidget {
   }
 
   /// US-EPA-style PM2.5 (µg/m³) quality bucket, like Tuya's wording.
-  static String _pm25Label(double? pm25) {
+  static String _pm25Label(double? pm25, AppL10n l10n) {
     if (pm25 == null) return '--';
-    if (pm25 <= 12) return 'Excellent';
-    if (pm25 <= 35.4) return 'Good';
-    if (pm25 <= 55.4) return 'Moderate';
-    if (pm25 <= 150.4) return 'Poor';
-    return 'Very Poor';
+    if (pm25 <= 12) return l10n.qualityExcellent;
+    if (pm25 <= 35.4) return l10n.qualityGood;
+    if (pm25 <= 55.4) return l10n.qualityModerate;
+    if (pm25 <= 150.4) return l10n.qualityPoor;
+    return l10n.qualityVeryPoor;
   }
 }
 

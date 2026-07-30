@@ -1,4 +1,5 @@
 import 'package:smart_curtain_app/features/scene/domain/entities/schedule_condition_entity.dart';
+import '../../../../l10n/gen/app_l10n.dart';
 import 'package:smart_curtain_app/features/scene/presentation/pages/automation/automation_detail_page.dart';
 import 'package:smart_curtain_app/features/scene/presentation/pages/automation/schedule_condition_page.dart';
 import 'package:flutter/material.dart';
@@ -19,8 +20,8 @@ class CreateSceneTriggerPage extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
         centerTitle: true,
-        title: const Text(
-          'Create Scene',
+        title: Text(
+          AppL10n.of(context).createScene,
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -37,8 +38,8 @@ class CreateSceneTriggerPage extends StatelessWidget {
               context,
               icon: Icons.touch_app_outlined,
               iconColor: const Color(0xFFFF6B35),
-              title: 'Launch Tap-to-Run',
-              example: 'Example: turn off all lights in the bedroom with one tap.',
+              title: AppL10n.of(context).launchTapToRun,
+              example: AppL10n.of(context).exampleTapToRun,
               onTap: () {
                 Navigator.push(
                   context,
@@ -62,10 +63,10 @@ class CreateSceneTriggerPage extends StatelessWidget {
                     context,
                     icon: Icons.wb_sunny,
                     iconColor: const Color(0xFFFFA726),
-                    title: 'When weather changes',
+                    title: AppL10n.of(context).whenWeatherChanges,
                     example:
-                        'Example: when local temperature is greater than 28°C.',
-                    onTap: () => _comingSoon(context, 'Weather trigger'),
+                        AppL10n.of(context).exampleWeather,
+                    onTap: () => _comingSoon(context, AppL10n.of(context).weatherTrigger),
                   ),
                   _rowDivider(),
                   // Cell 2: Schedule (đã nối luồng automation If–Then)
@@ -73,8 +74,8 @@ class CreateSceneTriggerPage extends StatelessWidget {
                     context,
                     icon: Icons.access_time,
                     iconColor: const Color(0xFF42A5F5),
-                    title: 'Schedule',
-                    example: 'Example: 7:00 a.m. every morning.',
+                    title: AppL10n.of(context).schedule,
+                    example: AppL10n.of(context).exampleSchedule,
                     onTap: () async {
                       // Luồng MỚI: chọn lịch → trình soạn automation If–Then
                       // (AutomationDetailPage) với điều kiện đã điền sẵn.
@@ -101,10 +102,10 @@ class CreateSceneTriggerPage extends StatelessWidget {
                     context,
                     icon: Icons.lightbulb,
                     iconColor: const Color(0xFF2ECC71),
-                    title: 'When device status changes',
-                    example: 'Example: when an unusual activity is detected.',
+                    title: AppL10n.of(context).whenDeviceStatusChanges,
+                    example: AppL10n.of(context).exampleDeviceStatus,
                     onTap: () =>
-                        _comingSoon(context, 'Device-status trigger'),
+                        _comingSoon(context, AppL10n.of(context).deviceStatusTrigger),
                   ),
                 ],
               ),
@@ -164,7 +165,7 @@ class CreateSceneTriggerPage extends StatelessWidget {
 
   /// Hairline giữa các row trong cùng card (thụt lề khớp text như iOS list).
   Widget _rowDivider() => Padding(
-        padding: const EdgeInsets.only(left: 64),
+        padding: const EdgeInsetsDirectional.only(start: 64),
         child: Divider(height: 1, thickness: 1, color: Colors.grey.shade100),
       );
 
@@ -173,7 +174,7 @@ class CreateSceneTriggerPage extends StatelessWidget {
       ..clearSnackBars()
       ..showSnackBar(
         SnackBar(
-          content: Text('$label is coming soon'),
+          content: Text(AppL10n.of(context).featureComingSoonShort(label)),
           duration: const Duration(seconds: 2),
         ),
       );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/gen/app_l10n.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 
@@ -59,10 +60,10 @@ class _HomeSettingsPageState extends State<HomeSettingsPage> {
   Future<void> _renameHome() async {
     final name = await AppDialog.prompt(
       context,
-      title: 'Home Name',
+      title: AppL10n.of(context).homeName,
       initialValue: _name,
-      hintText: 'Enter home name',
-      confirmText: 'Save',
+      hintText: AppL10n.of(context).enterHomeName,
+      confirmText: AppL10n.of(context).save,
     );
     if (name == null || name.trim().isEmpty || !mounted) return;
     final trimmed = name.trim();
@@ -75,10 +76,9 @@ class _HomeSettingsPageState extends State<HomeSettingsPage> {
   Future<void> _deleteHome() async {
     final confirmed = await AppDialog.confirm(
       context,
-      title: 'Delete Home',
-      message: 'Are you sure you want to delete "$_name"? '
-          'This action cannot be undone.',
-      confirmText: 'Delete',
+      title: AppL10n.of(context).deleteHome,
+      message: AppL10n.of(context).deleteHomeConfirm(_name),
+      confirmText: AppL10n.of(context).delete,
       destructive: true,
     );
     if (!confirmed || !mounted) return;
@@ -88,7 +88,7 @@ class _HomeSettingsPageState extends State<HomeSettingsPage> {
 
   void _notYet(String feature) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('$feature is coming soon.')),
+      SnackBar(content: Text(AppL10n.of(context).featureComingSoonNamed(feature))),
     );
   }
 
@@ -101,8 +101,8 @@ class _HomeSettingsPageState extends State<HomeSettingsPage> {
         elevation: 0,
         centerTitle: true,
         foregroundColor: Colors.black87,
-        title: const Text(
-          'Home Settings',
+        title:  Text(
+          AppL10n.of(context).homeSettings,
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
         ),
       ),
@@ -114,13 +114,13 @@ class _HomeSettingsPageState extends State<HomeSettingsPage> {
             child: Column(
               children: [
                 _SettingsRow(
-                  label: 'Home Name',
+                  label: AppL10n.of(context).homeName,
                   value: _name,
                   onTap: _renameHome,
                 ),
                 _SettingsRow(
-                  label: 'Room Management',
-                  value: _roomCount == null ? '' : '$_roomCount Room(s)',
+                  label: AppL10n.of(context).roomManagement,
+                  value: _roomCount == null ? '' : AppL10n.of(context).roomCount(_roomCount!),
                   onTap: () async {
                     await Navigator.of(context).push(
                       MaterialPageRoute<void>(
@@ -131,20 +131,20 @@ class _HomeSettingsPageState extends State<HomeSettingsPage> {
                   },
                 ),
                 _SettingsRow(
-                  label: 'Location',
+                  label: AppL10n.of(context).location,
                   value: (widget.geoName == null || widget.geoName!.isEmpty)
-                      ? 'To Be Set'
+                      ? AppL10n.of(context).toBeSet
                       : widget.geoName!,
-                  onTap: () => _notYet('Location'),
+                  onTap: () => _notYet(AppL10n.of(context).location),
                 ),
                 _SettingsRow(
-                  label: 'Manage Permissions',
-                  onTap: () => _notYet('Manage Permissions'),
+                  label: AppL10n.of(context).managePermissions,
+                  onTap: () => _notYet(AppL10n.of(context).managePermissions),
                 ),
               ],
             ),
           ),
-          const _SectionHeader('Home Member'),
+           _SectionHeader(AppL10n.of(context).homeMember),
           Container(
             color: Colors.white,
             child: Column(
@@ -152,18 +152,18 @@ class _HomeSettingsPageState extends State<HomeSettingsPage> {
                 for (final member in _members)
                   _MemberRow(
                     member: member,
-                    onTap: () => _notYet('Member details'),
+                    onTap: () => _notYet(AppL10n.of(context).memberDetails),
                   ),
                 if (_members.isNotEmpty)
                   Divider(height: 1, indent: 20, color: Colors.grey.shade200),
                 InkWell(
-                  onTap: () => _notYet('Add Member'),
-                  child: const Padding(
+                  onTap: () => _notYet(AppL10n.of(context).addMember),
+                  child:  Padding(
                     padding: EdgeInsets.symmetric(horizontal: 20, vertical: 18),
                     child: Align(
-                      alignment: Alignment.centerLeft,
+                      alignment: AlignmentDirectional.centerStart,
                       child: Text(
-                        'Add Member',
+                        AppL10n.of(context).addMember,
                         style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w600,
@@ -181,11 +181,11 @@ class _HomeSettingsPageState extends State<HomeSettingsPage> {
             color: Colors.white,
             child: InkWell(
               onTap: _deleteHome,
-              child: const Padding(
+              child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 18),
                 child: Center(
                   child: Text(
-                    'Delete Home',
+                    AppL10n.of(context).deleteHome,
                     style: TextStyle(fontSize: 17, color: _danger),
                   ),
                 ),
@@ -222,7 +222,7 @@ class _SettingsRow extends StatelessWidget {
             ),
             if (value != null && value!.isNotEmpty)
               Padding(
-                padding: const EdgeInsets.only(right: 6),
+                padding: const EdgeInsetsDirectional.only(end: 6),
                 child: Text(
                   value!,
                   style: TextStyle(fontSize: 16, color: Colors.grey.shade500),
@@ -316,7 +316,7 @@ class _MemberRow extends StatelessWidget {
             ),
             const SizedBox(width: 10),
             Text(
-              member.isPending ? 'Pending' : member.roleLabel,
+              member.isPending ? AppL10n.of(context).pending : member.roleLabel,
               style: TextStyle(fontSize: 16, color: Colors.grey.shade500),
             ),
             const SizedBox(width: 4),

@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import '../../../../l10n/gen/app_l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 
@@ -42,11 +43,12 @@ class _DeviceScheduleEditPageState extends State<DeviceScheduleEditPage> {
 
   /// dpId 1 — lệnh điều khiển rèm.
   static const _controlDpId = 1;
-  static const _controlOptions = [
-    ('open', 'Open'),
-    ('stop', 'Stop'),
-    ('close', 'Close'),
-  ];
+  /// Giá trị gửi lên server giữ nguyên `open`/`stop`/`close`; nhãn thì dịch.
+  static List<(String, String)> _controlOptionsFor(AppL10n l10n) => [
+        ('open', l10n.open),
+        ('stop', l10n.stop),
+        ('close', l10n.close),
+      ];
 
   late int _hour;
   late int _minute;
@@ -95,11 +97,11 @@ class _DeviceScheduleEditPageState extends State<DeviceScheduleEditPage> {
       loops: _loops,
       time: '00:00',
     );
-    return _loops == '0000000' ? 'Once' : condition.displayLoops;
+    return _loops == '0000000' ? AppL10n.of(context).once : condition.displayLoops;
   }
 
   String get _controlLabel {
-    for (final (value, label) in _controlOptions) {
+    for (final (value, label) in _controlOptionsFor(AppL10n.of(context))) {
       if (value == _control) return label;
     }
     return 'Open';
@@ -172,10 +174,10 @@ class _DeviceScheduleEditPageState extends State<DeviceScheduleEditPage> {
   Future<void> _editNote() async {
     final note = await AppDialog.prompt(
       context,
-      title: 'Note',
+      title: AppL10n.of(context).note,
       initialValue: _note,
-      hintText: 'Enter a note',
-      confirmText: 'Save',
+      hintText: AppL10n.of(context).enterANote,
+      confirmText: AppL10n.of(context).save,
     );
     if (note != null && mounted) setState(() => _note = note.trim());
   }
@@ -209,11 +211,11 @@ class _DeviceScheduleEditPageState extends State<DeviceScheduleEditPage> {
             children: [
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                child: Text('Control',
+                child: Text(AppL10n.of(context).control,
                     style:
                         TextStyle(fontSize: 15, color: Colors.grey.shade500)),
               ),
-              for (final (value, label) in _controlOptions)
+              for (final (value, label) in _controlOptionsFor(AppL10n.of(context)))
                 InkWell(
                   onTap: () => Navigator.pop(ctx, value),
                   child: Padding(
@@ -254,14 +256,14 @@ class _DeviceScheduleEditPageState extends State<DeviceScheduleEditPage> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          _isEditing ? 'Edit Schedule' : 'Add Schedule',
+          _isEditing ? AppL10n.of(context).editSchedule : AppL10n.of(context).addSchedule,
           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
         ),
         actions: [
           TextButton(
             onPressed: _saving ? null : _save,
             child: Text(
-              'Save',
+              AppL10n.of(context).save,
               style: TextStyle(
                 fontSize: 17,
                 color: _saving ? Colors.grey : _link,
@@ -309,9 +311,9 @@ class _DeviceScheduleEditPageState extends State<DeviceScheduleEditPage> {
             color: Colors.white,
             child: Column(
               children: [
-                _Row(label: 'Repeat', value: _repeatLabel, onTap: _pickRepeat),
+                _Row(label: AppL10n.of(context).repeat, value: _repeatLabel, onTap: _pickRepeat),
                 _Row(
-                  label: 'Note',
+                  label: AppL10n.of(context).note,
                   value: _note.isEmpty ? null : _note,
                   onTap: _editNote,
                 ),
@@ -320,8 +322,8 @@ class _DeviceScheduleEditPageState extends State<DeviceScheduleEditPage> {
                       const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                   child: Row(
                     children: [
-                      const Expanded(
-                        child: Text('Notification',
+                      Expanded(
+                        child: Text(AppL10n.of(context).notification,
                             style: TextStyle(
                                 fontSize: 17, color: Colors.black87)),
                       ),
@@ -341,7 +343,7 @@ class _DeviceScheduleEditPageState extends State<DeviceScheduleEditPage> {
           Container(
             color: Colors.white,
             child: _Row(
-              label: 'Control',
+              label: AppL10n.of(context).control,
               value: _controlLabel,
               onTap: _pickControl,
             ),
@@ -414,7 +416,7 @@ class _Row extends StatelessWidget {
             ),
             if (value != null && value!.isNotEmpty)
               Padding(
-                padding: const EdgeInsets.only(right: 6),
+                padding: const EdgeInsetsDirectional.only(end: 6),
                 child: Text(
                   value!,
                   style: TextStyle(fontSize: 16, color: Colors.grey.shade500),
