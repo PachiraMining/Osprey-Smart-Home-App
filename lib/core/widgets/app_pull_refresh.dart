@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
 
-import '../theme/app_colors.dart';
+import 'bulb_refresh.dart';
 
-/// App-wide pull-to-refresh: the liquid effect from liquid_pull_to_refresh,
-/// tuned once here so every screen refreshes with the same look.
+/// Pull-to-refresh dùng chung cho cả app: hiệu ứng bóng đèn vẽ dần theo lực kéo
+/// ([BulbRefresh]), chỉnh một lần ở đây để mọi màn kéo-làm-mới giống nhau.
 class AppPullRefresh extends StatelessWidget {
   final Future<void> Function() onRefresh;
   final Widget child;
@@ -17,15 +16,10 @@ class AppPullRefresh extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LiquidPullToRefresh(
+    // Giữ nguyên màu xám mặc định của BulbRefresh — đúng như bản đo từ các
+    // frame gốc. Đổi sang màu thương hiệu chỉ cần thêm `color:` ở đây.
+    return BulbRefresh(
       onRefresh: onRefresh,
-      color: AppColors.primary,
-      backgroundColor: Colors.white,
-      height: 80,
-      animSpeedFactor: 2.5,
-      // Keep the list fully opaque while pulling — the fade transition makes
-      // content flash on long lists.
-      showChildOpacityTransition: false,
       child: child,
     );
   }
