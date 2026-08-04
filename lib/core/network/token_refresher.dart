@@ -20,7 +20,20 @@ class TokenRefresher {
     void Function(String newToken)? onRefreshed,
   })  : _tokenManager = tokenManager,
         _dio = dio ??
-            Dio(BaseOptions(baseUrl: baseUrl ?? AppConfig.thingsboardBaseUrl)),
+            Dio(BaseOptions(
+              baseUrl: baseUrl ?? AppConfig.thingsboardBaseUrl,
+              // BẮT BUỘC đặt ở đây. Dio này là bản "trần" tự tạo, không kế thừa
+              // timeout của ApiClient, mà mặc định Dio là KHÔNG timeout — request
+              // rơi xuống timeout của hệ điều hành (~60-75s trên iOS khi server
+              // nuốt kết nối). Refresh nằm trên đường tới hạn của splash lúc khởi
+              // động, nên cả phút đó là màn splash đứng im không dấu hiệu gì.
+              //
+              // 5s là dư cho một POST nhỏ; chậm hơn thế thì coi như không với tới
+              // được server, chờ thêm cũng không đổi kết quả.
+              connectTimeout: const Duration(seconds: 5),
+              receiveTimeout: const Duration(seconds: 5),
+              sendTimeout: const Duration(seconds: 5),
+            )),
         _refreshPath = refreshPath ?? AppConfig.refreshTokenPath,
         _onRefreshed = onRefreshed;
 

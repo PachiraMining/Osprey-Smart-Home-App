@@ -25,6 +25,9 @@ class ApiClient {
           baseUrl: baseUrl,
           connectTimeout: const Duration(seconds: 10),
           receiveTimeout: const Duration(seconds: 10),
+          // Không đặt sendTimeout thì Dio để mặc, request có body sẽ treo theo
+          // timeout của hệ điều hành nếu mạng chập chờn giữa chừng.
+          sendTimeout: const Duration(seconds: 10),
           headers: {
             'Content-Type': 'application/json',
             'accept': 'application/json',
