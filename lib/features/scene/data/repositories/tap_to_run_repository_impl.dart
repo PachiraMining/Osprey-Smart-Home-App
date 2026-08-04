@@ -105,28 +105,58 @@ class TapToRunRepositoryImpl implements TapToRunRepository {
     }
   }
 
+  /// Log mới nhất đã thấy của từng scene, giữ trong bộ nhớ phiên chạy.
+  /// Nhờ nó, từ lần chạm thứ hai trở đi không cần request nào trước khi gửi
+  /// lệnh — bấm là rèm chạy luôn.
+  final Map<String, String> _lastLogId = {};
+
   @override
   Future<Either<Failure, Map<String, dynamic>>> executeScene(String sceneId) async {
     try {
       // Backend chạy scene bất đồng bộ: POST /execute trả 200 body rỗng, kết
-      // quả thật được ghi vào /logs ngay sau đó. Snapshot log mới nhất trước
-      // khi execute để nhận ra entry của đúng lượt chạy này.
-      String? lastLogId;
-      try {
-        final before = await remoteDataSource.getSceneLogs(sceneId);
-        if (before.isNotEmpty) lastLogId = before.first['id'] as String?;
-      } catch (_) {
-        // Không đọc được logs không chặn việc execute.
+      // quả thật được ghi vào /logs ngay sau đó. Cần biết log mới nhất TRƯỚC
+      // lượt chạy này để nhận ra entry mới.
+      //
+      // Mốc đó KHÔNG được chặn lệnh: trước đây `await getSceneLogs` nằm trước
+      // POST, nên rèm chỉ nhúc nhích sau trọn một vòng mạng — đúng cái độ trễ
+      // 1-2s người dùng thấy. Giờ mốc lấy từ bộ nhớ (lần chạy trước của chính
+      // scene đó), còn lần đầu thì bắn GET SONG SONG với POST.
+      String? lastLogId = _lastLogId[sceneId];
+      Future<void>? snapshot;
+      if (lastLogId == null) {
+        snapshot = remoteDataSource.getSceneLogs(sceneId).then((before) {
+          if (before.isNotEmpty) lastLogId = before.first['id'] as String?;
+        }).catchError((_) {
+          // Không đọc được logs không chặn việc execute.
+        });
       }
 
       await remoteDataSource.executeScene(sceneId);
 
-      for (var attempt = 0; attempt < 4; attempt++) {
-        await Future<void>.delayed(const Duration(milliseconds: 700));
+      // Chờ mốc trước khi so sánh — lệnh đã đi rồi nên không ảnh hưởng độ trễ.
+      if (snapshot != null) await snapshot;
+
+      // CHỈ dò 2 lần. Bản trước dò 5 lần nên một lần chạm có thể thành 6-7
+      // request — phía server đã phản ánh. Mỗi lần dò chỉ để biết scene chạy
+      // thành công hay hỏng, không phải để điều khiển, nên cắt xuống 2 lần là
+      // đủ bắt phần lớn ca hỏng mà không dội request.
+      //
+      // Gốc của việc phải dò: POST /execute trả 200 body RỖNG, không cho biết
+      // kết quả. Nếu backend trả luôn kết quả (hoặc id log) trong response thì
+      // bỏ được sạch phần dò này, còn đúng 1 request cho mỗi lần chạm.
+      const waits = [
+        Duration(milliseconds: 600),
+        Duration(milliseconds: 1600),
+      ];
+      for (final wait in waits) {
+        await Future<void>.delayed(wait);
         try {
           final logs = await remoteDataSource.getSceneLogs(sceneId);
-          if (logs.isNotEmpty && logs.first['id'] != lastLogId) {
-            return Right(logs.first);
+          if (logs.isNotEmpty) {
+            final newestId = logs.first['id'] as String?;
+            // Nhớ lại để lần chạm sau khỏi phải đi lấy mốc nữa.
+            if (newestId != null) _lastLogId[sceneId] = newestId;
+            if (newestId != lastLogId) return Right(logs.first);
           }
         } catch (_) {
           // Lỗi đọc log tạm thời — thử lại ở vòng sau.
