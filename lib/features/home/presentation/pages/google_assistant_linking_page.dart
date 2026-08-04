@@ -11,6 +11,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/auth/token_manager.dart';
 import '../../../../core/config/app_config.dart';
 import '../../../../core/network/api_endpoints.dart';
+import '../../../../core/theme/app_surfaces.dart';
 
 class GoogleAssistantLinkingPage extends StatefulWidget {
   const GoogleAssistantLinkingPage({super.key});
@@ -216,13 +217,13 @@ class _GoogleAssistantLinkingPageState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: context.surfaces.pageBg,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: context.surfaces.sheet,
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, size: 20, color: Colors.black54),
+          icon:  Icon(Icons.arrow_back_ios, size: 20, color: context.surfaces.textSecondary),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
@@ -234,7 +235,7 @@ class _GoogleAssistantLinkingPageState
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Colors.black87,
+                  color: context.surfaces.textPrimary,
                 ),
               ),
             ),
@@ -274,7 +275,7 @@ class _GoogleAssistantLinkingPageState
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.w500,
-                  color: Colors.black87,
+                  color: context.surfaces.textPrimary,
                 ),
               ),
             ],
@@ -309,7 +310,7 @@ class _GoogleAssistantLinkingPageState
               textAlign: TextAlign.start,
               style: TextStyle(
                 fontSize: 15,
-                color: Colors.black87,
+                color: context.surfaces.textPrimary,
                 height: 1.6,
               ),
             ),
@@ -358,9 +359,9 @@ class _GoogleAssistantLinkingPageState
             onPressed: () {},
             child: Text(
               AppL10n.of(context).viewMoreWaysToLink,
-              style: const TextStyle(
+              style:  TextStyle(
                 fontSize: 15,
-                color: Colors.black87,
+                color: context.surfaces.textPrimary,
                 fontWeight: FontWeight.w400,
               ),
             ),
@@ -392,7 +393,7 @@ class _GoogleAssistantLinkingPageState
             style: TextStyle(
               fontSize: 26,
               fontWeight: FontWeight.bold,
-              color: Colors.black87,
+              color: context.surfaces.textPrimary,
             ),
           ),
           const SizedBox(height: 16),
@@ -402,7 +403,7 @@ class _GoogleAssistantLinkingPageState
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 15,
-              color: Colors.black87,
+              color: context.surfaces.textPrimary,
               height: 1.5,
             ),
           ),
@@ -418,9 +419,9 @@ class _GoogleAssistantLinkingPageState
             onPressed: () {},
             child: Text(
               AppL10n.of(context).viewMoreWaysToLink,
-              style: const TextStyle(
+              style:  TextStyle(
                 fontSize: 15,
-                color: Colors.black87,
+                color: context.surfaces.textPrimary,
                 fontWeight: FontWeight.w400,
               ),
             ),
@@ -435,8 +436,8 @@ class _GoogleAssistantLinkingPageState
               child: ElevatedButton(
                 onPressed: () => Navigator.pop(context),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.grey.shade200,
-                  foregroundColor: Colors.black87,
+                  backgroundColor: context.surfaces.divider,
+                  foregroundColor: context.surfaces.textPrimary,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -461,7 +462,7 @@ class _GoogleAssistantLinkingPageState
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13,
-                color: Colors.black87,
+                color: context.surfaces.textPrimary,
                 height: 1.5,
               ),
             ),
@@ -478,7 +479,7 @@ class _GoogleAssistantLinkingPageState
       child: Text(
         text,
         textAlign: TextAlign.center,
-        style: const TextStyle(fontSize: 15, color: Colors.black87),
+        style:  TextStyle(fontSize: 15, color: context.surfaces.textPrimary),
       ),
     );
   }
@@ -490,12 +491,12 @@ class _GoogleAssistantLinkingPageState
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.error_outline, size: 48, color: Colors.grey.shade400),
+            Icon(Icons.error_outline, size: 48, color: context.surfaces.textMuted),
             const SizedBox(height: 16),
             Text(
               _error ?? AppL10n.of(context).somethingWentWrong,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 15, color: Colors.black87),
+              style:  TextStyle(fontSize: 15, color: context.surfaces.textPrimary),
             ),
             const SizedBox(height: 24),
             TextButton(

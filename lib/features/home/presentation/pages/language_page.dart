@@ -3,6 +3,7 @@ import 'package:get_it/get_it.dart';
 
 import '../../../../core/settings/app_settings_store.dart';
 import '../../../../l10n/gen/app_l10n.dart';
+import '../../../../core/theme/app_surfaces.dart';
 
 /// Chọn ngôn ngữ app. `null` = theo ngôn ngữ hệ thống.
 class LanguagePage extends StatefulWidget {
@@ -13,7 +14,6 @@ class LanguagePage extends StatefulWidget {
 }
 
 class _LanguagePageState extends State<LanguagePage> {
-  static const _pageBg = Color(0xFFF2F4F7);
 
   final _settings = GetIt.instance<AppSettingsStore>();
 
@@ -36,12 +36,12 @@ class _LanguagePageState extends State<LanguagePage> {
     final current = _settings.locale;
 
     return Scaffold(
-      backgroundColor: _pageBg,
+      backgroundColor: context.surfaces.pageBg,
       appBar: AppBar(
-        backgroundColor: _pageBg,
+        backgroundColor: context.surfaces.pageBg,
         elevation: 0,
         centerTitle: true,
-        foregroundColor: Colors.black87,
+        foregroundColor: context.surfaces.textPrimary,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, size: 20),
           onPressed: () => Navigator.pop(context),
@@ -54,7 +54,7 @@ class _LanguagePageState extends State<LanguagePage> {
         padding: const EdgeInsets.only(top: 12, bottom: 24),
         children: [
           Container(
-            color: Colors.white,
+            color: context.surfaces.card,
             child: Column(
               children: [
                 _LanguageRow(
@@ -100,7 +100,7 @@ class _LanguageRow extends StatelessWidget {
             Expanded(
               child: Text(label,
                   style:
-                      const TextStyle(fontSize: 17, color: Colors.black87)),
+                       TextStyle(fontSize: 17, color: context.surfaces.textPrimary)),
             ),
             if (selected)
               const Icon(Icons.check, size: 22, color: Color(0xFF1B4332)),

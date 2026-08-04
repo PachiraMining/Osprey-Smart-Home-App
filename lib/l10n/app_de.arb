@@ -499,5 +499,14 @@
   "devicesBeingAdded": "{count, plural, =1{1 Gerät wird hinzugefügt} other{{count} Geräte werden hinzugefügt}}",
   "devicesAddedSuccessfully": "{count, plural, =1{1 Gerät erfolgreich hinzugefügt} other{{count} Geräte erfolgreich hinzugefügt}}",
   "alexaExamplesIntro": "Mit Amazon Alexa-Lautsprechern kannst du\nAlexa-fähige Geräte steuern, zum Beispiel",
-  "googleExamplesIntro": "Du kannst jetzt den Google Home-Lautsprecher nutzen, um\nGoogle Assistant-Geräte zu steuern, etwa"
+  "googleExamplesIntro": "Du kannst jetzt den Google Home-Lautsprecher nutzen, um\nGoogle Assistant-Geräte zu steuern, etwa",
+  "gridView": "Rasteransicht",
+  "listView": "Listenansicht",
+  "deviceManagement": "Geräteverwaltung",
+  "sort": "Sortieren",
+  "darkMode": "Dunkelmodus",
+  "followSystem": "Systemeinstellung folgen",
+  "system": "System",
+  "systemDarkModeHint": "Wenn aktiviert, schaltet die App den Dunkelmodus passend zu deinen Systemeinstellungen ein oder aus.",
+  "normalMode": "Normaler Modus"
 }

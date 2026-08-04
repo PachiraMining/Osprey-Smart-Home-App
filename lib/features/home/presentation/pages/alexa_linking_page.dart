@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import '../../../../core/auth/token_manager.dart';
 import '../../../../core/config/app_config.dart';
 import '../../../../core/network/api_endpoints.dart';
+import '../../../../core/theme/app_surfaces.dart';
 
 class AlexaLinkingPage extends StatefulWidget {
   const AlexaLinkingPage({super.key});
@@ -179,13 +180,13 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: context.surfaces.pageBg,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: context.surfaces.sheet,
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, size: 20, color: Colors.black54),
+          icon:  Icon(Icons.arrow_back_ios, size: 20, color: context.surfaces.textSecondary),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -213,12 +214,12 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
             children: [
               Image.asset('assets/icons/alexa_logo.png', width: 40, height: 40),
               const SizedBox(width: 10),
-              const Text(
+               Text(
                 'amazon alexa',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.w500,
-                  color: Colors.black87,
+                  color: context.surfaces.textPrimary,
                 ),
               ),
             ],
@@ -253,7 +254,7 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
               textAlign: TextAlign.start,
               style: TextStyle(
                 fontSize: 15,
-                color: Colors.black87,
+                color: context.surfaces.textPrimary,
                 height: 1.6,
               ),
             ),
@@ -330,7 +331,7 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w700,
-              color: Colors.black87,
+              color: context.surfaces.textPrimary,
             ),
           ),
           const SizedBox(height: 20),
@@ -340,7 +341,7 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 15,
-              color: Colors.grey.shade700,
+              color: context.surfaces.textSecondary,
               height: 1.5,
             ),
           ),
@@ -349,25 +350,25 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
           Text(
             'Alexa, turn on light',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 15, color: Colors.grey.shade500),
+            style: TextStyle(fontSize: 15, color: context.surfaces.textSecondary),
           ),
           const SizedBox(height: 12),
           Text(
             'Alexa, set air conditioning to 20°C',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 15, color: Colors.grey.shade500),
+            style: TextStyle(fontSize: 15, color: context.surfaces.textSecondary),
           ),
           const SizedBox(height: 12),
           Text(
             'Alexa, turn off diffuser',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 15, color: Colors.grey.shade500),
+            style: TextStyle(fontSize: 15, color: context.surfaces.textSecondary),
           ),
           const SizedBox(height: 12),
           Text(
             'Alexa, increase air conditioner by 3 degrees',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 15, color: Colors.grey.shade500),
+            style: TextStyle(fontSize: 15, color: context.surfaces.textSecondary),
           ),
           const SizedBox(height: 20),
           // View more ways to link
@@ -392,8 +393,8 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
               child: ElevatedButton(
                 onPressed: () => Navigator.pop(context),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.grey.shade200,
-                  foregroundColor: Colors.black87,
+                  backgroundColor: context.surfaces.divider,
+                  foregroundColor: context.surfaces.textPrimary,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -418,7 +419,7 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13,
-                color: Colors.grey.shade500,
+                color: context.surfaces.textSecondary,
                 height: 1.5,
               ),
             ),
@@ -436,12 +437,12 @@ class _AlexaLinkingPageState extends State<AlexaLinkingPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.error_outline, size: 48, color: Colors.grey.shade400),
+            Icon(Icons.error_outline, size: 48, color: context.surfaces.textMuted),
             const SizedBox(height: 16),
             Text(
               _error ?? AppL10n.of(context).somethingWentWrong,
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 15, color: Colors.grey.shade600),
+              style: TextStyle(fontSize: 15, color: context.surfaces.textSecondary),
             ),
             const SizedBox(height: 24),
             TextButton(

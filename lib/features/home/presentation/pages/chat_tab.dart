@@ -7,6 +7,7 @@ import '../../../ai/domain/entities/chat_message.dart';
 import '../../../ai/presentation/bloc/ai_chat_bloc.dart';
 import '../../../ai/presentation/widgets/voice_command_button.dart';
 import '../../../device/domain/entities/device_entity.dart';
+import '../../../../core/theme/app_surfaces.dart';
 
 /// Tab Chat AI bên trong [HomePage] (thay cho ChatHomePage standalone cũ).
 ///
@@ -206,7 +207,7 @@ class _ChatTabState extends State<ChatTab> {
               const SizedBox(height: 8),
                Text(
                 AppL10n.of(context).youCanAlsoSpeak,
-                style: TextStyle(color: Colors.black54),
+                style: TextStyle(color: context.surfaces.textSecondary),
               ),
               const SizedBox(height: 16),
               FilledButton(
@@ -342,7 +343,7 @@ class _EmptyHint extends StatelessWidget {
              Text(
               AppL10n.of(context).chatHeaderSubtitle,
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.black54),
+              style: TextStyle(color: context.surfaces.textSecondary),
             ),
             const SizedBox(height: 20),
             Wrap(

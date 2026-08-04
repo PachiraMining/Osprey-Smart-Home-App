@@ -12,6 +12,7 @@ import '../../../scene/domain/usecases/update_automation.dart';
 import '../../../scene/presentation/pages/automation/schedule_condition_page.dart'
     show oneTimeDateString;
 import 'schedule_repeat_page.dart';
+import '../../../../core/theme/app_surfaces.dart';
 
 /// Thêm / sửa một lịch hẹn giờ của thiết bị.
 ///
@@ -38,7 +39,6 @@ class DeviceScheduleEditPage extends StatefulWidget {
 }
 
 class _DeviceScheduleEditPageState extends State<DeviceScheduleEditPage> {
-  static const _pageBg = Color(0xFFF2F4F7);
   static const _link = Color(0xFF007AFF);
 
   /// dpId 1 — lệnh điều khiển rèm.
@@ -203,7 +203,7 @@ class _DeviceScheduleEditPageState extends State<DeviceScheduleEditPage> {
         child: Container(
           clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: context.surfaces.card,
             borderRadius: BorderRadius.circular(18),
           ),
           child: Column(
@@ -213,7 +213,7 @@ class _DeviceScheduleEditPageState extends State<DeviceScheduleEditPage> {
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 child: Text(AppL10n.of(context).control,
                     style:
-                        TextStyle(fontSize: 15, color: Colors.grey.shade500)),
+                        TextStyle(fontSize: 15, color: context.surfaces.textSecondary)),
               ),
               for (final (value, label) in _controlOptionsFor(AppL10n.of(context)))
                 InkWell(
@@ -245,12 +245,12 @@ class _DeviceScheduleEditPageState extends State<DeviceScheduleEditPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _pageBg,
+      backgroundColor: context.surfaces.pageBg,
       appBar: AppBar(
-        backgroundColor: _pageBg,
+        backgroundColor: context.surfaces.pageBg,
         elevation: 0,
         centerTitle: true,
-        foregroundColor: Colors.black87,
+        foregroundColor: context.surfaces.textPrimary,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, size: 20),
           onPressed: () => Navigator.pop(context),
@@ -280,12 +280,12 @@ class _DeviceScheduleEditPageState extends State<DeviceScheduleEditPage> {
             child: Center(
               child: Text(
                 _timezoneNote,
-                style: TextStyle(fontSize: 15, color: Colors.grey.shade500),
+                style: TextStyle(fontSize: 15, color: context.surfaces.textSecondary),
               ),
             ),
           ),
           Container(
-            color: Colors.white,
+            color: context.surfaces.card,
             height: 200,
             child: Row(
               children: [
@@ -308,7 +308,7 @@ class _DeviceScheduleEditPageState extends State<DeviceScheduleEditPage> {
           ),
           const SizedBox(height: 12),
           Container(
-            color: Colors.white,
+            color: context.surfaces.card,
             child: Column(
               children: [
                 _Row(label: AppL10n.of(context).repeat, value: _repeatLabel, onTap: _pickRepeat),
@@ -325,7 +325,7 @@ class _DeviceScheduleEditPageState extends State<DeviceScheduleEditPage> {
                       Expanded(
                         child: Text(AppL10n.of(context).notification,
                             style: TextStyle(
-                                fontSize: 17, color: Colors.black87)),
+                                fontSize: 17, color: context.surfaces.textPrimary)),
                       ),
                       Switch.adaptive(
                         value: _notify,
@@ -341,7 +341,7 @@ class _DeviceScheduleEditPageState extends State<DeviceScheduleEditPage> {
           ),
           const SizedBox(height: 12),
           Container(
-            color: Colors.white,
+            color: context.surfaces.card,
             child: _Row(
               label: AppL10n.of(context).control,
               value: _controlLabel,
@@ -382,10 +382,10 @@ class _WheelColumn extends StatelessWidget {
           Center(
             child: Text(
               i.toString().padLeft(2, '0'),
-              style: const TextStyle(
+              style:  TextStyle(
                 fontSize: 26,
                 fontWeight: FontWeight.w500,
-                color: Colors.black87,
+                color: context.surfaces.textPrimary,
               ),
             ),
           ),
@@ -412,17 +412,17 @@ class _Row extends StatelessWidget {
             Expanded(
               child: Text(label,
                   style:
-                      const TextStyle(fontSize: 17, color: Colors.black87)),
+                       TextStyle(fontSize: 17, color: context.surfaces.textPrimary)),
             ),
             if (value != null && value!.isNotEmpty)
               Padding(
                 padding: const EdgeInsetsDirectional.only(end: 6),
                 child: Text(
                   value!,
-                  style: TextStyle(fontSize: 16, color: Colors.grey.shade500),
+                  style: TextStyle(fontSize: 16, color: context.surfaces.textSecondary),
                 ),
               ),
-            Icon(Icons.chevron_right, size: 22, color: Colors.grey.shade400),
+            Icon(Icons.chevron_right, size: 22, color: context.surfaces.textMuted),
           ],
         ),
       ),

@@ -7,6 +7,7 @@ import '../bloc/home_management_bloc.dart';
 import '../bloc/home_management_event.dart';
 import '../bloc/home_management_state.dart';
 import 'manage_rooms_page.dart';
+import '../../../../core/theme/app_surfaces.dart';
 
 class ManageHomePage extends StatefulWidget {
   final String homeId;
@@ -82,11 +83,11 @@ class _ManageHomePageState extends State<ManageHomePage> {
         }
       },
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: context.surfaces.pageBg,
         appBar: AppBar(
           title: Text(AppL10n.of(context).homeManagement),
-          backgroundColor: Colors.white,
-          foregroundColor: Colors.black87,
+          backgroundColor: context.surfaces.sheet,
+          foregroundColor: context.surfaces.textPrimary,
           elevation: 0.5,
         ),
         body: Padding(
@@ -99,7 +100,7 @@ class _ManageHomePageState extends State<ManageHomePage> {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: Colors.black54,
+                  color: context.surfaces.textSecondary,
                 ),
               ),
               const SizedBox(height: 8),
@@ -137,8 +138,8 @@ class _ManageHomePageState extends State<ManageHomePage> {
               const Divider(),
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.door_front_door_outlined,
-                    color: Colors.black87),
+                leading:  Icon(Icons.door_front_door_outlined,
+                    color: context.surfaces.textPrimary),
                 title: Text(AppL10n.of(context).roomManagement),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => Navigator.of(context).push(

@@ -174,15 +174,21 @@ class UpdateRoomEvent extends HomeManagementEvent {
   final String roomId;
   final String name;
   final String? icon;
+
+  /// PUT của backend là full-replace, nên khi đổi tên vẫn phải gửi kèm thứ tự
+  /// hiện tại, nếu không phòng sẽ bị đẩy về đầu danh sách.
+  final int? sortOrder;
+
   const UpdateRoomEvent({
     required this.homeId,
     required this.roomId,
     required this.name,
     this.icon,
+    this.sortOrder,
   });
 
   @override
-  List<Object?> get props => [homeId, roomId, name, icon];
+  List<Object?> get props => [homeId, roomId, name, icon, sortOrder];
 }
 
 /// Delete a room from a home

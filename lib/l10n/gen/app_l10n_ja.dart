@@ -1639,4 +1639,31 @@ class AppL10nJa extends AppL10n {
   @override
   String get googleExamplesIntro =>
       'Google Home スピーカーで\nGoogle アシスタント対応デバイスを操作できます。例：';
+
+  @override
+  String get gridView => 'グリッド表示';
+
+  @override
+  String get listView => 'リスト表示';
+
+  @override
+  String get deviceManagement => 'デバイス管理';
+
+  @override
+  String get sort => '並べ替え';
+
+  @override
+  String get darkMode => 'ダークモード';
+
+  @override
+  String get followSystem => 'システム設定に従う';
+
+  @override
+  String get system => 'システム';
+
+  @override
+  String get systemDarkModeHint => 'オンにすると、システム設定に合わせてダークモードが自動で切り替わります。';
+
+  @override
+  String get normalMode => '通常モード';
 }

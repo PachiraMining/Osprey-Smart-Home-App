@@ -499,5 +499,14 @@
   "devicesBeingAdded": "{count, plural, one{Добавляется {count} устройство} few{Добавляется {count} устройства} many{Добавляется {count} устройств} other{Добавляется {count} устройства}}",
   "devicesAddedSuccessfully": "{count, plural, one{Добавлено {count} устройство} few{Добавлено {count} устройства} many{Добавлено {count} устройств} other{Добавлено {count} устройства}}",
   "alexaExamplesIntro": "С колонками Amazon Alexa вы можете\nуправлять устройствами с поддержкой Alexa, например",
-  "googleExamplesIntro": "Теперь вы можете использовать колонку Google Home,\nчтобы управлять устройствами Google Ассистента, например"
+  "googleExamplesIntro": "Теперь вы можете использовать колонку Google Home,\nчтобы управлять устройствами Google Ассистента, например",
+  "gridView": "Сетка",
+  "listView": "Список",
+  "deviceManagement": "Управление устройствами",
+  "sort": "Сортировка",
+  "darkMode": "Тёмная тема",
+  "followSystem": "Как в системе",
+  "system": "Система",
+  "systemDarkModeHint": "Когда включено, приложение включает или выключает тёмную тему в соответствии с настройками системы.",
+  "normalMode": "Обычный режим"
 }

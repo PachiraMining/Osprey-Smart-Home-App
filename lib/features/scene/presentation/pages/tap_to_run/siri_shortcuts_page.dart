@@ -5,6 +5,7 @@ import 'package:get_it/get_it.dart';
 import '../../../../../core/theme/scene_style.dart';
 import '../../../data/siri_shortcuts_service.dart';
 import '../../../domain/entities/tap_to_run_scene_entity.dart';
+import '../../../../../core/theme/app_surfaces.dart';
 
 /// Trang "Siri Shortcut": mỗi scene một thẻ màu — dấu `+` khi chưa gán câu
 /// lệnh, mũi tên `›` kèm câu lệnh khi đã gán. Chạm để mở sheet hệ thống.
@@ -63,12 +64,12 @@ class _SiriShortcutsPageState extends State<SiriShortcutsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F4F7),
+      backgroundColor: context.surfaces.pageBg,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF2F4F7),
+        backgroundColor: context.surfaces.sheet,
         elevation: 0,
         centerTitle: true,
-        foregroundColor: Colors.black87,
+        foregroundColor: context.surfaces.textPrimary,
         title:  Text(
           AppL10n.of(context).siriShortcut,
           style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
@@ -78,7 +79,7 @@ class _SiriShortcutsPageState extends State<SiriShortcutsPage> {
             onPressed: _showHelp,
             child: Text(
               AppL10n.of(context).help,
-              style: TextStyle(fontSize: 16, color: Colors.black87),
+              style: TextStyle(fontSize: 16, color: context.surfaces.textPrimary),
             ),
           ),
         ],
@@ -89,7 +90,7 @@ class _SiriShortcutsPageState extends State<SiriShortcutsPage> {
               ?  Center(
                   child: Text(
                     AppL10n.of(context).createTapToRunFirst,
-                    style: TextStyle(color: Colors.black54),
+                    style: TextStyle(color: context.surfaces.textSecondary),
                   ),
                 )
               : Column(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../../l10n/gen/app_l10n.dart';
+import '../../../../../core/theme/app_surfaces.dart';
 
 /// Full-page delay picker with 3 scroll wheels: hours, minutes, seconds.
 /// Max delay: 5 minutes (300 seconds). Hours wheel is 0 only.
@@ -55,15 +56,15 @@ class _DelayConfigPageState extends State<DelayConfigPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F6FA),
+      backgroundColor: context.surfaces.pageBg,
       appBar: AppBar(
         title: Text(
           AppL10n.of(context).delayTheAction,
           style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
         ),
         centerTitle: true,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
+        backgroundColor: context.surfaces.sheet,
+        foregroundColor: context.surfaces.textPrimary,
         elevation: 0.5,
         actions: [
           TextButton(
@@ -83,7 +84,7 @@ class _DelayConfigPageState extends State<DelayConfigPage> {
         children: [
           // Picker area
           Container(
-            color: Colors.white,
+            color: context.surfaces.card,
             height: 220,
             child: Stack(
               children: [
@@ -93,8 +94,8 @@ class _DelayConfigPageState extends State<DelayConfigPage> {
                     height: 44,
                     decoration: BoxDecoration(
                       border: Border(
-                        top: BorderSide(color: Colors.grey.shade300),
-                        bottom: BorderSide(color: Colors.grey.shade300),
+                        top: BorderSide(color: context.surfaces.divider),
+                        bottom: BorderSide(color: context.surfaces.divider),
                       ),
                     ),
                   ),
@@ -112,7 +113,7 @@ class _DelayConfigPageState extends State<DelayConfigPage> {
                       ),
                     ),
                     // "h" label
-                    Text('h', style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
+                    Text('h', style: TextStyle(fontSize: 14, color: context.surfaces.textSecondary)),
                     // Minutes
                     Expanded(
                       child: _buildWheel(
@@ -124,7 +125,7 @@ class _DelayConfigPageState extends State<DelayConfigPage> {
                       ),
                     ),
                     // "min" label
-                    Text('min', style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
+                    Text('min', style: TextStyle(fontSize: 14, color: context.surfaces.textSecondary)),
                     // Seconds
                     Expanded(
                       child: _buildWheel(
@@ -136,7 +137,7 @@ class _DelayConfigPageState extends State<DelayConfigPage> {
                       ),
                     ),
                     // "s" label
-                    Text('s', style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
+                    Text('s', style: TextStyle(fontSize: 14, color: context.surfaces.textSecondary)),
                     const SizedBox(width: 8),
                   ],
                 ),
@@ -172,7 +173,7 @@ class _DelayConfigPageState extends State<DelayConfigPage> {
               style: TextStyle(
                 fontSize: isSelected ? 28 : 20,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                color: isSelected ? Colors.black87 : Colors.grey.shade400,
+                color: isSelected ? context.surfaces.textPrimary : context.surfaces.textMuted,
               ),
             ),
           );

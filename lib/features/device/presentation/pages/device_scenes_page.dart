@@ -12,6 +12,7 @@ import '../../../scene/domain/usecases/execute_tap_to_run_scene.dart';
 import '../../../scene/domain/usecases/get_automations.dart';
 import '../../../scene/domain/usecases/get_tap_to_run_scenes.dart';
 import '../../../../l10n/gen/app_l10n.dart';
+import '../../../../core/theme/app_surfaces.dart';
 
 /// Các scene và automation có liên quan tới MỘT thiết bị.
 ///
@@ -32,7 +33,6 @@ class DeviceScenesPage extends StatefulWidget {
 }
 
 class _DeviceScenesPageState extends State<DeviceScenesPage> {
-  static const _pageBg = Color(0xFFF7F8FA);
 
   List<TapToRunSceneEntity> _tapToRun = const [];
   List<AutomationSceneEntity> _automations = const [];
@@ -95,12 +95,12 @@ class _DeviceScenesPageState extends State<DeviceScenesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _pageBg,
+      backgroundColor: context.surfaces.pageBg,
       appBar: AppBar(
-        backgroundColor: _pageBg,
+        backgroundColor: context.surfaces.pageBg,
         elevation: 0,
         centerTitle: true,
-        foregroundColor: Colors.black87,
+        foregroundColor: context.surfaces.textPrimary,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, size: 20),
           onPressed: () => Navigator.pop(context),
@@ -118,7 +118,7 @@ class _DeviceScenesPageState extends State<DeviceScenesPage> {
               ? Center(
                   child: Text(
                     AppL10n.of(context).noScenesUseThisDevice,
-                    style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
+                    style: TextStyle(fontSize: 16, color: context.surfaces.textSecondary),
                   ),
                 )
               : ListView(
@@ -176,10 +176,10 @@ class _SectionLabel extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 12, top: 4),
       child: Text(
         text,
-        style: const TextStyle(
+        style:  TextStyle(
           fontSize: 17,
           fontWeight: FontWeight.w600,
-          color: Colors.black87,
+          color: context.surfaces.textPrimary,
         ),
       ),
     );

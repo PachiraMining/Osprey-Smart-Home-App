@@ -1685,4 +1685,32 @@ class AppL10nIt extends AppL10n {
   @override
   String get googleExamplesIntro =>
       'Ora puoi usare l\'altoparlante Google Home per\ncontrollare i dispositivi dell\'Assistente Google, come';
+
+  @override
+  String get gridView => 'Vista a griglia';
+
+  @override
+  String get listView => 'Vista a elenco';
+
+  @override
+  String get deviceManagement => 'Gestione dispositivi';
+
+  @override
+  String get sort => 'Ordina';
+
+  @override
+  String get darkMode => 'Modalità scura';
+
+  @override
+  String get followSystem => 'Segui il sistema';
+
+  @override
+  String get system => 'Sistema';
+
+  @override
+  String get systemDarkModeHint =>
+      'Se attivata, l\'app attiva o disattiva la modalità scura in base alle impostazioni del sistema.';
+
+  @override
+  String get normalMode => 'Modalità normale';
 }

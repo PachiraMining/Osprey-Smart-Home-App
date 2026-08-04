@@ -499,5 +499,14 @@
   "devicesBeingAdded": "{count, plural, other{기기 {count}개 추가 중}}",
   "devicesAddedSuccessfully": "{count, plural, other{기기 {count}개를 추가했습니다}}",
   "alexaExamplesIntro": "Amazon Alexa 스피커로\nAlexa 지원 기기를 제어할 수 있습니다. 예:",
-  "googleExamplesIntro": "이제 Google Home 스피커로\nGoogle 어시스턴트 기기를 제어할 수 있습니다. 예:"
+  "googleExamplesIntro": "이제 Google Home 스피커로\nGoogle 어시스턴트 기기를 제어할 수 있습니다. 예:",
+  "gridView": "그리드 보기",
+  "listView": "목록 보기",
+  "deviceManagement": "기기 관리",
+  "sort": "정렬",
+  "darkMode": "다크 모드",
+  "followSystem": "시스템 설정 따르기",
+  "system": "시스템",
+  "systemDarkModeHint": "켜면 시스템 설정에 맞춰 다크 모드가 자동으로 전환됩니다.",
+  "normalMode": "일반 모드"
 }

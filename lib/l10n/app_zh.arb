@@ -499,5 +499,14 @@
   "devicesBeingAdded": "{count, plural, other{正在添加 {count} 个设备}}",
   "devicesAddedSuccessfully": "{count, plural, other{成功添加 {count} 个设备}}",
   "alexaExamplesIntro": "你可以通过 Amazon Alexa 音箱\n控制支持 Alexa 的设备，例如",
-  "googleExamplesIntro": "现在你可以使用 Google Home 音箱\n控制 Google Assistant 设备，例如"
+  "googleExamplesIntro": "现在你可以使用 Google Home 音箱\n控制 Google Assistant 设备，例如",
+  "gridView": "宫格视图",
+  "listView": "列表视图",
+  "deviceManagement": "设备管理",
+  "sort": "排序",
+  "darkMode": "深色模式",
+  "followSystem": "跟随系统",
+  "system": "跟随系统",
+  "systemDarkModeHint": "开启后，App 将随系统设置自动切换深色模式。",
+  "normalMode": "普通模式"
 }

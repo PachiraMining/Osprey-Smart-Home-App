@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entities/weather_recommendation.dart';
 import '../bloc/weather_ai_bloc.dart';
 import 'weather_location_picker_page.dart';
+import '../../../../core/theme/app_surfaces.dart';
 
 /// Full-screen outdoor weather report (Tuya style): big condition icon +
 /// label, temperature, then one rounded cell per metric. "Switch location"
@@ -44,13 +45,13 @@ class WeatherDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: context.surfaces.pageBg,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: context.surfaces.sheet,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios,
-              size: 20, color: Colors.black87),
+          icon:  Icon(Icons.arrow_back_ios,
+              size: 20, color: context.surfaces.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
@@ -58,7 +59,7 @@ class WeatherDetailPage extends StatelessWidget {
             onPressed: () => _switchLocation(context),
             child:  Text(
               AppL10n.of(context).switchLocation,
-              style: TextStyle(fontSize: 16, color: Colors.black87),
+              style: TextStyle(fontSize: 16, color: context.surfaces.textPrimary),
             ),
           ),
         ],
@@ -71,7 +72,7 @@ class WeatherDetailPage extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(20, 24, 20, 40),
             children: [
               const SizedBox(height: 18),
-              Icon(icon, size: 48, color: Colors.black87),
+              Icon(icon, size: 48, color: context.surfaces.textPrimary),
               const SizedBox(height: 12),
               Text(
                 label,
@@ -88,7 +89,7 @@ class WeatherDetailPage extends StatelessWidget {
                     ? AppL10n.of(context).outdoorTemperatureValue(w.temperatureCelsius.round())
                     : 'Outdoor temperature: --',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                style: TextStyle(fontSize: 13, color: context.surfaces.textSecondary),
               ),
               const SizedBox(height: 24),
               _MetricCell(
@@ -147,20 +148,20 @@ class _MetricCell extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: Colors.black87),
+          Icon(icon, size: 18, color: context.surfaces.textPrimary),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               label,
-              style: const TextStyle(fontSize: 13, color: Colors.black87),
+              style:  TextStyle(fontSize: 13, color: context.surfaces.textPrimary),
             ),
           ),
           Text(
             value,
-            style: const TextStyle(
+            style:  TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w500,
-              color: Colors.black87,
+              color: context.surfaces.textPrimary,
             ),
           ),
         ],

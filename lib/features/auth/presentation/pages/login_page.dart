@@ -15,6 +15,7 @@ import '../bloc/auth_state.dart';
 import '../utils/auth_error_text.dart';
 import '../widgets/auth_form_widgets.dart';
 import 'sign_up_page.dart';
+import '../../../../core/theme/app_surfaces.dart';
 
 /// Màn đăng nhập. Mọi trạng thái (loading/lỗi) hiển thị inline — không
 /// dialog chặn màn; hỗ trợ autofill + submit từ bàn phím cho mượt.
@@ -136,7 +137,7 @@ class _LoginPageState extends State<LoginPage> {
       builder: (context, state) {
         final busy = state is AuthLoading;
         return Scaffold(
-          backgroundColor: AppColors.background,
+          backgroundColor: context.surfaces.pageBg,
           resizeToAvoidBottomInset: true,
           body: SafeArea(
             child: SingleChildScrollView(
@@ -355,7 +356,7 @@ class _LoginPageState extends State<LoginPage> {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.background,
+      backgroundColor: context.surfaces.pageBg,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),

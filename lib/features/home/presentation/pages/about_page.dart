@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/config/app_config.dart';
 import '../../../../l10n/gen/app_l10n.dart';
+import '../../../../core/theme/app_surfaces.dart';
 
 /// Thông tin phiên bản app + liên kết pháp lý.
 class AboutPage extends StatefulWidget {
@@ -14,7 +15,6 @@ class AboutPage extends StatefulWidget {
 }
 
 class _AboutPageState extends State<AboutPage> {
-  static const _pageBg = Color(0xFFF2F4F7);
 
   PackageInfo? _info;
 
@@ -45,12 +45,12 @@ class _AboutPageState extends State<AboutPage> {
     final l10n = AppL10n.of(context);
     final info = _info;
     return Scaffold(
-      backgroundColor: _pageBg,
+      backgroundColor: context.surfaces.pageBg,
       appBar: AppBar(
-        backgroundColor: _pageBg,
+        backgroundColor: context.surfaces.pageBg,
         elevation: 0,
         centerTitle: true,
-        foregroundColor: Colors.black87,
+        foregroundColor: context.surfaces.textPrimary,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, size: 20),
           onPressed: () => Navigator.pop(context),
@@ -73,7 +73,7 @@ class _AboutPageState extends State<AboutPage> {
                     'assets/osprey_life_logo.png',
                     fit: BoxFit.contain,
                     errorBuilder: (_, __, ___) => Icon(Icons.apps_rounded,
-                        size: 60, color: Colors.grey.shade400),
+                        size: 60, color: context.surfaces.textMuted),
                   ),
                 ),
                 const SizedBox(height: 14),
@@ -87,14 +87,14 @@ class _AboutPageState extends State<AboutPage> {
                   info == null
                       ? ''
                       : l10n.aboutVersion(info.version, info.buildNumber),
-                  style: TextStyle(fontSize: 15, color: Colors.grey.shade600),
+                  style: TextStyle(fontSize: 15, color: context.surfaces.textSecondary),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 28),
           Container(
-            color: Colors.white,
+            color: context.surfaces.card,
             child: Column(
               children: [
                 _AboutRow(
@@ -110,7 +110,7 @@ class _AboutPageState extends State<AboutPage> {
           ),
           const SizedBox(height: 20),
           Container(
-            color: Colors.white,
+            color: context.surfaces.card,
             child: Column(
               children: [
                 _AboutRow(
@@ -146,7 +146,7 @@ class _AboutRow extends StatelessWidget {
         child: Row(
           children: [
             Text(label,
-                style: const TextStyle(fontSize: 17, color: Colors.black87)),
+                style:  TextStyle(fontSize: 17, color: context.surfaces.textPrimary)),
             const Spacer(),
             if (value != null && value!.isNotEmpty)
               Flexible(
@@ -156,13 +156,13 @@ class _AboutRow extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.end,
                   style:
-                      TextStyle(fontSize: 16, color: Colors.grey.shade500),
+                      TextStyle(fontSize: 16, color: context.surfaces.textSecondary),
                 ),
               ),
             if (onTap != null) ...[
               const SizedBox(width: 6),
               Icon(Icons.chevron_right,
-                  size: 22, color: Colors.grey.shade400),
+                  size: 22, color: context.surfaces.textMuted),
             ],
           ],
         ),

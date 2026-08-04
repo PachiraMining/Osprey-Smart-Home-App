@@ -499,5 +499,14 @@
   "devicesBeingAdded": "{count, plural, other{正在新增 {count} 個裝置}}",
   "devicesAddedSuccessfully": "{count, plural, other{成功新增 {count} 個裝置}}",
   "alexaExamplesIntro": "你可以透過 Amazon Alexa 喇叭\n控制支援 Alexa 的裝置，例如",
-  "googleExamplesIntro": "現在你可以使用 Google Home 喇叭\n控制 Google Assistant 裝置，例如"
+  "googleExamplesIntro": "現在你可以使用 Google Home 喇叭\n控制 Google Assistant 裝置，例如",
+  "gridView": "宮格檢視",
+  "listView": "清單檢視",
+  "deviceManagement": "裝置管理",
+  "sort": "排序",
+  "darkMode": "深色模式",
+  "followSystem": "跟隨系統",
+  "system": "跟隨系統",
+  "systemDarkModeHint": "開啟後，App 將隨系統設定自動切換深色模式。",
+  "normalMode": "普通模式"
 }

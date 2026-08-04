@@ -17,6 +17,7 @@ import '../../../home/presentation/pages/in_app_web_page.dart';
 import 'create_group_page.dart';
 import 'device_network_info_page.dart';
 import 'device_update_page.dart';
+import '../../../../core/theme/app_surfaces.dart';
 
 /// Màn "Settings" của 1 thiết bị (mở từ nút góc trên phải màn điều khiển).
 ///
@@ -190,19 +191,19 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
       listenWhen: (prev, curr) => prev.mutationStatus != curr.mutationStatus,
       listener: _onMutationResult,
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.surfaces.pageBg,
         appBar: AppBar(
-          backgroundColor: AppColors.background,
+          backgroundColor: context.surfaces.pageBg,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios,
-                size: 20, color: Colors.black87),
+            icon:  Icon(Icons.arrow_back_ios,
+                size: 20, color: context.surfaces.textPrimary),
             onPressed: () => Navigator.pop(context),
           ),
           title:  Text(
             AppL10n.of(context).settingsTitle,
             style: TextStyle(
-                fontSize: 17, fontWeight: FontWeight.w600, color: Colors.black87),
+                fontSize: 17, fontWeight: FontWeight.w600, color: context.surfaces.textPrimary),
           ),
         ),
         body: ListView(
@@ -210,7 +211,7 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
           children: [
             // ── Đầu trang: ảnh thiết bị + tên + phòng ─────────────────
             Container(
-              color: Colors.white,
+              color: context.surfaces.card,
               child: Column(
                 children: [
                   InkWell(
@@ -236,7 +237,7 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
                               errorBuilder: (_, __, ___) => Icon(
                                 Icons.devices_other,
                                 size: 28,
-                                color: Colors.grey.shade400,
+                                color: context.surfaces.textMuted,
                               ),
                             ),
                           ),
@@ -250,10 +251,10 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
                                   _displayName,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
+                                  style:  TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.w700,
-                                    color: Colors.black87,
+                                    color: context.surfaces.textPrimary,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
@@ -261,22 +262,22 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
                                   _roomLabel,
                                   style: TextStyle(
                                     fontSize: 16,
-                                    color: Colors.grey.shade600,
+                                    color: context.surfaces.textSecondary,
                                   ),
                                 ),
                               ],
                             ),
                           ),
                           Icon(Icons.edit_outlined,
-                              size: 22, color: Colors.grey.shade800),
+                              size: 22, color: context.surfaces.textPrimary),
                           const SizedBox(width: 6),
                           Icon(Icons.chevron_right,
-                              size: 22, color: Colors.grey.shade400),
+                              size: 22, color: context.surfaces.textMuted),
                         ],
                       ),
                     ),
                   ),
-                  Divider(height: 1, indent: 20, color: Colors.grey.shade200),
+                  Divider(height: 1, indent: 20, color: context.surfaces.divider),
                   _row(
                     AppL10n.of(context).deviceInformation,
                     onTap: () => Navigator.push(
@@ -315,7 +316,7 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
 
             _sectionHeader(AppL10n.of(context).thirdPartyControl),
             Container(
-              color: Colors.white,
+              color: context.surfaces.card,
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
               child: Row(
                 children: [
@@ -341,7 +342,7 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
 
             _sectionHeader(AppL10n.of(context).deviceOfflineNotification),
             Container(
-              color: Colors.white,
+              color: context.surfaces.card,
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
                 child: Row(
@@ -349,7 +350,7 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
                     Expanded(
                       child: Text(AppL10n.of(context).offlineNotification,
                           style:
-                              TextStyle(fontSize: 17, color: Colors.black87)),
+                              TextStyle(fontSize: 17, color: context.surfaces.textPrimary)),
                     ),
                     Switch.adaptive(
                       value: _offlineNotify,
@@ -364,7 +365,7 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
 
             _sectionHeader(AppL10n.of(context).others),
             Container(
-              color: Colors.white,
+              color: context.surfaces.card,
               child: Column(
                 children: [
                   _row(AppL10n.of(context).shareDevice, onTap: _comingSoon),
@@ -409,7 +410,7 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
 
             const SizedBox(height: 20),
             Container(
-              color: Colors.white,
+              color: context.surfaces.card,
               child: InkWell(
                 onTap: _removing ? null : _showRemoveSheet,
                 child: Padding(
@@ -463,16 +464,16 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
             Expanded(
               child: Text(label,
                   style:
-                      const TextStyle(fontSize: 17, color: Colors.black87)),
+                       TextStyle(fontSize: 17, color: context.surfaces.textPrimary)),
             ),
             if (value != null)
               Padding(
                 padding: const EdgeInsetsDirectional.only(end: 6),
                 child: Text(value,
                     style: TextStyle(
-                        fontSize: 16, color: Colors.grey.shade500)),
+                        fontSize: 16, color: context.surfaces.textSecondary)),
               ),
-            Icon(Icons.chevron_right, size: 22, color: Colors.grey.shade400),
+            Icon(Icons.chevron_right, size: 22, color: context.surfaces.textMuted),
           ],
         ),
       ),
@@ -482,7 +483,7 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
   Widget _sectionHeader(String text) => Padding(
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
         child: Text(text,
-            style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
+            style: TextStyle(fontSize: 14, color: context.surfaces.textSecondary)),
       );
 
 }
@@ -515,14 +516,14 @@ class _ThirdParty extends StatelessWidget {
               errorBuilder: (_, __, ___) => Icon(
                 Icons.mic_none_rounded,
                 size: 28,
-                color: Colors.grey.shade400,
+                color: context.surfaces.textMuted,
               ),
             ),
           ),
           const SizedBox(height: 8),
           Text(
             label,
-            style: const TextStyle(fontSize: 15, color: Colors.black87),
+            style:  TextStyle(fontSize: 15, color: context.surfaces.textPrimary),
           ),
         ],
       ),

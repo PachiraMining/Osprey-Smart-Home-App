@@ -7,6 +7,7 @@ import '../../../../core/widgets/app_dialog.dart';
 import '../../../home/domain/entities/home_device_entity.dart';
 import '../../../home/presentation/bloc/home_management_bloc.dart';
 import '../../data/device_group_service.dart';
+import '../../../../core/theme/app_surfaces.dart';
 
 /// Tạo nhóm thiết bị, bắt đầu từ thiết bị đang xem.
 ///
@@ -23,7 +24,6 @@ class CreateGroupPage extends StatefulWidget {
 }
 
 class _CreateGroupPageState extends State<CreateGroupPage> {
-  static const _pageBg = Color(0xFFF2F4F7);
   static const _link = Color(0xFF007AFF);
 
   /// Thiết bị đã chọn vào nhóm, theo thứ tự thêm.
@@ -108,16 +108,16 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
     ];
 
     return Scaffold(
-      backgroundColor: _pageBg,
+      backgroundColor: context.surfaces.pageBg,
       appBar: AppBar(
-        backgroundColor: _pageBg,
+        backgroundColor: context.surfaces.pageBg,
         elevation: 0,
         automaticallyImplyLeading: false,
         leadingWidth: 90,
         leading: TextButton(
           onPressed: () => Navigator.pop(context),
           child: Text(AppL10n.of(context).cancel,
-              style: TextStyle(fontSize: 17, color: Colors.black87)),
+              style: TextStyle(fontSize: 17, color: context.surfaces.textPrimary)),
         ),
         actions: [
           TextButton(
@@ -145,13 +145,13 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.info_outline, size: 18, color: Colors.grey.shade500),
+              Icon(Icons.info_outline, size: 18, color: context.surfaces.textSecondary),
               const SizedBox(width: 6),
               Flexible(
                 child: Text(
                   AppL10n.of(context).groupControlHint,
                   style:
-                      TextStyle(fontSize: 15, color: Colors.grey.shade600),
+                      TextStyle(fontSize: 15, color: context.surfaces.textSecondary),
                 ),
               ),
             ],
@@ -172,7 +172,7 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
           const SizedBox(height: 22),
           Text(
             AppL10n.of(context).devicesToBeAdded,
-            style: TextStyle(fontSize: 15, color: Colors.grey.shade600),
+            style: TextStyle(fontSize: 15, color: context.surfaces.textSecondary),
           ),
           const SizedBox(height: 10),
           if (_candidates.isEmpty)
@@ -180,7 +180,7 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
               padding: const EdgeInsets.symmetric(vertical: 20),
               child: Text(
                 AppL10n.of(context).noSameTypeDevices,
-                style: TextStyle(fontSize: 15, color: Colors.grey.shade500),
+                style: TextStyle(fontSize: 15, color: context.surfaces.textSecondary),
               ),
             )
           else
@@ -210,7 +210,7 @@ class _Card extends StatelessWidget {
     if (children.isEmpty) return const SizedBox.shrink();
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surfaces.card,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Column(children: children),
@@ -245,7 +245,7 @@ class _DeviceRow extends StatelessWidget {
               adding ? Icons.add_circle : Icons.remove_circle,
               size: 28,
               color: onAction == null
-                  ? Colors.grey.shade300
+                  ? context.surfaces.divider
                   : (adding
                       ? const Color(0xFF2ECC71)
                       : const Color(0xFFFF3B30)),
@@ -259,7 +259,7 @@ class _DeviceRow extends StatelessWidget {
               'assets/icons/curtain_track_hero.png',
               fit: BoxFit.contain,
               errorBuilder: (_, __, ___) => Icon(Icons.devices_other,
-                  size: 24, color: Colors.grey.shade400),
+                  size: 24, color: context.surfaces.textMuted),
             ),
           ),
           const SizedBox(width: 12),
@@ -272,8 +272,8 @@ class _DeviceRow extends StatelessWidget {
                   device.displayName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                      fontSize: 17, color: Colors.black87),
+                  style:  TextStyle(
+                      fontSize: 17, color: context.surfaces.textPrimary),
                 ),
                 const SizedBox(height: 3),
                 Text(
@@ -281,7 +281,7 @@ class _DeviceRow extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style:
-                      TextStyle(fontSize: 15, color: Colors.grey.shade500),
+                      TextStyle(fontSize: 15, color: context.surfaces.textSecondary),
                 ),
               ],
             ),

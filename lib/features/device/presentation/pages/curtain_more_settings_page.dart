@@ -6,6 +6,7 @@ import '../../../../core/widgets/app_popup.dart';
 import '../../domain/usecases/get_device_status.dart';
 import '../../domain/usecases/send_dp_command.dart';
 import 'device_schedule_page.dart';
+import '../../../../core/theme/app_surfaces.dart';
 
 /// Màn "Setting" mở từ liên kết `more` ở trang điều khiển rèm.
 class CurtainMoreSettingsPage extends StatefulWidget {
@@ -24,7 +25,6 @@ class CurtainMoreSettingsPage extends StatefulWidget {
 }
 
 class _CurtainMoreSettingsPageState extends State<CurtainMoreSettingsPage> {
-  static const _pageBg = Color(0xFFF5F6F7);
 
   /// dpId 5 — `forward` / `back`.
   static const _motorDpId = 5;
@@ -81,7 +81,7 @@ class _CurtainMoreSettingsPageState extends State<CurtainMoreSettingsPage> {
         child: Container(
           clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: context.surfaces.card,
             borderRadius: BorderRadius.circular(18),
           ),
           child: Column(
@@ -91,7 +91,7 @@ class _CurtainMoreSettingsPageState extends State<CurtainMoreSettingsPage> {
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 child: Text(
                   AppL10n.of(context).motorDirection,
-                  style: TextStyle(fontSize: 15, color: Colors.grey.shade500),
+                  style: TextStyle(fontSize: 15, color: context.surfaces.textSecondary),
                 ),
               ),
               for (final (value, label) in _motorOptions(AppL10n.of(context)))
@@ -157,12 +157,12 @@ class _CurtainMoreSettingsPageState extends State<CurtainMoreSettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _pageBg,
+      backgroundColor: context.surfaces.pageBg,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: context.surfaces.sheet,
         elevation: 0,
         centerTitle: true,
-        foregroundColor: Colors.black87,
+        foregroundColor: context.surfaces.textPrimary,
         title:  Text(
           AppL10n.of(context).setting,
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
@@ -173,7 +173,7 @@ class _CurtainMoreSettingsPageState extends State<CurtainMoreSettingsPage> {
         children: [
           const SizedBox(height: 10),
           Container(
-            color: Colors.white,
+            color: context.surfaces.card,
             child: _SettingRow(
               label: AppL10n.of(context).motorDirection,
               value: _motorLabel,
@@ -183,7 +183,7 @@ class _CurtainMoreSettingsPageState extends State<CurtainMoreSettingsPage> {
           ),
           const SizedBox(height: 10),
           Container(
-            color: Colors.white,
+            color: context.surfaces.card,
             child: _SettingRow(
               label: AppL10n.of(context).schedule,
               onTap: () => Navigator.push(
@@ -229,7 +229,7 @@ class _SettingRow extends StatelessWidget {
             Expanded(
               child: Text(
                 label,
-                style: const TextStyle(fontSize: 17, color: Colors.black87),
+                style:  TextStyle(fontSize: 17, color: context.surfaces.textPrimary),
               ),
             ),
             if (value != null && value!.isNotEmpty)
@@ -237,7 +237,7 @@ class _SettingRow extends StatelessWidget {
                 padding: const EdgeInsetsDirectional.only(end: 6),
                 child: Text(
                   value!,
-                  style: TextStyle(fontSize: 16, color: Colors.grey.shade500),
+                  style: TextStyle(fontSize: 16, color: context.surfaces.textSecondary),
                 ),
               ),
             if (busy)
@@ -246,11 +246,11 @@ class _SettingRow extends StatelessWidget {
                 height: 18,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: Colors.grey.shade500,
+                  color: context.surfaces.textSecondary,
                 ),
               )
             else
-              Icon(Icons.chevron_right, size: 22, color: Colors.grey.shade500),
+              Icon(Icons.chevron_right, size: 22, color: context.surfaces.textSecondary),
           ],
         ),
       ),

@@ -1678,4 +1678,32 @@ class AppL10nEn extends AppL10n {
   @override
   String get googleExamplesIntro =>
       'You can now use Google Home voicebox to\ncontrol Google Assistant devices, like';
+
+  @override
+  String get gridView => 'Grid View';
+
+  @override
+  String get listView => 'List View';
+
+  @override
+  String get deviceManagement => 'Device Management';
+
+  @override
+  String get sort => 'Sort';
+
+  @override
+  String get darkMode => 'Dark Mode';
+
+  @override
+  String get followSystem => 'Follow system';
+
+  @override
+  String get system => 'System';
+
+  @override
+  String get systemDarkModeHint =>
+      'When enabled, the app will switch the dark mode on or off to match your system settings.';
+
+  @override
+  String get normalMode => 'Normal Mode';
 }

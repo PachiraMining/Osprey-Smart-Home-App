@@ -8,6 +8,7 @@ import '../bloc/home_management_bloc.dart';
 import '../bloc/home_management_event.dart';
 import '../bloc/home_management_state.dart';
 import 'home_settings_page.dart';
+import '../../../../core/theme/app_surfaces.dart';
 
 /// Tuya-style "Home Management" hub: lists every home the user has (tap one to
 /// manage it), plus "Create a home" / "Join a home" actions.
@@ -17,13 +18,13 @@ class HomeManagementPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F4F7),
+      backgroundColor: context.surfaces.pageBg,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF2F4F7),
+        backgroundColor: context.surfaces.sheet,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios,
-              size: 20, color: Colors.black87),
+          icon:  Icon(Icons.arrow_back_ios,
+              size: 20, color: context.surfaces.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
         centerTitle: true,
@@ -32,7 +33,7 @@ class HomeManagementPage extends StatelessWidget {
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
-            color: Colors.black87,
+            color: context.surfaces.textPrimary,
           ),
         ),
       ),
@@ -42,7 +43,7 @@ class HomeManagementPage extends StatelessWidget {
             children: [
               // ── All homes ──
               Container(
-                color: Colors.white,
+                color: context.surfaces.card,
                 child: Column(
                   children: [
                     for (var i = 0; i < state.homes.length; i++) ...[
@@ -50,7 +51,7 @@ class HomeManagementPage extends StatelessWidget {
                         Divider(
                             height: 1,
                             indent: 20,
-                            color: Colors.grey.shade100),
+                            color: context.surfaces.divider),
                       InkWell(
                         onTap: () => Navigator.push(
                           context,
@@ -72,15 +73,15 @@ class HomeManagementPage extends StatelessWidget {
                                   state.homes[i].name,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
+                                  style:  TextStyle(
                                     fontSize: 17,
                                     fontWeight: FontWeight.w500,
-                                    color: Colors.black87,
+                                    color: context.surfaces.textPrimary,
                                   ),
                                 ),
                               ),
                               Icon(Icons.chevron_right,
-                                  color: Colors.grey.shade400, size: 24),
+                                  color: context.surfaces.textMuted, size: 24),
                             ],
                           ),
                         ),
@@ -139,7 +140,7 @@ class _ActionRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white,
+      color: context.surfaces.card,
       child: InkWell(
         onTap: onTap,
         child: Container(

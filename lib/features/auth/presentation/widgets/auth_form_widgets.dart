@@ -8,6 +8,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../l10n/gen/app_l10n.dart';
+import '../../../../core/theme/app_surfaces.dart';
 
 /// Nút back vuông bo góc dùng chung cho các màn auth.
 class AuthBackButton extends StatelessWidget {
@@ -20,7 +21,7 @@ class AuthBackButton extends StatelessWidget {
       width: 44,
       height: 44,
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.surfaces.card,
         borderRadius: BorderRadius.circular(AppRadius.md),
         border: Border.all(color: AppColors.borderSubtle),
       ),
@@ -331,7 +332,7 @@ class _AuthFieldState extends State<AuthField> {
           duration: const Duration(milliseconds: 180),
           curve: Curves.easeOut,
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: context.surfaces.card,
             borderRadius: BorderRadius.circular(AppRadius.field),
             border: Border.all(
               color: borderColor,

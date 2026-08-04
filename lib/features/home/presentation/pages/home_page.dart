@@ -49,6 +49,7 @@ import 'package:smart_curtain_app/features/scene/domain/entities/tap_to_run_scen
 import 'package:smart_curtain_app/features/scene/presentation/pages/tap_to_run/create_tap_to_run_page.dart';
 import 'package:smart_curtain_app/features/scene/presentation/pages/tap_to_run/manage_scenes_page.dart';
 import 'package:smart_curtain_app/features/scene/presentation/pages/scene_logs_page.dart';
+import '../../../../core/theme/app_surfaces.dart';
 
 class HomePage extends StatefulWidget {
   /// Tab mở đầu: 0 Home, 1 Scenes, 2 Chat, 3 Me. Sau đăng nhập vào thẳng Chat.
@@ -97,18 +98,23 @@ class HomePageState extends State<HomePage> {
           Flexible(
             child: Text(
               state.selectedHome?.name ?? 'My Home',
-              style: AppTypography.headlineMedium.copyWith(
-                color: AppColors.textPrimary,
+              // Đo từ app tham chiếu: ~21pt, nét vừa, màu xám chì (KHÔNG phải
+              // đen đậm) — chữ đậm quá làm nặng góc trên trái.
+              style: const TextStyle(
+                fontSize: 21,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF535B5F),
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: 2),
+          // Tam giác đặc chỉ xuống, nhạt hơn chữ — không phải mũi tên hai chiều.
           const Icon(
-            Icons.unfold_more_rounded,
-            color: AppColors.textMuted,
-            size: 20,
+            Icons.arrow_drop_down,
+            color: Color(0xFF7A848A),
+            size: 24,
           ),
         ],
       ),
@@ -137,7 +143,7 @@ class HomePageState extends State<HomePage> {
       height: 48,
       child: Row(
         children: [
-          Icon(icon, size: 24, color: Colors.black87),
+          Icon(icon, size: 24, color: context.surfaces.textPrimary),
           const SizedBox(width: 14),
           Text(
             title,
@@ -181,7 +187,7 @@ class HomePageState extends State<HomePage> {
     return Scaffold(
       key: HomePageState.globalKey,
       extendBody: true,
-      backgroundColor: AppColors.background,
+      backgroundColor: context.surfaces.pageBg,
       body: Stack(
         children: [
           // Photo background (living room). A soft white scrim on top keeps
@@ -191,25 +197,40 @@ class HomePageState extends State<HomePage> {
               'assets/images/home_bg.jpg',
               fit: BoxFit.cover,
               alignment: Alignment.bottomCenter,
-              errorBuilder: (_, __, ___) => const DecoratedBox(
-                decoration: BoxDecoration(color: AppColors.background),
+              errorBuilder: (_, __, ___) =>  DecoratedBox(
+                decoration: BoxDecoration(color: context.surfaces.pageBg),
               ),
             ),
           ),
+          // Lớp phủ trên ảnh: chế độ sáng phủ trắng cho dịu, chế độ tối phủ ĐEN
+          // theo [AppSurfaces.photoDim] — nếu vẫn phủ trắng thì ảnh sáng
+          // nguyên và chữ màu sáng nằm trên nền sáng sẽ mất hút.
           Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.white.withAlpha(60),
-                    Colors.white.withAlpha(20),
-                    Colors.white.withAlpha(55),
-                  ],
-                  stops: const [0.0, 0.45, 1.0],
-                ),
-              ),
+            child: Builder(
+              builder: (context) {
+                final dim = context.surfaces.photoDim;
+                if (dim > 0) {
+                  return DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: dim),
+                    ),
+                  );
+                }
+                return DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.white.withAlpha(60),
+                        Colors.white.withAlpha(20),
+                        Colors.white.withAlpha(55),
+                      ],
+                      stops: const [0.0, 0.45, 1.0],
+                    ),
+                  ),
+                );
+              },
             ),
           ),
 
@@ -279,7 +300,7 @@ class HomePageState extends State<HomePage> {
                                 color: AppColors.borderSubtle,
                               ),
                             ),
-                            color: AppColors.surface,
+                            color: context.surfaces.card,
                             elevation: 0,
                             shadowColor: AppColors.shadow,
                             onSelected: (value) =>
@@ -372,7 +393,7 @@ class _AutomationTile extends StatelessWidget {
       width: 46,
       height: 46,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surfaces.card,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
@@ -410,7 +431,7 @@ class _BrandBottomNav extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
         child: LiquidGlass(
           radius: AppRadius.xl,
-          fillColor: AppColors.glassFillStrong,
+          fillColor: context.surfaces.navBar,
           child: SizedBox(
             height: 53,
             child: Row(
@@ -438,7 +459,7 @@ class _BrandBottomNav extends StatelessWidget {
                             ),
                             decoration: BoxDecoration(
                               color: selected
-                                  ? AppColors.primarySubtle
+                                  ? context.surfaces.navActive.withValues(alpha: 0.18)
                                   : Colors.transparent,
                               borderRadius: BorderRadius.circular(
                                 AppRadius.pill,
@@ -448,8 +469,8 @@ class _BrandBottomNav extends StatelessWidget {
                               selected ? filled : outlined,
                               size: 20,
                               color: selected
-                                  ? AppColors.primary
-                                  : AppColors.textMuted,
+                                  ? context.surfaces.navActive
+                                  : context.surfaces.textMuted,
                             ),
                           ),
                           const SizedBox(height: 2),
@@ -457,8 +478,8 @@ class _BrandBottomNav extends StatelessWidget {
                             label,
                             style: AppTypography.labelSmall.copyWith(
                               color: selected
-                                  ? AppColors.primary
-                                  : AppColors.textMuted,
+                                  ? context.surfaces.navActive
+                                  : context.surfaces.textMuted,
                               fontSize: 10,
                               height: 1.0,
                             ),
@@ -548,7 +569,7 @@ class _SceneTabState extends State<SceneTab> {
                           ? FontWeight.bold
                           : FontWeight.w400,
                       color: _selectedSubTab == 0
-                          ? Colors.black87
+                          ? context.surfaces.textPrimary
                           : Colors.grey,
                     ),
                   ),
@@ -564,7 +585,7 @@ class _SceneTabState extends State<SceneTab> {
                           ? FontWeight.bold
                           : FontWeight.w400,
                       color: _selectedSubTab == 1
-                          ? Colors.black87
+                          ? context.surfaces.textPrimary
                           : Colors.grey,
                     ),
                   ),
@@ -609,7 +630,7 @@ class _SceneTabState extends State<SceneTab> {
                           Icon(
                             Icons.sort,
                             size: 20,
-                            color: Colors.grey.shade700,
+                            color: context.surfaces.textSecondary,
                           ),
                           const SizedBox(width: 12),
                           Text(AppL10n.of(context).manage, style: TextStyle(fontSize: 15)),
@@ -624,7 +645,7 @@ class _SceneTabState extends State<SceneTab> {
                           Icon(
                             Icons.article_outlined,
                             size: 20,
-                            color: Colors.grey.shade700,
+                            color: context.surfaces.textSecondary,
                           ),
                           const SizedBox(width: 12),
                           Text(AppL10n.of(context).logs, style: TextStyle(fontSize: 15)),
@@ -635,7 +656,7 @@ class _SceneTabState extends State<SceneTab> {
                   child: Icon(
                     Icons.more_horiz,
                     size: 22,
-                    color: Colors.grey.shade600,
+                    color: context.surfaces.textSecondary,
                   ),
                 ),
               ],
@@ -702,7 +723,7 @@ class _SceneTabState extends State<SceneTab> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(Icons.sync, size: 64, color: Colors.grey.shade300),
+        Icon(Icons.sync, size: 64, color: context.surfaces.divider),
         const SizedBox(height: 24),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 30),
@@ -711,7 +732,7 @@ class _SceneTabState extends State<SceneTab> {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 15,
-              color: Colors.grey.shade500,
+              color: context.surfaces.textSecondary,
               height: 1.5,
             ),
           ),
@@ -812,7 +833,7 @@ class _SceneTabState extends State<SceneTab> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(Icons.touch_app_outlined, size: 64, color: Colors.grey.shade300),
+        Icon(Icons.touch_app_outlined, size: 64, color: context.surfaces.divider),
         const SizedBox(height: 24),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 30),
@@ -821,7 +842,7 @@ class _SceneTabState extends State<SceneTab> {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 15,
-              color: Colors.grey.shade500,
+              color: context.surfaces.textSecondary,
               height: 1.5,
             ),
           ),
@@ -986,7 +1007,7 @@ class _SceneTabState extends State<SceneTab> {
                         padding:
                             asset != null ? const EdgeInsets.all(6) : null,
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
+                          color: context.surfaces.divider,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: asset != null
@@ -996,13 +1017,13 @@ class _SceneTabState extends State<SceneTab> {
                                 errorBuilder: (_, __, ___) => Icon(
                                   Icons.devices_other,
                                   size: 20,
-                                  color: Colors.grey.shade500,
+                                  color: context.surfaces.textSecondary,
                                 ),
                               )
                             : Icon(
                                 Icons.devices_other,
                                 size: 20,
-                                color: Colors.grey.shade500,
+                                color: context.surfaces.textSecondary,
                               ),
                       ),
                       const SizedBox(width: 12),
@@ -1022,7 +1043,7 @@ class _SceneTabState extends State<SceneTab> {
                                 subtitle,
                                 style: TextStyle(
                                   fontSize: 13,
-                                  color: Colors.grey.shade500,
+                                  color: context.surfaces.textSecondary,
                                 ),
                               ),
                           ],
@@ -1049,7 +1070,7 @@ class _SceneTabState extends State<SceneTab> {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Colors.black87,
+                    color: context.surfaces.textPrimary,
                   ),
                 ),
               ),
@@ -1130,7 +1151,7 @@ class _SceneTabState extends State<SceneTab> {
               child: Container(
                 padding: const EdgeInsets.fromLTRB(20, 18, 14, 14),
                 decoration: BoxDecoration(
-                  color: Colors.white.withAlpha(200),
+                  color: context.surfaces.photoCard,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Column(
@@ -1148,10 +1169,10 @@ class _SceneTabState extends State<SceneTab> {
                                 automation.name,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
+                                style:  TextStyle(
                                   fontSize: 19,
                                   fontWeight: FontWeight.w700,
-                                  color: Colors.black87,
+                                  color: context.surfaces.textPrimary,
                                 ),
                               ),
                               const SizedBox(height: 5),
@@ -1167,7 +1188,7 @@ class _SceneTabState extends State<SceneTab> {
                         ),
                         Icon(
                           Icons.chevron_right,
-                          color: Colors.grey.shade400,
+                          color: context.surfaces.textMuted,
                           size: 24,
                         ),
                       ],
@@ -1191,7 +1212,7 @@ class _SceneTabState extends State<SceneTab> {
                           child: Icon(
                             Icons.arrow_right_alt_rounded,
                             size: 24,
-                            color: Colors.grey.shade400,
+                            color: context.surfaces.textMuted,
                           ),
                         ),
                         ..._automationActionTiles(
@@ -1277,7 +1298,7 @@ class _SceneTabState extends State<SceneTab> {
           child = Icon(
             Icons.settings_remote_outlined,
             size: 22,
-            color: Colors.grey.shade500,
+            color: context.surfaces.textSecondary,
           );
       }
       tiles.add(
@@ -1299,7 +1320,7 @@ class _SceneTabState extends State<SceneTab> {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: Colors.grey.shade600,
+                color: context.surfaces.textSecondary,
               ),
             ),
           ),
@@ -1368,19 +1389,14 @@ class _TapToRunCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (cardColor, cardIcon) = SceneStyle.decode(scene.icon, scene.id);
-    final lighterColor = Color.lerp(cardColor, Colors.white, 0.15)!;
 
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [lighterColor, cardColor],
-          ),
+          borderRadius: BorderRadius.circular(12),
+          gradient: SceneStyle.gradientFor(cardColor),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1389,30 +1405,23 @@ class _TapToRunCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Scene icon
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withAlpha(50),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(cardIcon, color: Colors.white, size: 22),
-                ),
-                // "..." → edit scene
+                // Icon scene: glyph trắng trần, KHÔNG có ô nền phía sau.
+                Icon(cardIcon, color: Colors.white, size: 26),
+                // "..." → sửa scene. Vòng tròn trắng đậm, ba chấm khoét theo
+                // đúng màu thẻ — ngược với icon (chỉ nút này mới có nền).
                 GestureDetector(
                   onTap: onMore,
                   child: Container(
-                    width: 30,
-                    height: 30,
+                    width: 26,
+                    height: 26,
                     decoration: BoxDecoration(
-                      color: Colors.white.withAlpha(40),
+                      color: Colors.white.withValues(alpha: 0.70),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.more_horiz,
-                      color: Colors.white,
-                      size: 18,
+                      color: cardColor,
+                      size: 16,
                     ),
                   ),
                 ),
@@ -1437,7 +1446,7 @@ class _TapToRunCard extends StatelessWidget {
             Text(
               AppL10n.of(context).taskCount(scene.actions.length),
               style: TextStyle(
-                color: Colors.white.withAlpha(180),
+                color: context.surfaces.photoCard,
                 fontSize: 12,
               ),
             ),
@@ -1454,7 +1463,7 @@ class MallTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.white,
+      color: context.surfaces.card,
       width: double.infinity,
       child: Column(
         children: [
@@ -1466,7 +1475,7 @@ class MallTab extends StatelessWidget {
               child: Icon(
                 Icons.more_horiz,
                 size: 24,
-                color: Colors.grey.shade400,
+                color: context.surfaces.textMuted,
               ),
             ),
           ),
@@ -1475,7 +1484,7 @@ class MallTab extends StatelessWidget {
           Icon(
             Icons.apartment_outlined,
             size: 120,
-            color: Colors.grey.shade300,
+            color: context.surfaces.divider,
           ),
           const SizedBox(height: 24),
           // Message
@@ -1486,7 +1495,7 @@ class MallTab extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 16,
-                color: Colors.grey.shade600,
+                color: context.surfaces.textSecondary,
                 height: 1.4,
               ),
             ),
@@ -1494,7 +1503,7 @@ class MallTab extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             'HOME_PAGE_NOT_DESIGN',
-            style: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+            style: TextStyle(fontSize: 13, color: context.surfaces.textMuted),
           ),
           const Spacer(flex: 3),
         ],
@@ -1533,7 +1542,7 @@ class ProfileTab extends StatelessWidget {
                 child: Icon(
                   Icons.settings_outlined,
                   size: 24,
-                  color: Colors.grey.shade700,
+                  color: context.surfaces.textSecondary,
                 ),
               ),
             ],
@@ -1561,16 +1570,16 @@ class ProfileTab extends StatelessWidget {
                 Expanded(
                   child: Text(
                     displayName,
-                    style: const TextStyle(
+                    style:  TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      color: context.surfaces.textPrimary,
                     ),
                   ),
                 ),
                 Icon(
                   Icons.chevron_right,
-                  color: Colors.grey.shade400,
+                  color: context.surfaces.textMuted,
                   size: 28,
                 ),
               ],
@@ -1584,7 +1593,7 @@ class ProfileTab extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.white.withAlpha(180),
+              color: context.surfaces.photoCard,
               borderRadius: BorderRadius.circular(16),
             ),
             child: Column(
@@ -1592,10 +1601,10 @@ class ProfileTab extends StatelessWidget {
               children: [
                 Text(
                   AppL10n.of(context).thirdPartyServices,
-                  style: const TextStyle(
+                  style:  TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Colors.black87,
+                    color: context.surfaces.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -1623,7 +1632,7 @@ class ProfileTab extends StatelessWidget {
                               AppL10n.of(context).alexa,
                               style: TextStyle(
                                 fontSize: 14,
-                                color: Colors.black87,
+                                color: context.surfaces.textPrimary,
                               ),
                             ),
                           ],
@@ -1653,7 +1662,7 @@ class ProfileTab extends StatelessWidget {
                               AppL10n.of(context).googleAssistant,
                               style: TextStyle(
                                 fontSize: 14,
-                                color: Colors.black87,
+                                color: context.surfaces.textPrimary,
                               ),
                             ),
                           ],
@@ -1672,12 +1681,13 @@ class ProfileTab extends StatelessWidget {
           Container(
             width: double.infinity,
             decoration: BoxDecoration(
-              color: Colors.white.withAlpha(180),
+              color: context.surfaces.photoCard,
               borderRadius: BorderRadius.circular(16),
             ),
             child: Column(
               children: [
                 _buildMenuRow(
+                  context,
                   Icons.home_outlined,
                   AppL10n.of(context).homeManagement,
                   onTap: () => Navigator.push(
@@ -1687,10 +1697,11 @@ class ProfileTab extends StatelessWidget {
                     ),
                   ),
                 ),
-                _divider(),
+                _divider(context),
                 AnimatedBuilder(
                   animation: GetIt.instance<MessageCenter>()..ensureLoaded(),
                   builder: (context, _) => _buildMenuRow(
+                    context,
                     Icons.chat_outlined,
                     AppL10n.of(context).messageCenter,
                     hasNotification:
@@ -1703,8 +1714,9 @@ class ProfileTab extends StatelessWidget {
                     ),
                   ),
                 ),
-                _divider(),
+                _divider(context),
                 _buildMenuRow(
+                  context,
                   Icons.help_outline,
                   AppL10n.of(context).faqFeedback,
                   onTap: () => Navigator.push(
@@ -1717,8 +1729,9 @@ class ProfileTab extends StatelessWidget {
                     ),
                   ),
                 ),
-                _divider(),
+                _divider(context),
                 _buildMenuRow(
+                  context,
                   Icons.storefront_outlined,
                   AppL10n.of(context).appMall,
                   onTap: () => Navigator.push(
@@ -1737,6 +1750,7 @@ class ProfileTab extends StatelessWidget {
   }
 
   Widget _buildMenuRow(
+    BuildContext context,
     IconData icon,
     String title, {
     bool hasNotification = false,
@@ -1749,7 +1763,7 @@ class ProfileTab extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
         child: Row(
           children: [
-            Icon(icon, size: 24, color: Colors.black87),
+            Icon(icon, size: 24, color: context.surfaces.textPrimary),
             const SizedBox(width: 16),
             Expanded(
               child: Text(
@@ -1770,19 +1784,19 @@ class ProfileTab extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
               ),
-            Icon(Icons.chevron_right, color: Colors.grey.shade400, size: 22),
+            Icon(Icons.chevron_right, color: context.surfaces.textMuted, size: 22),
           ],
         ),
       ),
     );
   }
 
-  Widget _divider() {
+  Widget _divider(BuildContext context) {
     return Divider(
       height: 1,
       indent: 60,
       endIndent: 20,
-      color: Colors.grey.shade200,
+      color: context.surfaces.divider,
     );
   }
 }

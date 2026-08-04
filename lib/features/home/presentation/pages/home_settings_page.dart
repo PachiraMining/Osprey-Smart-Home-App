@@ -10,6 +10,7 @@ import '../../domain/usecases/get_rooms.dart';
 import '../bloc/home_management_bloc.dart';
 import '../bloc/home_management_event.dart';
 import 'manage_rooms_page.dart';
+import '../../../../core/theme/app_surfaces.dart';
 
 /// Cài đặt của MỘT home: tên, phòng, vị trí, phân quyền, thành viên, xoá nhà.
 class HomeSettingsPage extends StatefulWidget {
@@ -31,7 +32,6 @@ class HomeSettingsPage extends StatefulWidget {
 }
 
 class _HomeSettingsPageState extends State<HomeSettingsPage> {
-  static const _pageBg = Color(0xFFF2F4F7);
   static const _link = Color(0xFF007AFF);
   static const _danger = Color(0xFFFF3B30);
 
@@ -95,12 +95,12 @@ class _HomeSettingsPageState extends State<HomeSettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _pageBg,
+      backgroundColor: context.surfaces.pageBg,
       appBar: AppBar(
-        backgroundColor: _pageBg,
+        backgroundColor: context.surfaces.pageBg,
         elevation: 0,
         centerTitle: true,
-        foregroundColor: Colors.black87,
+        foregroundColor: context.surfaces.textPrimary,
         title:  Text(
           AppL10n.of(context).homeSettings,
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
@@ -110,7 +110,7 @@ class _HomeSettingsPageState extends State<HomeSettingsPage> {
         padding: EdgeInsets.zero,
         children: [
           Container(
-            color: Colors.white,
+            color: context.surfaces.card,
             child: Column(
               children: [
                 _SettingsRow(
@@ -146,7 +146,7 @@ class _HomeSettingsPageState extends State<HomeSettingsPage> {
           ),
            _SectionHeader(AppL10n.of(context).homeMember),
           Container(
-            color: Colors.white,
+            color: context.surfaces.card,
             child: Column(
               children: [
                 for (final member in _members)
@@ -155,7 +155,7 @@ class _HomeSettingsPageState extends State<HomeSettingsPage> {
                     onTap: () => _notYet(AppL10n.of(context).memberDetails),
                   ),
                 if (_members.isNotEmpty)
-                  Divider(height: 1, indent: 20, color: Colors.grey.shade200),
+                  Divider(height: 1, indent: 20, color: context.surfaces.divider),
                 InkWell(
                   onTap: () => _notYet(AppL10n.of(context).addMember),
                   child:  Padding(
@@ -178,7 +178,7 @@ class _HomeSettingsPageState extends State<HomeSettingsPage> {
           ),
           const SizedBox(height: 20),
           Container(
-            color: Colors.white,
+            color: context.surfaces.card,
             child: InkWell(
               onTap: _deleteHome,
               child: Padding(
@@ -217,7 +217,7 @@ class _SettingsRow extends StatelessWidget {
             Expanded(
               child: Text(
                 label,
-                style: const TextStyle(fontSize: 17, color: Colors.black87),
+                style:  TextStyle(fontSize: 17, color: context.surfaces.textPrimary),
               ),
             ),
             if (value != null && value!.isNotEmpty)
@@ -225,10 +225,10 @@ class _SettingsRow extends StatelessWidget {
                 padding: const EdgeInsetsDirectional.only(end: 6),
                 child: Text(
                   value!,
-                  style: TextStyle(fontSize: 16, color: Colors.grey.shade500),
+                  style: TextStyle(fontSize: 16, color: context.surfaces.textSecondary),
                 ),
               ),
-            Icon(Icons.chevron_right, color: Colors.grey.shade400, size: 22),
+            Icon(Icons.chevron_right, color: context.surfaces.textMuted, size: 22),
           ],
         ),
       ),
@@ -248,7 +248,7 @@ class _SectionHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(20, 22, 20, 10),
       child: Text(
         title,
-        style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+        style: TextStyle(fontSize: 14, color: context.surfaces.textSecondary),
       ),
     );
   }
@@ -295,10 +295,10 @@ class _MemberRow extends StatelessWidget {
                     member.displayName,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style:  TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w600,
-                      color: Colors.black87,
+                      color: context.surfaces.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -308,7 +308,7 @@ class _MemberRow extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 15,
-                      color: Colors.grey.shade600,
+                      color: context.surfaces.textSecondary,
                     ),
                   ),
                 ],
@@ -317,10 +317,10 @@ class _MemberRow extends StatelessWidget {
             const SizedBox(width: 10),
             Text(
               member.isPending ? AppL10n.of(context).pending : member.roleLabel,
-              style: TextStyle(fontSize: 16, color: Colors.grey.shade500),
+              style: TextStyle(fontSize: 16, color: context.surfaces.textSecondary),
             ),
             const SizedBox(width: 4),
-            Icon(Icons.chevron_right, color: Colors.grey.shade400, size: 22),
+            Icon(Icons.chevron_right, color: context.surfaces.textMuted, size: 22),
           ],
         ),
       ),

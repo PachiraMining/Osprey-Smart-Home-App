@@ -14,6 +14,8 @@ import 'package:smart_curtain_app/features/scene/presentation/pages/tap_to_run/s
 import 'package:smart_curtain_app/features/scene/presentation/pages/tap_to_run/delay_config_sheet.dart';
 import 'package:smart_curtain_app/features/home/presentation/bloc/home_management_bloc.dart';
 import 'package:smart_curtain_app/features/home/domain/entities/home_device_entity.dart';
+import '../../../../../core/theme/scene_style.dart';
+import '../../../../../core/theme/app_surfaces.dart';
 
 class CreateTapToRunPage extends StatefulWidget {
   final TapToRunSceneEntity? existingScene;
@@ -28,24 +30,13 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
   final _nameController = TextEditingController();
   final List<SceneActionEntity> _actions = [];
   bool _showOnHomePage = true;
-  Color _selectedColor = const Color(0xFFD46B6B);
+  Color _selectedColor = SceneStyle.palette.first;
   bool get _isEditing => widget.existingScene != null;
 
-  static const _sceneColors = [
-    Color(0xFFE85D5D), Color(0xFFF5A623), Color(0xFF7ED321), Color(0xFF2EAD4B),
-    Color(0xFF1FBCB5), Color(0xFF1B4332), Color(0xFF2D7DD2), Color(0xFF5B4FCF),
-    Color(0xFF8B47BF), Color(0xFFD14B8F), Color(0xFFC78B6D), Color(0xFF5A7A84),
-  ];
-
-  static const _sceneIcons = [
-    Icons.download_outlined, Icons.curtains_outlined, Icons.beach_access_outlined,
-    Icons.play_arrow_rounded, Icons.hourglass_bottom_outlined, Icons.mail_outlined,
-    Icons.local_offer_outlined, Icons.flag_outlined, Icons.lock_outlined,
-    Icons.nightlight_round, Icons.location_on_outlined, Icons.cloud_outlined,
-    Icons.coffee_outlined, Icons.contrast, Icons.wb_sunny_outlined,
-    Icons.schedule_outlined, Icons.water_drop_outlined, Icons.work_outline,
-  ];
-  IconData _selectedIcon = Icons.play_arrow_rounded;
+  /// Một nguồn duy nhất cho màu và icon — thẻ ở trang chủ đọc cùng bộ này.
+  static const _sceneColors = SceneStyle.palette;
+  static const _sceneIcons = SceneStyle.icons;
+  IconData _selectedIcon = SceneStyle.icons.first;
 
   static const _bgColor = Color(0xFFF5F6FA);
   static const _blueAccent = Color(0xFF1B4332);
@@ -65,9 +56,12 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
       WidgetsBinding.instance.addPostFrameCallback((_) => _resolveDpNames());
     } else {
       _nameController.text = AppL10n.of(context).sceneName;
-      // New scenes get a random palette color (persisted in scene.icon on
-      // save, so the card keeps this exact color on every reload).
-      _selectedColor = _sceneColors[Random().nextInt(_sceneColors.length)];
+      // Scene mới nhận NGẪU NHIÊN cả màu lẫn icon (được lưu vào scene.icon khi
+      // save, nên thẻ giữ nguyên đúng màu/icon này ở mọi lần tải lại). Trước
+      // đây chỉ random màu nên mọi scene mới đều mang chung một glyph.
+      final rand = Random();
+      _selectedColor = _sceneColors[rand.nextInt(_sceneColors.length)];
+      _selectedIcon = _sceneIcons[rand.nextInt(_sceneIcons.length)];
     }
   }
 
@@ -86,15 +80,9 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
 
   void _decodeStyleIcon(String? iconStr) {
     if (iconStr == null || !iconStr.contains('|')) return;
-    final parts = iconStr.split('|');
-    try {
-      final colorHex = parts[0].replaceFirst('#', '');
-      _selectedColor = Color(int.parse('FF$colorHex', radix: 16));
-      final codePoint = int.parse(parts[1]);
-      _selectedIcon = IconData(codePoint, fontFamily: 'MaterialIcons');
-    } catch (_) {
-      // keep defaults if parsing fails
-    }
+    final (color, icon) = SceneStyle.decode(iconStr, '');
+    _selectedColor = color;
+    _selectedIcon = icon;
   }
 
   @override
@@ -125,7 +113,7 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
             onPressed: () => Navigator.pop(context),
             child: Text(
               AppL10n.of(context).cancel,
-              style: TextStyle(color: Colors.black87, fontSize: 16),
+              style: TextStyle(color: context.surfaces.textPrimary, fontSize: 16),
             ),
           ),
           leadingWidth: 80,
@@ -206,7 +194,7 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
         child: Container(
         margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: context.surfaces.card,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Column(
@@ -217,7 +205,7 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
                 padding: const EdgeInsets.symmetric(vertical: 18),
                 child: Text(
                   AppL10n.of(context).addTask,
-                  style: TextStyle(fontSize: 16, color: Colors.grey.shade500),
+                  style: TextStyle(fontSize: 16, color: context.surfaces.textSecondary),
                 ),
               ),
               // Control Single Device
@@ -239,15 +227,15 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                 child: Row(
                   children: [
-                    Icon(Icons.sms_outlined, size: 28, color: Colors.grey.shade300),
+                    Icon(Icons.sms_outlined, size: 28, color: context.surfaces.divider),
                     const SizedBox(width: 16),
                     Expanded(
                       child: Text(
                         AppL10n.of(context).sendNotification,
-                        style: TextStyle(fontSize: 16, color: Colors.grey.shade300),
+                        style: TextStyle(fontSize: 16, color: context.surfaces.divider),
                       ),
                     ),
-                    Icon(Icons.error_outline, size: 22, color: Colors.grey.shade300),
+                    Icon(Icons.error_outline, size: 22, color: context.surfaces.divider),
                   ],
                 ),
               ),
@@ -283,10 +271,10 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
             Expanded(
               child: Text(
                 label,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.black87),
+                style:  TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: context.surfaces.textPrimary),
               ),
             ),
-            Icon(Icons.chevron_right, color: Colors.grey.shade400),
+            Icon(Icons.chevron_right, color: context.surfaces.textMuted),
           ],
         ),
       ),
@@ -441,7 +429,7 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
                             onTap: () => _showStylePicker(ctx, setLocal),
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+                              decoration: BoxDecoration(color: context.surfaces.card, borderRadius: BorderRadius.circular(12)),
                               child: Row(
                                 children: [
                                   Text(AppL10n.of(context).style, style: TextStyle(fontSize: 16)),
@@ -452,7 +440,7 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
                                     child: Icon(_selectedIcon, color: _selectedColor, size: 20),
                                   ),
                                   const SizedBox(width: 8),
-                                  Icon(Icons.chevron_right, color: Colors.grey.shade400),
+                                  Icon(Icons.chevron_right, color: context.surfaces.textMuted),
                                 ],
                               ),
                             ),
@@ -461,7 +449,7 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
                           // Show on Home Page
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+                            decoration: BoxDecoration(color: context.surfaces.card, borderRadius: BorderRadius.circular(12)),
                             child: Row(
                               children: [
                                 Text(AppL10n.of(context).showOnHomePage, style: TextStyle(fontSize: 16)),
@@ -479,12 +467,12 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
                           // Executed By
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+                            decoration: BoxDecoration(color: context.surfaces.card, borderRadius: BorderRadius.circular(12)),
                             child: Row(
                               children: [
                                 Text(AppL10n.of(context).executedBy, style: TextStyle(fontSize: 16)),
                                 const Spacer(),
-                                Text(AppL10n.of(context).cloud, style: TextStyle(fontSize: 15, color: Colors.grey.shade500)),
+                                Text(AppL10n.of(context).cloud, style: TextStyle(fontSize: 15, color: context.surfaces.textSecondary)),
                               ],
                             ),
                           ),
@@ -512,8 +500,8 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
                               child: Container(
                                 width: double.infinity,
                                 padding: const EdgeInsets.symmetric(vertical: 16),
-                                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
-                                child: Text(AppL10n.of(context).delete, textAlign: TextAlign.center, style: TextStyle(fontSize: 16, color: Colors.grey.shade500)),
+                                decoration: BoxDecoration(color: context.surfaces.card, borderRadius: BorderRadius.circular(12)),
+                                child: Text(AppL10n.of(context).delete, textAlign: TextAlign.center, style: TextStyle(fontSize: 16, color: context.surfaces.textSecondary)),
                               ),
                             ),
                           const SizedBox(height: 24),
@@ -540,8 +528,8 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
         child: StatefulBuilder(
           builder: (ctx, setLocal) {
             return Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
+              decoration:  BoxDecoration(
+                color: context.surfaces.card,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
               ),
               child: Column(
@@ -559,7 +547,7 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: selectedTab == 0 ? FontWeight.bold : FontWeight.w400,
-                            color: selectedTab == 0 ? Colors.black87 : Colors.grey,
+                            color: selectedTab == 0 ? context.surfaces.textPrimary : Colors.grey,
                           ),
                         ),
                       ),
@@ -571,7 +559,7 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: selectedTab == 1 ? FontWeight.bold : FontWeight.w400,
-                            color: selectedTab == 1 ? Colors.black87 : Colors.grey,
+                            color: selectedTab == 1 ? context.surfaces.textPrimary : Colors.grey,
                           ),
                         ),
                       ),
@@ -653,13 +641,13 @@ class _CreateTapToRunPageState extends State<CreateTapToRunPage> {
                             },
                             child: Container(
                               decoration: BoxDecoration(
-                                color: isSelected ? Colors.grey.shade200 : Colors.transparent,
+                                color: isSelected ? context.surfaces.divider : Colors.transparent,
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Icon(
                                 icon,
                                 size: 28,
-                                color: isSelected ? Colors.black87 : Colors.grey.shade500,
+                                color: isSelected ? context.surfaces.textPrimary : context.surfaces.textSecondary,
                               ),
                             ),
                           );
@@ -738,14 +726,14 @@ class _SceneNameHeader extends StatelessWidget {
           children: [
             Text(
               text,
-              style: const TextStyle(
+              style:  TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Colors.black87,
+                color: context.surfaces.textPrimary,
               ),
             ),
             const SizedBox(width: 8),
-            Icon(Icons.edit_outlined, size: 18, color: Colors.grey.shade400),
+            Icon(Icons.edit_outlined, size: 18, color: context.surfaces.textMuted),
           ],
         ),
       ),
@@ -761,7 +749,7 @@ class _IfCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surfaces.card,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -782,7 +770,7 @@ class _IfCard extends StatelessWidget {
                   height: 28,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.grey.shade300,
+                    color: context.surfaces.divider,
                   ),
                   child: const Icon(Icons.add, size: 18, color: Colors.white),
                 ),
@@ -802,7 +790,7 @@ class _IfCard extends StatelessWidget {
                   const SizedBox(width: 12),
                   Text(
                     AppL10n.of(context).launchTapToRun,
-                    style: TextStyle(fontSize: 15, color: Colors.black87),
+                    style: TextStyle(fontSize: 15, color: context.surfaces.textPrimary),
                   ),
                 ],
               ),
@@ -831,7 +819,7 @@ class _ThenCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surfaces.card,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -955,7 +943,7 @@ class _ActionRow extends StatelessWidget {
                   height: 36,
                   padding: asset != null ? const EdgeInsets.all(6) : null,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
+                    color: context.surfaces.divider,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: asset != null
@@ -963,9 +951,9 @@ class _ActionRow extends StatelessWidget {
                           asset,
                           fit: BoxFit.contain,
                           errorBuilder: (_, __, ___) => Icon(icon,
-                              size: 20, color: Colors.grey.shade600),
+                              size: 20, color: context.surfaces.textSecondary),
                         )
-                      : Icon(icon, size: 20, color: Colors.grey.shade600),
+                      : Icon(icon, size: 20, color: context.surfaces.textSecondary),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -984,13 +972,13 @@ class _ActionRow extends StatelessWidget {
                           subtitle,
                           style: TextStyle(
                             fontSize: 13,
-                            color: Colors.grey.shade500,
+                            color: context.surfaces.textSecondary,
                           ),
                         ),
                     ],
                   ),
                 ),
-                Icon(Icons.chevron_right, color: Colors.grey.shade400),
+                Icon(Icons.chevron_right, color: context.surfaces.textMuted),
               ],
             ),
           ),
@@ -999,7 +987,7 @@ class _ActionRow extends StatelessWidget {
           Divider(
             height: 1,
             indent: 64,
-            color: Colors.grey.shade200,
+            color: context.surfaces.divider,
           ),
       ],
     );
@@ -1013,7 +1001,7 @@ class _MoreSettingsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surfaces.card,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Padding(
@@ -1023,10 +1011,10 @@ class _MoreSettingsCard extends StatelessWidget {
           children: [
             Text(
               AppL10n.of(context).moreSettings,
-              style: TextStyle(fontSize: 15, color: Colors.black87),
+              style: TextStyle(fontSize: 15, color: context.surfaces.textPrimary),
             ),
             const Spacer(),
-            Icon(Icons.chevron_right, color: Colors.grey.shade400),
+            Icon(Icons.chevron_right, color: context.surfaces.textMuted),
           ],
         ),
       ),
@@ -1072,15 +1060,15 @@ class _AllDevicesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F6FA),
+      backgroundColor: context.surfaces.pageBg,
       appBar: AppBar(
         title: Text(
           AppL10n.of(context).allDevices,
           style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
         ),
         centerTitle: true,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
+        backgroundColor: context.surfaces.sheet,
+        foregroundColor: context.surfaces.textPrimary,
         elevation: 0.5,
       ),
       body: ListView.separated(
@@ -1088,12 +1076,12 @@ class _AllDevicesPage extends StatelessWidget {
         separatorBuilder: (_, __) => Divider(
           height: 1,
           indent: 72,
-          color: Colors.grey.shade200,
+          color: context.surfaces.divider,
         ),
         itemBuilder: (context, index) {
           final device = devices[index];
           return Material(
-            color: Colors.white,
+            color: context.surfaces.card,
             child: InkWell(
               onTap: () => _onDeviceTap(context, device),
               child: Padding(
@@ -1108,7 +1096,8 @@ class _AllDevicesPage extends StatelessWidget {
                       height: 44,
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
+                        // Ô icon giữ trắng ở cả hai chế độ (ảnh PNG nền trắng).
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(10),
                       ),
                       // Cùng artwork với card thiết bị ở Home tab để user nhận
@@ -1120,29 +1109,29 @@ class _AllDevicesPage extends StatelessWidget {
                               errorBuilder: (_, __, ___) => Icon(
                                 Icons.curtains_outlined,
                                 size: 24,
-                                color: Colors.grey.shade500,
+                                color: context.surfaces.textSecondary,
                               ),
                             )
                           : Icon(
                               Icons.devices_other,
                               size: 24,
-                              color: Colors.grey.shade500,
+                              color: context.surfaces.textSecondary,
                             ),
                     ),
                     const SizedBox(width: 14),
                     Expanded(
                       child: Text(
                         device.displayName,
-                        style: const TextStyle(
+                        style:  TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w400,
-                          color: Colors.black87,
+                          color: context.surfaces.textPrimary,
                         ),
                       ),
                     ),
                     Icon(
                       Icons.chevron_right,
-                      color: Colors.grey.shade400,
+                      color: context.surfaces.textMuted,
                     ),
                   ],
                 ),

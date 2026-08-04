@@ -221,6 +221,8 @@ class _SmartAppState extends State<SmartApp> {
           title: 'osprey.life',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.light,
+          darkTheme: AppTheme.dark,
+          themeMode: GetIt.instance<AppSettingsStore>().themeMode,
           // Ngôn ngữ: null = theo hệ thống (AppSettingsStore quyết định).
           locale: GetIt.instance<AppSettingsStore>().locale,
           localizationsDelegates: AppL10n.localizationsDelegates,

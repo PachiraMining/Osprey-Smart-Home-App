@@ -18,6 +18,7 @@ import 'package:smart_curtain_app/features/scene/presentation/pages/tap_to_run/s
 import 'package:smart_curtain_app/features/scene/presentation/pages/tap_to_run/delay_config_sheet.dart';
 import 'package:smart_curtain_app/features/home/domain/entities/home_device_entity.dart';
 import 'package:smart_curtain_app/features/scene/presentation/pages/automation/schedule_condition_page.dart';
+import '../../../../../core/theme/app_surfaces.dart';
 
 /// A device-control action only carries `deviceName` in memory (set by the
 /// device picker). After a save + reload the backend returns just `entityId`
@@ -204,7 +205,7 @@ class _AutomationDetailPageState extends State<AutomationDetailPage> {
         child: Container(
           margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: context.surfaces.card,
             borderRadius: BorderRadius.circular(20),
           ),
           child: Column(
@@ -312,7 +313,7 @@ class _AutomationDetailPageState extends State<AutomationDetailPage> {
         child: Container(
           margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: context.surfaces.card,
             borderRadius: BorderRadius.circular(20),
           ),
           child: Column(
@@ -534,8 +535,8 @@ class _AutomationDetailPageState extends State<AutomationDetailPage> {
       builder: (ctx) => FractionallySizedBox(
         heightFactor: 0.85,
         child: Container(
-          decoration: const BoxDecoration(
-            color: AppColors.background,
+          decoration:  BoxDecoration(
+            color: context.surfaces.pageBg,
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
           child: SafeArea(
@@ -574,7 +575,7 @@ class _AutomationDetailPageState extends State<AutomationDetailPage> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 16),
                           decoration: BoxDecoration(
-                            color: AppColors.surface,
+                            color: context.surfaces.card,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Row(
@@ -582,7 +583,11 @@ class _AutomationDetailPageState extends State<AutomationDetailPage> {
                               Text(AppL10n.of(context).executedBy,
                                   style: TextStyle(fontSize: 16, color: AppColors.textPrimary)),
                               const Spacer(),
-                              Text(AppL10n.of(context).localAssociation,
+                              // Automation chạy bằng scheduler PHÍA SERVER, không
+                              // đẩy xuống gateway — nhãn "Local Association" chép
+                              // từ app tham chiếu là sai, mất mạng là automation
+                              // dừng (đúng như banner offline đang nói).
+                              Text(AppL10n.of(context).cloud,
                                   style: TextStyle(
                                       fontSize: 15,
                                       color: AppColors.textSecondary)),
@@ -602,7 +607,7 @@ class _AutomationDetailPageState extends State<AutomationDetailPage> {
                             width: double.infinity,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             decoration: BoxDecoration(
-                              color: AppColors.surface,
+                              color: context.surfaces.card,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(AppL10n.of(context).delete,
@@ -658,9 +663,9 @@ class _AutomationDetailPageState extends State<AutomationDetailPage> {
         }
       },
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.surfaces.pageBg,
         appBar: AppBar(
-          backgroundColor: AppColors.background,
+          backgroundColor: context.surfaces.pageBg,
           elevation: 0,
           leadingWidth: 80,
           leading: TextButton(
@@ -790,7 +795,7 @@ class _AutomationDetailPageState extends State<AutomationDetailPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: context.surfaces.card,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
@@ -829,7 +834,7 @@ class _IfCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.surfaces.card,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -949,7 +954,7 @@ class _ThenCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.surfaces.card,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -1182,7 +1187,7 @@ class _AllDevicesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.surfaces.pageBg,
       appBar: AppBar(
         title: Text(AppL10n.of(context).allDevices,
             style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
@@ -1198,7 +1203,7 @@ class _AllDevicesPage extends StatelessWidget {
         itemBuilder: (context, index) {
           final device = devices[index];
           return Material(
-            color: AppColors.surface,
+            color: context.surfaces.card,
             child: InkWell(
               onTap: () => _onDeviceTap(context, device),
               child: Padding(
@@ -1210,7 +1215,8 @@ class _AllDevicesPage extends StatelessWidget {
                       width: 44,
                       height: 44,
                       decoration: BoxDecoration(
-                        color: AppColors.surfaceMuted,
+                        // Ô icon giữ trắng ở cả hai chế độ (ảnh PNG nền trắng).
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: device.isCurtainTrack

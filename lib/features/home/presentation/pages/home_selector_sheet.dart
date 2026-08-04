@@ -1,15 +1,16 @@
-import 'dart:ui' show ImageFilter;
 import '../../../../l10n/gen/app_l10n.dart';
 
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/home_entity.dart';
+import '../../../../core/theme/app_surfaces.dart';
 
-/// Tuya-style home selector: a frosted panel that drops down from the very top
-/// of the screen (behind the status bar), listing homes with a blue check on
-/// the selected one, and a solid-white rounded "Home Management" band at the
-/// bottom. The rest of the screen dims behind it.
+/// Bảng chọn nhà kiểu Tuya: panel TRẮNG ĐẶC thả xuống từ mép trên cùng (phủ cả
+/// vùng status bar), liệt kê các nhà với dấu check xanh ở nhà đang chọn, dưới
+/// cùng là kẻ mảnh rồi tới hàng "Home Management". Phần còn lại của màn tối đi.
+///
+/// Số đo lấy từ app tham chiếu: nền #FFFFFF, bo đáy 16pt, bước dòng ~56pt,
+/// chữ 19pt, chữ cách trái 56pt, kẻ #E5E5E5.
 class HomeSelectorDropdown {
   /// Shows the dropdown. Kept API-compatible with previous callers.
   static Future<void> show({
@@ -56,6 +57,9 @@ class HomeSelectorDropdown {
   }
 }
 
+/// Xanh của dấu check, đo trực tiếp từ ảnh app tham chiếu.
+const _checkBlue = Color(0xFF0E7CBF);
+
 class _HomeSelectorPopup extends StatelessWidget {
   final List<HomeEntity> homes;
   final String? selectedHomeId;
@@ -77,14 +81,12 @@ class _HomeSelectorPopup extends StatelessWidget {
         color: Colors.transparent,
         child: ClipRRect(
           borderRadius:
-              const BorderRadius.vertical(bottom: Radius.circular(24)),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-            child: Container(
+              const BorderRadius.vertical(bottom: Radius.circular(16)),
+          child: Container(
               width: double.infinity,
-              // Frosted wash over the dimmed page — content behind stays
-              // faintly visible, like the reference.
-              color: Colors.white.withAlpha(200),
+              // Trắng ĐẶC. Bản trước phủ mờ (alpha 200 + blur) nên panel bị đục
+              // và ám màu nền; app tham chiếu đo ra #FFFFFF tuyệt đối.
+              color: context.surfaces.card,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -116,18 +118,16 @@ class _HomeSelectorPopup extends StatelessWidget {
                     ),
                   ),
 
-                  // Solid white rounded band — visually detached footer.
-                  Container(
-                    width: double.infinity,
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.all(Radius.circular(24)),
-                    ),
-                    child: _ManageHomeRow(onTap: onManageHome),
+                  // Kẻ mảnh #E5E5E5 rồi tới hàng Home Management — cùng nằm
+                  // trong panel trắng, không phải dải trắng tách rời.
+                  const Divider(
+                    height: 0.5,
+                    thickness: 0.5,
+                    color: Color(0xFFE5E5E5),
                   ),
+                  _ManageHomeRow(onTap: onManageHome),
                 ],
               ),
-            ),
           ),
         ),
       ),
@@ -151,15 +151,15 @@ class _HomeRow extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         child: Row(
           children: [
-            // Check gutter — keeps names aligned whether selected or not.
+            // Máng cho dấu check — giữ tên thẳng hàng dù có chọn hay không.
             SizedBox(
-              width: 40,
+              width: 36,
               child: isSelected
                   ? const Icon(Icons.check_rounded,
-                      color: AppColors.primary, size: 26)
+                      color: _checkBlue, size: 26)
                   : null,
             ),
             Expanded(
@@ -167,10 +167,10 @@ class _HomeRow extends StatelessWidget {
                 home.name,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style:  TextStyle(
                   fontSize: 19,
                   fontWeight: FontWeight.w500,
-                  color: Colors.black87,
+                  color: context.surfaces.textPrimary,
                 ),
               ),
             ),
@@ -190,21 +190,20 @@ class _ManageHomeRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: const BorderRadius.all(Radius.circular(24)),
       child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         child: Row(
           children: [
-            SizedBox(
-              width: 40,
-              child: Icon(Icons.tune_rounded, color: Colors.black87, size: 24),
+             SizedBox(
+              width: 36,
+              child: Icon(Icons.tune_rounded, color: context.surfaces.textPrimary, size: 24),
             ),
             Text(
               AppL10n.of(context).homeManagement,
-              style: TextStyle(
-                fontSize: 17,
+              style:  TextStyle(
+                fontSize: 18,
                 fontWeight: FontWeight.w500,
-                color: Colors.black87,
+                color: context.surfaces.textPrimary,
               ),
             ),
           ],

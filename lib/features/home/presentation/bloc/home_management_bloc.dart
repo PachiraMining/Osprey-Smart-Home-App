@@ -552,6 +552,7 @@ class HomeManagementBloc extends Bloc<HomeManagementEvent, HomeManagementState>
       roomId: event.roomId,
       name: event.name,
       icon: event.icon,
+      sortOrder: event.sortOrder,
     );
     result.fold(
       (failure) => emit(state.copyWith(

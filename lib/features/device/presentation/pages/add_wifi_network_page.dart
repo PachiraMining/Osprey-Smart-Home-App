@@ -5,6 +5,7 @@ import 'package:network_info_plus/network_info_plus.dart';
 import '../../../../core/di/injector.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../data/datasources/device_wifi_remote_datasource.dart';
+import '../../../../core/theme/app_surfaces.dart';
 
 /// Form "Add WiFi network" (Màn 2) — chỉ lưu vào backend, KHÔNG chạm chip.
 /// Pop với `true` khi thêm thành công để màn list refresh.
@@ -105,19 +106,19 @@ class _AddWifiNetworkPageState extends State<AddWifiNetworkPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.surfaces.pageBg,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.surfaces.pageBg,
         elevation: 0,
         leading: IconButton(
           icon:
-              const Icon(Icons.arrow_back_ios, size: 20, color: Colors.black87),
+               Icon(Icons.arrow_back_ios, size: 20, color: context.surfaces.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
         title:  Text(
           AppL10n.of(context).addWifiNetwork,
           style: TextStyle(
-              fontSize: 17, fontWeight: FontWeight.w600, color: Colors.black87),
+              fontSize: 17, fontWeight: FontWeight.w600, color: context.surfaces.textPrimary),
         ),
       ),
       body: ListView(

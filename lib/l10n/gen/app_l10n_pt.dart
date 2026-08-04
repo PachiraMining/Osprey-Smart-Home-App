@@ -1692,6 +1692,34 @@ class AppL10nPt extends AppL10n {
   @override
   String get googleExamplesIntro =>
       'Já pode usar o altifalante Google Home para\ncontrolar dispositivos do Assistente Google, como';
+
+  @override
+  String get gridView => 'Vista em grelha';
+
+  @override
+  String get listView => 'Vista em lista';
+
+  @override
+  String get deviceManagement => 'Gestão de dispositivos';
+
+  @override
+  String get sort => 'Ordenar';
+
+  @override
+  String get darkMode => 'Modo escuro';
+
+  @override
+  String get followSystem => 'Seguir o sistema';
+
+  @override
+  String get system => 'Sistema';
+
+  @override
+  String get systemDarkModeHint =>
+      'Quando ativado, a app liga ou desliga o modo escuro de acordo com as definições do seu sistema.';
+
+  @override
+  String get normalMode => 'Modo normal';
 }
 
 /// The translations for Portuguese, as used in Brazil (`pt_BR`).
@@ -3379,4 +3407,32 @@ class AppL10nPtBr extends AppL10nPt {
   @override
   String get googleExamplesIntro =>
       'Agora você pode usar a caixa de som Google Home para\ncontrolar dispositivos do Google Assistente, como';
+
+  @override
+  String get gridView => 'Visualização em grade';
+
+  @override
+  String get listView => 'Visualização em lista';
+
+  @override
+  String get deviceManagement => 'Gerenciamento de dispositivos';
+
+  @override
+  String get sort => 'Ordenar';
+
+  @override
+  String get darkMode => 'Modo escuro';
+
+  @override
+  String get followSystem => 'Seguir o sistema';
+
+  @override
+  String get system => 'Sistema';
+
+  @override
+  String get systemDarkModeHint =>
+      'Quando ativado, o app liga ou desliga o modo escuro de acordo com as configurações do seu sistema.';
+
+  @override
+  String get normalMode => 'Modo normal';
 }

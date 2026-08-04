@@ -3,6 +3,7 @@ import '../../../../l10n/gen/app_l10n.dart';
 import 'package:flutter/services.dart';
 
 import '../../../../core/auth/auth_diag_log.dart';
+import '../../../../core/theme/app_surfaces.dart';
 
 /// Read-only viewer for the persistent auth event log. This is the evidence
 /// trail for the "logged out for no reason" bug: open it after logging back in
@@ -49,7 +50,7 @@ class _AuthDiagPageState extends State<AuthDiagPage> {
       case 'NO_SESSION':
         return const Color(0xFFE0922B);
       default:
-        return Colors.grey.shade600;
+        return context.surfaces.textSecondary;
     }
   }
 
@@ -62,35 +63,35 @@ class _AuthDiagPageState extends State<AuthDiagPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F4F7),
+      backgroundColor: context.surfaces.pageBg,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: context.surfaces.sheet,
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios,
-              size: 20, color: Colors.black87),
+          icon:  Icon(Icons.arrow_back_ios,
+              size: 20, color: context.surfaces.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(AppL10n.of(context).authDiagnostics,
             style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: Colors.black87)),
+                color: context.surfaces.textPrimary)),
         actions: [
           IconButton(
-            icon: const Icon(Icons.copy, size: 20, color: Colors.black87),
+            icon:  Icon(Icons.copy, size: 20, color: context.surfaces.textPrimary),
             tooltip: AppL10n.of(context).copy,
             onPressed: _copy,
           ),
           IconButton(
-            icon: const Icon(Icons.refresh, size: 22, color: Colors.black87),
+            icon:  Icon(Icons.refresh, size: 22, color: context.surfaces.textPrimary),
             tooltip: AppL10n.of(context).reload,
             onPressed: _reload,
           ),
           IconButton(
-            icon: const Icon(Icons.delete_outline,
-                size: 22, color: Colors.black87),
+            icon:  Icon(Icons.delete_outline,
+                size: 22, color: context.surfaces.textPrimary),
             tooltip: AppL10n.of(context).clear,
             onPressed: () async {
               await AuthDiagLog.instance.clear();
@@ -129,7 +130,7 @@ class _AuthDiagPageState extends State<AuthDiagPage> {
               return Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: context.surfaces.card,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Column(
@@ -158,7 +159,7 @@ class _AuthDiagPageState extends State<AuthDiagPage> {
                           _fmt(e.time),
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey.shade500,
+                            color: context.surfaces.textSecondary,
                             fontFeatures: const [FontFeature.tabularFigures()],
                           ),
                         ),
@@ -168,8 +169,8 @@ class _AuthDiagPageState extends State<AuthDiagPage> {
                       const SizedBox(height: 6),
                       Text(
                         e.detail!,
-                        style: const TextStyle(
-                            fontSize: 13, color: Colors.black87, height: 1.35),
+                        style:  TextStyle(
+                            fontSize: 13, color: context.surfaces.textPrimary, height: 1.35),
                       ),
                     ],
                   ],

@@ -499,5 +499,14 @@
   "devicesBeingAdded": "{count, plural, one{جارٍ إضافة جهاز واحد} two{جارٍ إضافة جهازين} few{جارٍ إضافة {count} أجهزة} many{جارٍ إضافة {count} جهازًا} other{جارٍ إضافة {count} جهاز}}",
   "devicesAddedSuccessfully": "{count, plural, one{تمت إضافة جهاز واحد بنجاح} two{تمت إضافة جهازين بنجاح} few{تمت إضافة {count} أجهزة بنجاح} many{تمت إضافة {count} جهازًا بنجاح} other{تمت إضافة {count} جهاز بنجاح}}",
   "alexaExamplesIntro": "يمكنك التحكم في الأجهزة المتوافقة مع Alexa\nعبر مكبرات صوت Amazon Alexa، مثل",
-  "googleExamplesIntro": "يمكنك الآن استخدام مكبر صوت Google Home\nللتحكم في أجهزة Google Assistant، مثل"
+  "googleExamplesIntro": "يمكنك الآن استخدام مكبر صوت Google Home\nللتحكم في أجهزة Google Assistant، مثل",
+  "gridView": "عرض شبكي",
+  "listView": "عرض قائمة",
+  "deviceManagement": "إدارة الأجهزة",
+  "sort": "ترتيب",
+  "darkMode": "الوضع الداكن",
+  "followSystem": "اتباع النظام",
+  "system": "النظام",
+  "systemDarkModeHint": "عند التفعيل، يقوم التطبيق بتشغيل الوضع الداكن أو إيقافه بما يطابق إعدادات نظامك.",
+  "normalMode": "الوضع العادي"
 }

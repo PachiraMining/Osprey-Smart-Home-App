@@ -1696,4 +1696,32 @@ class AppL10nFr extends AppL10n {
   @override
   String get googleExamplesIntro =>
       'Vous pouvez désormais utiliser l\'enceinte Google Home pour\npiloter les appareils de l\'Assistant Google, comme';
+
+  @override
+  String get gridView => 'Vue en grille';
+
+  @override
+  String get listView => 'Vue en liste';
+
+  @override
+  String get deviceManagement => 'Gestion des appareils';
+
+  @override
+  String get sort => 'Trier';
+
+  @override
+  String get darkMode => 'Mode sombre';
+
+  @override
+  String get followSystem => 'Suivre le système';
+
+  @override
+  String get system => 'Système';
+
+  @override
+  String get systemDarkModeHint =>
+      'Lorsque cette option est activée, l\'appli active ou désactive le mode sombre selon les réglages de votre système.';
+
+  @override
+  String get normalMode => 'Mode normal';
 }

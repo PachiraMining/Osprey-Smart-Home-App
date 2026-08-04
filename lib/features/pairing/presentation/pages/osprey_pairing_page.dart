@@ -13,6 +13,7 @@ import '../../domain/entities/pairing_progress.dart';
 import '../bloc/pairing_bloc.dart';
 import '../bloc/pairing_event.dart';
 import '../bloc/pairing_state.dart';
+import '../../../../core/theme/app_surfaces.dart';
 
 /// Nhập WiFi credentials + theo dõi tiến trình ghép nối (spec §8.3).
 class OspreyPairingPage extends StatelessWidget {
@@ -111,7 +112,7 @@ class _OspreyPairingViewState extends State<_OspreyPairingView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.surfaces.pageBg,
       // Nút Done to, ghim đáy — chỉ hiện khi đã pair xong (giống Tuya).
       bottomNavigationBar: BlocBuilder<PairingBloc, PairingState>(
         builder: (context, state) {
@@ -139,7 +140,7 @@ class _OspreyPairingViewState extends State<_OspreyPairingView> {
         },
       ),
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
+        backgroundColor: context.surfaces.sheet,
         elevation: 0,
         leading: BlocBuilder<PairingBloc, PairingState>(
           builder: (context, state) => IconButton(
@@ -399,7 +400,7 @@ class _OspreyPairingViewState extends State<_OspreyPairingView> {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surfaces.card,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
@@ -430,7 +431,7 @@ class _OspreyPairingViewState extends State<_OspreyPairingView> {
                     end: -2,
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: context.surfaces.card,
                         shape: BoxShape.circle,
                         border: Border.all(color: Colors.white, width: 2),
                       ),

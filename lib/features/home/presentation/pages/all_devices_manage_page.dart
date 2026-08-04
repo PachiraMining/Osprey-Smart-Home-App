@@ -10,6 +10,7 @@ import '../../domain/entities/home_device_entity.dart';
 import '../bloc/home_management_bloc.dart';
 import '../bloc/home_management_event.dart';
 import '../bloc/home_management_state.dart';
+import '../../../../core/theme/app_surfaces.dart';
 
 /// Tuya-style "All Devices" management screen (opened by long-pressing a device
 /// on Home): multi-select with a bottom toolbar. Remove Device is wired to the
@@ -186,22 +187,17 @@ class _AllDevicesManagePageState extends State<AllDevicesManagePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F4F7),
+      backgroundColor: context.surfaces.pageBg,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF2F4F7),
+        backgroundColor: context.surfaces.sheet,
         elevation: 0,
         centerTitle: true,
-        leadingWidth: 88,
-        leading: TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text(AppL10n.of(context).cancel,
-              style: TextStyle(fontSize: 16, color: AppColors.textSecondary)),
-        ),
-        title: Text(AppL10n.of(context).allDevices,
+        automaticallyImplyLeading: false,
+        title: Text(AppL10n.of(context).deviceManagement,
             style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: Colors.black87)),
+                color: context.surfaces.textPrimary)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -236,24 +232,26 @@ class _AllDevicesManagePageState extends State<AllDevicesManagePage> {
             );
           }
 
-          return ListView.separated(
+          return GridView.builder(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: 1.05,
+            ),
             itemCount: devices.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
             itemBuilder: (context, i) {
               final d = devices[i];
-              final selected = _selected.contains(d.deviceId);
-              final online = d.isOnline ?? false;
               final isHidden = HiddenDeviceStore.instance
                   .isHidden(state.selectedHomeId, d.deviceId);
               final subtitle = [
                 if (roomName(d.roomId).isNotEmpty) roomName(d.roomId),
-                if (!online) AppL10n.of(context).offline,
                 if (isHidden) AppL10n.of(context).hidden,
               ].join(' · ');
               return _DeviceRow(
                 device: d,
-                selected: selected,
+                selected: _selected.contains(d.deviceId),
                 subtitle: subtitle,
                 onTap: () => _toggle(d.deviceId),
               );
@@ -269,8 +267,8 @@ class _AllDevicesManagePageState extends State<AllDevicesManagePage> {
           final allHidden = _allSelectedHidden(state.selectedHomeId);
           return SafeArea(
             child: Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
+              decoration:  BoxDecoration(
+                color: context.surfaces.card,
                 border: Border(
                     top: BorderSide(color: Color(0xFFE2EAF2), width: 0.5)),
               ),
@@ -316,6 +314,8 @@ class _AllDevicesManagePageState extends State<AllDevicesManagePage> {
   }
 }
 
+/// Thẻ vuông trong lưới chọn thiết bị: vòng chọn ở góc TRÊN-PHẢI, thiết bị
+/// offline mờ hẳn đi để phân biệt ngay bằng mắt.
 class _DeviceRow extends StatelessWidget {
   final HomeDeviceEntity device;
   final bool selected;
@@ -331,80 +331,90 @@ class _DeviceRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final online = device.isOnline ?? false;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 46,
-              height: 46,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFFEDF1F6)),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: device.isCurtainTrack
-                    ? Padding(
-                        padding: const EdgeInsets.all(3),
-                        child: Image.asset('assets/icons/curtain_track.png',
-                            fit: BoxFit.contain,
-                            errorBuilder: (_, __, ___) => const Icon(
-                                Icons.curtains_outlined,
-                                color: AppColors.primary)),
-                      )
-                    : const Icon(Icons.devices_other,
-                        color: AppColors.textSecondary),
-              ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
+      child: Opacity(
+        // Offline: cả thẻ nhạt đi, giống app tham chiếu.
+        opacity: online ? 1.0 : 0.45,
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: context.surfaces.card,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    device.displayName,
+                  Container(
+                    width: 46,
+                    height: 46,
+                    decoration: BoxDecoration(
+                      // Ô icon giữ trắng ở cả hai chế độ (ảnh PNG nền trắng).
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFFEDF1F6)),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: device.isCurtainTrack
+                          ? Padding(
+                              padding: const EdgeInsets.all(3),
+                              child: Image.asset(
+                                  'assets/icons/curtain_track.png',
+                                  fit: BoxFit.contain,
+                                  errorBuilder: (_, __, ___) => const Icon(
+                                      Icons.curtains_outlined,
+                                      color: AppColors.primary)),
+                            )
+                          : const Icon(Icons.devices_other,
+                              color: AppColors.textSecondary),
+                    ),
+                  ),
+                  const Spacer(),
+                  Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: selected ? AppColors.primary : Colors.transparent,
+                      border: Border.all(
+                        color: selected
+                            ? AppColors.primary
+                            : const Color(0xFFC7D2DE),
+                        width: 2,
+                      ),
+                    ),
+                    child: selected
+                        ? const Icon(Icons.check, size: 16, color: Colors.white)
+                        : null,
+                  ),
+                ],
+              ),
+              const Spacer(),
+              Text(
+                device.displayName,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style:  TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: context.surfaces.textPrimary),
+              ),
+              if (subtitle.isNotEmpty) ...[
+                const SizedBox(height: 2),
+                Text(subtitle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87),
-                  ),
-                  if (subtitle.isNotEmpty) ...[
-                    const SizedBox(height: 2),
-                    Text(subtitle,
-                        style: const TextStyle(
-                            fontSize: 12.5, color: AppColors.textMuted)),
-                  ],
-                ],
-              ),
-            ),
-            // Circular checkbox (Tuya style).
-            Container(
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: selected ? AppColors.primary : Colors.transparent,
-                border: Border.all(
-                  color: selected ? AppColors.primary : const Color(0xFFC7D2DE),
-                  width: 2,
-                ),
-              ),
-              child: selected
-                  ? const Icon(Icons.check, size: 16, color: Colors.white)
-                  : null,
-            ),
-          ],
+                        fontSize: 12.5, color: AppColors.textMuted)),
+              ],
+            ],
+          ),
         ),
       ),
     );

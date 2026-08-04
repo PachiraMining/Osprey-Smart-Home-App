@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import '../theme/app_surfaces.dart';
 
 /// Custom center popup replacing QuickAlert across the app.
 ///
@@ -97,7 +98,7 @@ class _PopupCard extends StatelessWidget {
           width: 180,
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: context.surfaces.card,
             borderRadius: BorderRadius.circular(18),
             boxShadow: [
               BoxShadow(

@@ -9,6 +9,7 @@ import '../../../../core/auth/token_manager.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
+import '../../../../core/theme/app_surfaces.dart';
 
 class AccountSecurityPage extends StatelessWidget {
   const AccountSecurityPage({super.key});
@@ -28,12 +29,12 @@ class AccountSecurityPage extends StatelessWidget {
         }
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFF8F5F0),
+        backgroundColor: context.surfaces.pageBg,
         appBar: AppBar(
-          backgroundColor: Colors.white,
+          backgroundColor: context.surfaces.sheet,
           elevation: 0.5,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios, size: 20, color: Colors.black87),
+            icon:  Icon(Icons.arrow_back_ios, size: 20, color: context.surfaces.textPrimary),
             onPressed: () => Navigator.pop(context),
           ),
           centerTitle: true,
@@ -42,17 +43,17 @@ class AccountSecurityPage extends StatelessWidget {
             style: TextStyle(
               fontSize: 17,
               fontWeight: FontWeight.w600,
-              color: Colors.black87,
+              color: context.surfaces.textPrimary,
             ),
           ),
         ),
         body: ListView(
           children: [
-            _buildSection([
-              _buildInfoItem(AppL10n.of(context).emailAddressLabel, email),
+            _buildSection(context, [
+              _buildInfoItem(context, AppL10n.of(context).emailAddressLabel, email),
             ]),
 
-            _buildSection([
+            _buildSection(context, [
               _buildNavItem(
                 context,
                 AppL10n.of(context).deleteAccount,
@@ -66,10 +67,10 @@ class AccountSecurityPage extends StatelessWidget {
     );
   }
 
-  Widget _buildSection(List<Widget> children) {
+  Widget _buildSection(BuildContext context, List<Widget> children) {
     return Container(
       margin: const EdgeInsets.only(top: 10),
-      color: Colors.white,
+      color: context.surfaces.card,
       child: Column(
         children: List.generate(children.length * 2 - 1, (index) {
           if (index.isOdd) {
@@ -77,7 +78,7 @@ class AccountSecurityPage extends StatelessWidget {
               height: 0.5,
               thickness: 0.5,
               indent: 16,
-              color: Colors.grey.shade200,
+              color: context.surfaces.divider,
             );
           }
           return children[index ~/ 2];
@@ -86,7 +87,7 @@ class AccountSecurityPage extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoItem(String title, String value) {
+  Widget _buildInfoItem(BuildContext context, String title, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: Row(
@@ -94,12 +95,12 @@ class AccountSecurityPage extends StatelessWidget {
           Expanded(
             child: Text(
               title,
-              style: const TextStyle(fontSize: 15, color: Colors.black87),
+              style:  TextStyle(fontSize: 15, color: context.surfaces.textPrimary),
             ),
           ),
           Text(
             value,
-            style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
+            style: TextStyle(fontSize: 14, color: context.surfaces.textSecondary),
           ),
         ],
       ),
@@ -109,7 +110,7 @@ class AccountSecurityPage extends StatelessWidget {
   Widget _buildNavItem(
     BuildContext context,
     String title, {
-    Color textColor = Colors.black87,
+    Color? textColor,
     required VoidCallback onTap,
   }) {
     return GestureDetector(
@@ -122,10 +123,12 @@ class AccountSecurityPage extends StatelessWidget {
             Expanded(
               child: Text(
                 title,
-                style: TextStyle(fontSize: 15, color: textColor),
+                style: TextStyle(
+                    fontSize: 15,
+                    color: textColor ?? context.surfaces.textPrimary),
               ),
             ),
-            Icon(Icons.chevron_right, size: 20, color: Colors.grey.shade400),
+            Icon(Icons.chevron_right, size: 20, color: context.surfaces.textMuted),
           ],
         ),
       ),

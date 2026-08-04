@@ -11,6 +11,7 @@ import '../../domain/usecases/update_home.dart';
 import '../bloc/home_management_bloc.dart';
 import '../bloc/home_management_event.dart';
 import 'timezone_picker_page.dart';
+import '../../../../core/theme/app_surfaces.dart';
 
 class PersonalInfoPage extends StatefulWidget {
   const PersonalInfoPage({super.key});
@@ -106,12 +107,12 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
     final displayName = tokenManager.getDisplayName();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F5F0),
+      backgroundColor: context.surfaces.pageBg,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: context.surfaces.sheet,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, size: 20, color: Colors.black87),
+          icon:  Icon(Icons.arrow_back_ios, size: 20, color: context.surfaces.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
         centerTitle: true,
@@ -120,7 +121,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
-            color: Colors.black87,
+            color: context.surfaces.textPrimary,
           ),
         ),
       ),
@@ -128,7 +129,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
         children: [
           // Profile Photo + Nickname section
           Container(
-            color: Colors.white,
+            color: context.surfaces.card,
             child: Column(
               children: [
                 // Profile Photo row
@@ -138,7 +139,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                     children: [
                        Text(
                         AppL10n.of(context).profilePhoto,
-                        style: TextStyle(fontSize: 16, color: Colors.black87),
+                        style: TextStyle(fontSize: 16, color: context.surfaces.textPrimary),
                       ),
                       const Spacer(),
                       EmailAvatar(
@@ -147,11 +148,11 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                         size: 44,
                       ),
                       const SizedBox(width: 8),
-                      Icon(Icons.chevron_right, color: Colors.grey.shade400, size: 20),
+                      Icon(Icons.chevron_right, color: context.surfaces.textMuted, size: 20),
                     ],
                   ),
                 ),
-                Divider(height: 1, indent: 20, endIndent: 20, color: Colors.grey.shade200),
+                Divider(height: 1, indent: 20, endIndent: 20, color: context.surfaces.divider),
 
                 // Nickname row
                 Padding(
@@ -163,16 +164,16 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: Colors.black87,
+                          color: context.surfaces.textPrimary,
                         ),
                       ),
                       const Spacer(),
                       Text(
                         displayName,
-                        style: TextStyle(fontSize: 15, color: Colors.grey.shade500),
+                        style: TextStyle(fontSize: 15, color: context.surfaces.textSecondary),
                       ),
                       const SizedBox(width: 8),
-                      Icon(Icons.chevron_right, color: Colors.grey.shade400, size: 20),
+                      Icon(Icons.chevron_right, color: context.surfaces.textMuted, size: 20),
                     ],
                   ),
                 ),
@@ -184,7 +185,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
 
           // Time Zone section — controls the current Home's scene scheduler.
           Container(
-            color: Colors.white,
+            color: context.surfaces.card,
             child: InkWell(
               onTap: _home == null ? null : _editTimezone,
               child: Padding(
@@ -194,7 +195,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                   children: [
                     Text(
                       AppL10n.of(context).timeZone,
-                      style: TextStyle(fontSize: 16, color: Colors.black87),
+                      style: TextStyle(fontSize: 16, color: context.surfaces.textPrimary),
                     ),
                     const Spacer(),
                     if (_savingTz)
@@ -208,12 +209,12 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                         _timezoneLabel,
                         style: TextStyle(
                           fontSize: 15,
-                          color: Colors.grey.shade500,
+                          color: context.surfaces.textSecondary,
                         ),
                       ),
                     const SizedBox(width: 8),
                     Icon(Icons.chevron_right,
-                        color: Colors.grey.shade400, size: 20),
+                        color: context.surfaces.textMuted, size: 20),
                   ],
                 ),
               ),

@@ -10,6 +10,7 @@ import 'package:latlong2/latlong.dart';
 import '../../../../core/di/injector.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../data/weather_location_store.dart';
+import '../../../../core/theme/app_surfaces.dart';
 
 /// "Switch location" map picker (Tuya style): OSM map with a fixed center
 /// pin, an address search box, and Confirm in the app bar. Confirming stores
@@ -118,18 +119,18 @@ class _WeatherLocationPickerPageState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: context.surfaces.sheet,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios,
-              size: 20, color: Colors.black87),
+          icon:  Icon(Icons.arrow_back_ios,
+              size: 20, color: context.surfaces.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
         centerTitle: true,
         title: Text(
           AppL10n.of(context).location,
           style: TextStyle(
-              fontSize: 18, fontWeight: FontWeight.w600, color: Colors.black87),
+              fontSize: 18, fontWeight: FontWeight.w600, color: context.surfaces.textPrimary),
         ),
         actions: [
           TextButton(
@@ -187,7 +188,7 @@ class _WeatherLocationPickerPageState
               children: [
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: context.surfaces.card,
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: [
                       BoxShadow(
@@ -203,9 +204,9 @@ class _WeatherLocationPickerPageState
                     onSubmitted: _runSearch,
                     decoration: InputDecoration(
                       hintText: AppL10n.of(context).searchAddress,
-                      hintStyle: TextStyle(color: Colors.grey.shade400),
+                      hintStyle: TextStyle(color: context.surfaces.textMuted),
                       prefixIcon:
-                          Icon(Icons.search, color: Colors.grey.shade500),
+                          Icon(Icons.search, color: context.surfaces.textSecondary),
                       suffixIcon: _searching
                           ? const Padding(
                               padding: EdgeInsets.all(12),
@@ -227,7 +228,7 @@ class _WeatherLocationPickerPageState
                   Container(
                     margin: const EdgeInsets.only(top: 6),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: context.surfaces.card,
                       borderRadius: BorderRadius.circular(14),
                       boxShadow: [
                         BoxShadow(
@@ -270,7 +271,7 @@ class _WeatherLocationPickerPageState
                   padding:
                       const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: context.surfaces.card,
                     borderRadius: BorderRadius.circular(10),
                     boxShadow: [
                       BoxShadow(
@@ -297,7 +298,7 @@ class _WeatherLocationPickerPageState
             bottom: 28,
             child: FloatingActionButton.small(
               heroTag: 'weather-loc-gps',
-              backgroundColor: Colors.white,
+              backgroundColor: context.surfaces.pageBg,
               foregroundColor: AppColors.primary,
               onPressed: _useCurrentLocation,
               tooltip: AppL10n.of(context).useCurrentLocation,

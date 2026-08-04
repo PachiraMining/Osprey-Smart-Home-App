@@ -76,7 +76,10 @@ class LiquidGlass extends StatelessWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Colors.white.withAlpha(40),
+                  // Vệt sáng lớp kính: dark mode phải nhạt hẳn, giữ nguyên độ
+                  // trắng thì thanh nav bị sáng bệch trên nền tối.
+                  Colors.white.withAlpha(
+                      Theme.of(context).brightness == Brightness.dark ? 12 : 40),
                   Colors.white.withAlpha(0),
                 ],
               ),

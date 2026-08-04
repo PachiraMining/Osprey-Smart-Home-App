@@ -1686,4 +1686,32 @@ class AppL10nDe extends AppL10n {
   @override
   String get googleExamplesIntro =>
       'Du kannst jetzt den Google Home-Lautsprecher nutzen, um\nGoogle Assistant-Geräte zu steuern, etwa';
+
+  @override
+  String get gridView => 'Rasteransicht';
+
+  @override
+  String get listView => 'Listenansicht';
+
+  @override
+  String get deviceManagement => 'Geräteverwaltung';
+
+  @override
+  String get sort => 'Sortieren';
+
+  @override
+  String get darkMode => 'Dunkelmodus';
+
+  @override
+  String get followSystem => 'Systemeinstellung folgen';
+
+  @override
+  String get system => 'System';
+
+  @override
+  String get systemDarkModeHint =>
+      'Wenn aktiviert, schaltet die App den Dunkelmodus passend zu deinen Systemeinstellungen ein oder aus.';
+
+  @override
+  String get normalMode => 'Normaler Modus';
 }

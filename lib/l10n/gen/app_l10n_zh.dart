@@ -1617,6 +1617,33 @@ class AppL10nZh extends AppL10n {
   @override
   String get googleExamplesIntro =>
       '现在你可以使用 Google Home 音箱\n控制 Google Assistant 设备，例如';
+
+  @override
+  String get gridView => '宫格视图';
+
+  @override
+  String get listView => '列表视图';
+
+  @override
+  String get deviceManagement => '设备管理';
+
+  @override
+  String get sort => '排序';
+
+  @override
+  String get darkMode => '深色模式';
+
+  @override
+  String get followSystem => '跟随系统';
+
+  @override
+  String get system => '跟随系统';
+
+  @override
+  String get systemDarkModeHint => '开启后，App 将随系统设置自动切换深色模式。';
+
+  @override
+  String get normalMode => '普通模式';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -3233,4 +3260,31 @@ class AppL10nZhHant extends AppL10nZh {
   @override
   String get googleExamplesIntro =>
       '現在你可以使用 Google Home 喇叭\n控制 Google Assistant 裝置，例如';
+
+  @override
+  String get gridView => '宮格檢視';
+
+  @override
+  String get listView => '清單檢視';
+
+  @override
+  String get deviceManagement => '裝置管理';
+
+  @override
+  String get sort => '排序';
+
+  @override
+  String get darkMode => '深色模式';
+
+  @override
+  String get followSystem => '跟隨系統';
+
+  @override
+  String get system => '跟隨系統';
+
+  @override
+  String get systemDarkModeHint => '開啟後，App 將隨系統設定自動切換深色模式。';
+
+  @override
+  String get normalMode => '普通模式';
 }

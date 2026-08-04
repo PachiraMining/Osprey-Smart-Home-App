@@ -10,6 +10,7 @@ import '../../../scene/domain/usecases/delete_automation.dart';
 import '../../../scene/domain/usecases/get_automations.dart';
 import '../../../scene/domain/usecases/toggle_automation.dart';
 import 'device_schedule_edit_page.dart';
+import '../../../../core/theme/app_surfaces.dart';
 
 /// Danh sách hẹn giờ của MỘT thiết bị.
 ///
@@ -30,7 +31,6 @@ class DeviceSchedulePage extends StatefulWidget {
 }
 
 class _DeviceSchedulePageState extends State<DeviceSchedulePage> {
-  static const _pageBg = Color(0xFFF2F4F7);
   static const _link = Color(0xFF0D7AC4);
 
   List<AutomationSceneEntity> _schedules = const [];
@@ -143,12 +143,12 @@ class _DeviceSchedulePageState extends State<DeviceSchedulePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _pageBg,
+      backgroundColor: context.surfaces.pageBg,
       appBar: AppBar(
-        backgroundColor: _pageBg,
+        backgroundColor: context.surfaces.pageBg,
         elevation: 0,
         centerTitle: true,
-        foregroundColor: Colors.black87,
+        foregroundColor: context.surfaces.textPrimary,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, size: 20),
           onPressed: () => Navigator.pop(context),
@@ -167,7 +167,7 @@ class _DeviceSchedulePageState extends State<DeviceSchedulePage> {
           ? null
           : SafeArea(
               child: Material(
-                color: Colors.white,
+                color: context.surfaces.card,
                 child: InkWell(
                   onTap: _openEditor,
                   child:  Padding(
@@ -176,7 +176,7 @@ class _DeviceSchedulePageState extends State<DeviceSchedulePage> {
                       child: Text(
                         AppL10n.of(context).addSchedule,
                         style:
-                            TextStyle(fontSize: 17, color: Colors.black87),
+                            TextStyle(fontSize: 17, color: context.surfaces.textPrimary),
                       ),
                     ),
                   ),
@@ -194,16 +194,16 @@ class _DeviceSchedulePageState extends State<DeviceSchedulePage> {
           padding: const EdgeInsets.fromLTRB(20, 14, 20, 12),
           child: Text(
             AppL10n.of(context).timeVarianceHint,
-            style: TextStyle(fontSize: 15, color: Colors.grey.shade600),
+            style: TextStyle(fontSize: 15, color: context.surfaces.textSecondary),
           ),
         ),
         Container(
-          color: Colors.white,
+          color: context.surfaces.card,
           child: Column(
             children: [
               for (var i = 0; i < _schedules.length; i++) ...[
                 if (i > 0)
-                  Divider(height: 1, indent: 20, color: Colors.grey.shade200),
+                  Divider(height: 1, indent: 20, color: context.surfaces.divider),
                 _ScheduleRow(
                   schedule: _schedules[i],
                   onTap: () => _openEditor(_schedules[i]),
@@ -277,23 +277,23 @@ class _ScheduleRow extends StatelessWidget {
                   children: [
                     Text(
                       time,
-                      style: const TextStyle(
+                      style:  TextStyle(
                         fontSize: 26,
                         fontWeight: FontWeight.w500,
-                        color: Colors.black87,
+                        color: context.surfaces.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 6),
                     Text(
                       repeat,
                       style:
-                          TextStyle(fontSize: 15, color: Colors.grey.shade600),
+                          TextStyle(fontSize: 15, color: context.surfaces.textSecondary),
                     ),
                     if (control.isNotEmpty)
                       Text(
                         'Control:$control',
                         style: TextStyle(
-                            fontSize: 15, color: Colors.grey.shade600),
+                            fontSize: 15, color: context.surfaces.textSecondary),
                       ),
                   ],
                 ),
@@ -323,11 +323,11 @@ class _EmptyState extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.inbox_outlined, size: 64, color: Colors.grey.shade400),
+          Icon(Icons.inbox_outlined, size: 64, color: context.surfaces.textMuted),
           const SizedBox(height: 12),
           Text(
             AppL10n.of(context).noTimerData,
-            style: TextStyle(fontSize: 17, color: Colors.grey.shade600),
+            style: TextStyle(fontSize: 17, color: context.surfaces.textSecondary),
           ),
           const SizedBox(height: 28),
           SizedBox(

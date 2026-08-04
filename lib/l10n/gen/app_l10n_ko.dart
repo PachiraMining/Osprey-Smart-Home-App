@@ -1638,4 +1638,31 @@ class AppL10nKo extends AppL10n {
   @override
   String get googleExamplesIntro =>
       '이제 Google Home 스피커로\nGoogle 어시스턴트 기기를 제어할 수 있습니다. 예:';
+
+  @override
+  String get gridView => '그리드 보기';
+
+  @override
+  String get listView => '목록 보기';
+
+  @override
+  String get deviceManagement => '기기 관리';
+
+  @override
+  String get sort => '정렬';
+
+  @override
+  String get darkMode => '다크 모드';
+
+  @override
+  String get followSystem => '시스템 설정 따르기';
+
+  @override
+  String get system => '시스템';
+
+  @override
+  String get systemDarkModeHint => '켜면 시스템 설정에 맞춰 다크 모드가 자동으로 전환됩니다.';
+
+  @override
+  String get normalMode => '일반 모드';
 }

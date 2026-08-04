@@ -3117,6 +3117,60 @@ abstract class AppL10n {
   /// In en, this message translates to:
   /// **'You can now use Google Home voicebox to\ncontrol Google Assistant devices, like'**
   String get googleExamplesIntro;
+
+  /// No description provided for @gridView.
+  ///
+  /// In en, this message translates to:
+  /// **'Grid View'**
+  String get gridView;
+
+  /// No description provided for @listView.
+  ///
+  /// In en, this message translates to:
+  /// **'List View'**
+  String get listView;
+
+  /// No description provided for @deviceManagement.
+  ///
+  /// In en, this message translates to:
+  /// **'Device Management'**
+  String get deviceManagement;
+
+  /// No description provided for @sort.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort'**
+  String get sort;
+
+  /// No description provided for @darkMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark Mode'**
+  String get darkMode;
+
+  /// No description provided for @followSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow system'**
+  String get followSystem;
+
+  /// No description provided for @system.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get system;
+
+  /// No description provided for @systemDarkModeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'When enabled, the app will switch the dark mode on or off to match your system settings.'**
+  String get systemDarkModeHint;
+
+  /// No description provided for @normalMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Normal Mode'**
+  String get normalMode;
 }
 
 class _AppL10nDelegate extends LocalizationsDelegate<AppL10n> {

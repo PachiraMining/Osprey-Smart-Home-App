@@ -499,5 +499,14 @@
   "devicesBeingAdded": "{count, plural, other{{count} 台のデバイスを追加中}}",
   "devicesAddedSuccessfully": "{count, plural, other{{count} 台のデバイスを追加しました}}",
   "alexaExamplesIntro": "Amazon Alexa スピーカーで\nAlexa 対応デバイスを操作できます。例：",
-  "googleExamplesIntro": "Google Home スピーカーで\nGoogle アシスタント対応デバイスを操作できます。例："
+  "googleExamplesIntro": "Google Home スピーカーで\nGoogle アシスタント対応デバイスを操作できます。例：",
+  "gridView": "グリッド表示",
+  "listView": "リスト表示",
+  "deviceManagement": "デバイス管理",
+  "sort": "並べ替え",
+  "darkMode": "ダークモード",
+  "followSystem": "システム設定に従う",
+  "system": "システム",
+  "systemDarkModeHint": "オンにすると、システム設定に合わせてダークモードが自動で切り替わります。",
+  "normalMode": "通常モード"
 }

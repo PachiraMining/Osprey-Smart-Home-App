@@ -11,6 +11,7 @@ import '../../data/datasources/device_wifi_remote_datasource.dart';
 import '../../data/models/device_wifi_models.dart';
 import '../../domain/entities/device_entity.dart';
 import 'add_wifi_network_page.dart';
+import '../../../../core/theme/app_surfaces.dart';
 
 /// Màn "Network" trong Device Detail — quản lý nhiều WiFi đã lưu trên chip và
 /// chuyển WiFi mà không re-pair (Multi-WiFi Management spec 2026-06-15).
@@ -264,20 +265,20 @@ class _DeviceNetworkPageState extends State<DeviceNetworkPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.surfaces.pageBg,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.surfaces.pageBg,
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
           icon:
-              const Icon(Icons.arrow_back_ios, size: 20, color: Colors.black87),
+               Icon(Icons.arrow_back_ios, size: 20, color: context.surfaces.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
         title:  Text(
           AppL10n.of(context).network,
           style: TextStyle(
-              fontSize: 17, fontWeight: FontWeight.w600, color: Colors.black87),
+              fontSize: 17, fontWeight: FontWeight.w600, color: context.surfaces.textPrimary),
         ),
       ),
       body: Stack(
@@ -476,13 +477,13 @@ class _DeviceNetworkPageState extends State<DeviceNetworkPage> {
   Widget _switchingOverlay() {
     return Positioned.fill(
       child: ColoredBox(
-        color: Colors.black54,
+        color: context.surfaces.textSecondary,
         child: Center(
           child: Container(
             margin: const EdgeInsets.symmetric(horizontal: 48),
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: context.surfaces.card,
               borderRadius: BorderRadius.circular(18),
             ),
             child: Column(
@@ -541,7 +542,7 @@ class _DeviceNetworkPageState extends State<DeviceNetworkPage> {
 
   Widget _card({required Widget child}) => Container(
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: context.surfaces.card,
           borderRadius: BorderRadius.circular(14),
         ),
         child: child,

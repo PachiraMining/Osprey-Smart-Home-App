@@ -499,5 +499,14 @@
   "devicesBeingAdded": "{count, plural, =1{Adicionando 1 dispositivo} other{Adicionando {count} dispositivos}}",
   "devicesAddedSuccessfully": "{count, plural, =1{1 dispositivo adicionado com sucesso} other{{count} dispositivos adicionados com sucesso}}",
   "alexaExamplesIntro": "Você pode controlar dispositivos compatíveis com a Alexa\ncom caixas de som Amazon Alexa, por exemplo",
-  "googleExamplesIntro": "Agora você pode usar a caixa de som Google Home para\ncontrolar dispositivos do Google Assistente, como"
+  "googleExamplesIntro": "Agora você pode usar a caixa de som Google Home para\ncontrolar dispositivos do Google Assistente, como",
+  "gridView": "Visualização em grade",
+  "listView": "Visualização em lista",
+  "deviceManagement": "Gerenciamento de dispositivos",
+  "sort": "Ordenar",
+  "darkMode": "Modo escuro",
+  "followSystem": "Seguir o sistema",
+  "system": "Sistema",
+  "systemDarkModeHint": "Quando ativado, o app liga ou desliga o modo escuro de acordo com as configurações do seu sistema.",
+  "normalMode": "Modo normal"
 }

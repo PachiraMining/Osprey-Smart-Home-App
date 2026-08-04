@@ -4,6 +4,7 @@ import 'package:smart_curtain_app/features/scene/presentation/pages/automation/a
 import 'package:smart_curtain_app/features/scene/presentation/pages/automation/schedule_condition_page.dart';
 import 'package:flutter/material.dart';
 import 'package:smart_curtain_app/features/scene/presentation/pages/tap_to_run/create_tap_to_run_page.dart';
+import '../../../../core/theme/app_surfaces.dart';
 
 class CreateSceneTriggerPage extends StatelessWidget {
   const CreateSceneTriggerPage({super.key});
@@ -11,12 +12,12 @@ class CreateSceneTriggerPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F5F0),
+      backgroundColor: context.surfaces.pageBg,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: context.surfaces.sheet,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, size: 20, color: Colors.black87),
+          icon:  Icon(Icons.arrow_back_ios, size: 20, color: context.surfaces.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
         centerTitle: true,
@@ -25,7 +26,7 @@ class CreateSceneTriggerPage extends StatelessWidget {
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
-            color: Colors.black87,
+            color: context.surfaces.textPrimary,
           ),
         ),
       ),
@@ -53,7 +54,7 @@ class CreateSceneTriggerPage extends StatelessWidget {
             // Card 2: Weather, Schedule, Device status
             Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: context.surfaces.card,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Column(
@@ -68,7 +69,7 @@ class CreateSceneTriggerPage extends StatelessWidget {
                         AppL10n.of(context).exampleWeather,
                     onTap: () => _comingSoon(context, AppL10n.of(context).weatherTrigger),
                   ),
-                  _rowDivider(),
+                  _rowDivider(context),
                   // Cell 2: Schedule (đã nối luồng automation If–Then)
                   _buildTriggerRow(
                     context,
@@ -96,7 +97,7 @@ class CreateSceneTriggerPage extends StatelessWidget {
                       );
                     },
                   ),
-                  _rowDivider(),
+                  _rowDivider(context),
                   // Cell 3: When device status changes (chức năng làm sau)
                   _buildTriggerRow(
                     context,
@@ -129,7 +130,7 @@ class CreateSceneTriggerPage extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: context.surfaces.card,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
@@ -142,21 +143,21 @@ class CreateSceneTriggerPage extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style:  TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Colors.black87,
+                      color: context.surfaces.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     example,
-                    style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
+                    style: TextStyle(fontSize: 13, color: context.surfaces.textSecondary),
                   ),
                 ],
               ),
             ),
-            Icon(Icons.chevron_right, color: Colors.grey.shade400, size: 22),
+            Icon(Icons.chevron_right, color: context.surfaces.textMuted, size: 22),
           ],
         ),
       ),
@@ -164,9 +165,9 @@ class CreateSceneTriggerPage extends StatelessWidget {
   }
 
   /// Hairline giữa các row trong cùng card (thụt lề khớp text như iOS list).
-  Widget _rowDivider() => Padding(
+  Widget _rowDivider(BuildContext context) => Padding(
         padding: const EdgeInsetsDirectional.only(start: 64),
-        child: Divider(height: 1, thickness: 1, color: Colors.grey.shade100),
+        child: Divider(height: 1, thickness: 1, color: context.surfaces.divider),
       );
 
   void _comingSoon(BuildContext context, String label) {
@@ -202,21 +203,21 @@ class CreateSceneTriggerPage extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style:  TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Colors.black87,
+                      color: context.surfaces.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     example,
-                    style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
+                    style: TextStyle(fontSize: 13, color: context.surfaces.textSecondary),
                   ),
                 ],
               ),
             ),
-            Icon(Icons.chevron_right, color: Colors.grey.shade400, size: 22),
+            Icon(Icons.chevron_right, color: context.surfaces.textMuted, size: 22),
           ],
         ),
       ),

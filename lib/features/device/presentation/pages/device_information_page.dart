@@ -6,6 +6,7 @@ import 'package:get_it/get_it.dart';
 
 import '../../../home/presentation/bloc/home_management_bloc.dart';
 import '../../data/device_info_service.dart';
+import '../../../../core/theme/app_surfaces.dart';
 
 /// Thông tin kỹ thuật của thiết bị.
 ///
@@ -22,7 +23,6 @@ class DeviceInformationPage extends StatefulWidget {
 }
 
 class _DeviceInformationPageState extends State<DeviceInformationPage> {
-  static const _pageBg = Color(0xFFF2F4F7);
 
   DeviceTechInfo? _info;
   bool _loading = true;
@@ -54,12 +54,12 @@ class _DeviceInformationPageState extends State<DeviceInformationPage> {
   Widget build(BuildContext context) {
     final info = _info;
     return Scaffold(
-      backgroundColor: _pageBg,
+      backgroundColor: context.surfaces.pageBg,
       appBar: AppBar(
-        backgroundColor: _pageBg,
+        backgroundColor: context.surfaces.pageBg,
         elevation: 0,
         centerTitle: true,
-        foregroundColor: Colors.black87,
+        foregroundColor: context.surfaces.textPrimary,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, size: 20),
           onPressed: () => Navigator.pop(context),
@@ -72,7 +72,7 @@ class _DeviceInformationPageState extends State<DeviceInformationPage> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : Container(
-              color: Colors.white,
+              color: context.surfaces.card,
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 6),
               child: Column(
@@ -124,11 +124,11 @@ class _InfoRow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('$label: ',
-              style: const TextStyle(fontSize: 17, color: Colors.black87)),
+              style:  TextStyle(fontSize: 17, color: context.surfaces.textPrimary)),
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(fontSize: 17, color: Colors.black87),
+              style:  TextStyle(fontSize: 17, color: context.surfaces.textPrimary),
             ),
           ),
           if (copyable)

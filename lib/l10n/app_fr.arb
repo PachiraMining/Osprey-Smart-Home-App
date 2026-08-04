@@ -499,5 +499,14 @@
   "devicesBeingAdded": "{count, plural, =1{Ajout de 1 appareil} other{Ajout de {count} appareils}}",
   "devicesAddedSuccessfully": "{count, plural, =1{1 appareil ajouté avec succès} other{{count} appareils ajoutés avec succès}}",
   "alexaExamplesIntro": "Vous pouvez piloter les appareils compatibles Alexa\navec les enceintes Amazon Alexa, par exemple",
-  "googleExamplesIntro": "Vous pouvez désormais utiliser l'enceinte Google Home pour\npiloter les appareils de l'Assistant Google, comme"
+  "googleExamplesIntro": "Vous pouvez désormais utiliser l'enceinte Google Home pour\npiloter les appareils de l'Assistant Google, comme",
+  "gridView": "Vue en grille",
+  "listView": "Vue en liste",
+  "deviceManagement": "Gestion des appareils",
+  "sort": "Trier",
+  "darkMode": "Mode sombre",
+  "followSystem": "Suivre le système",
+  "system": "Système",
+  "systemDarkModeHint": "Lorsque cette option est activée, l'appli active ou désactive le mode sombre selon les réglages de votre système.",
+  "normalMode": "Mode normal"
 }

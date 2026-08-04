@@ -4,6 +4,7 @@ import 'package:get_it/get_it.dart';
 import 'package:smart_curtain_app/features/scene/domain/entities/data_point_entity.dart';
 import 'package:smart_curtain_app/features/scene/domain/entities/scene_action_entity.dart';
 import 'package:smart_curtain_app/features/scene/domain/usecases/get_device_data_points.dart';
+import '../../../../../core/theme/app_surfaces.dart';
 
 class SelectDeviceFunctionPage extends StatefulWidget {
   final String deviceId;
@@ -86,15 +87,15 @@ class _SelectDeviceFunctionPageState extends State<SelectDeviceFunctionPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F6FA),
+      backgroundColor: context.surfaces.pageBg,
       appBar: AppBar(
         title:  Text(
           AppL10n.of(context).selectFunction,
           style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
         ),
         centerTitle: true,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
+        backgroundColor: context.surfaces.sheet,
+        foregroundColor: context.surfaces.textPrimary,
         elevation: 0.5,
         actions: [
           TextButton(
@@ -135,7 +136,7 @@ class _SelectDeviceFunctionPageState extends State<SelectDeviceFunctionPage> {
                       separatorBuilder: (_, __) => Divider(
                         height: 1,
                         indent: 16,
-                        color: Colors.grey.shade200,
+                        color: context.surfaces.divider,
                       ),
                       itemBuilder: (context, index) {
                         final dp = _dataPoints![index];
@@ -188,7 +189,7 @@ class _SelectDeviceFunctionPageState extends State<SelectDeviceFunctionPage> {
           builder: (ctx, setLocal) => Container(
             margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: context.surfaces.card,
               borderRadius: BorderRadius.circular(20),
             ),
             child: Column(
@@ -198,11 +199,11 @@ class _SelectDeviceFunctionPageState extends State<SelectDeviceFunctionPage> {
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   child: Text(
                     dp.name,
-                    style: TextStyle(fontSize: 15, color: Colors.grey.shade500),
+                    style: TextStyle(fontSize: 15, color: context.surfaces.textSecondary),
                   ),
                 ),
                 _radioRow(AppL10n.of(context).on, true, selected, (v) => setLocal(() => selected = v)),
-                Divider(height: 1, color: Colors.grey.shade200),
+                Divider(height: 1, color: context.surfaces.divider),
                 _radioRow(AppL10n.of(context).off, false, selected, (v) => setLocal(() => selected = v)),
                 const SizedBox(height: 16),
                 _bottomButtons(ctx, () => selected),
@@ -234,7 +235,7 @@ class _SelectDeviceFunctionPageState extends State<SelectDeviceFunctionPage> {
               maxHeight: MediaQuery.of(ctx).size.height * 0.6,
             ),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: context.surfaces.card,
               borderRadius: BorderRadius.circular(20),
             ),
             child: Column(
@@ -244,7 +245,7 @@ class _SelectDeviceFunctionPageState extends State<SelectDeviceFunctionPage> {
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   child: Text(
                     dp.name,
-                    style: TextStyle(fontSize: 15, color: Colors.grey.shade500),
+                    style: TextStyle(fontSize: 15, color: context.surfaces.textSecondary),
                   ),
                 ),
                 Flexible(
@@ -252,7 +253,7 @@ class _SelectDeviceFunctionPageState extends State<SelectDeviceFunctionPage> {
                     shrinkWrap: true,
                     itemCount: options.length,
                     separatorBuilder: (_, __) =>
-                        Divider(height: 1, color: Colors.grey.shade200),
+                        Divider(height: 1, color: context.surfaces.divider),
                     itemBuilder: (_, i) => _radioRow(
                       options[i],
                       options[i],
@@ -291,7 +292,7 @@ class _SelectDeviceFunctionPageState extends State<SelectDeviceFunctionPage> {
           builder: (ctx, setLocal) => Container(
             margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: context.surfaces.card,
               borderRadius: BorderRadius.circular(20),
             ),
             child: Column(
@@ -301,7 +302,7 @@ class _SelectDeviceFunctionPageState extends State<SelectDeviceFunctionPage> {
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   child: Text(
                     dp.name,
-                    style: TextStyle(fontSize: 15, color: Colors.grey.shade500),
+                    style: TextStyle(fontSize: 15, color: context.surfaces.textSecondary),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -313,7 +314,7 @@ class _SelectDeviceFunctionPageState extends State<SelectDeviceFunctionPage> {
                       onPressed: current > min
                           ? () => setLocal(() => current = (current - step).clamp(min, max))
                           : null,
-                      icon: Icon(Icons.arrow_left, color: Colors.grey.shade600),
+                      icon: Icon(Icons.arrow_left, color: context.surfaces.textSecondary),
                     ),
                     Text(
                       '${current.toStringAsFixed(step < 1 ? 1 : 0)}$unit',
@@ -323,7 +324,7 @@ class _SelectDeviceFunctionPageState extends State<SelectDeviceFunctionPage> {
                       onPressed: current < max
                           ? () => setLocal(() => current = (current + step).clamp(min, max))
                           : null,
-                      icon: Icon(Icons.arrow_right, color: Colors.grey.shade600),
+                      icon: Icon(Icons.arrow_right, color: context.surfaces.textSecondary),
                     ),
                   ],
                 ),
@@ -336,7 +337,7 @@ class _SelectDeviceFunctionPageState extends State<SelectDeviceFunctionPage> {
                       trackHeight: 24,
                       thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 12),
                       activeTrackColor: const Color(0xFFD6EAF8),
-                      inactiveTrackColor: Colors.grey.shade200,
+                      inactiveTrackColor: context.surfaces.divider,
                       thumbColor: Colors.white,
                       overlayShape: SliderComponentShape.noOverlay,
                     ),
@@ -376,7 +377,7 @@ class _SelectDeviceFunctionPageState extends State<SelectDeviceFunctionPage> {
         child: Container(
           margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: context.surfaces.card,
             borderRadius: BorderRadius.circular(20),
           ),
           child: Column(
@@ -386,7 +387,7 @@ class _SelectDeviceFunctionPageState extends State<SelectDeviceFunctionPage> {
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 child: Text(
                   dp.name,
-                  style: TextStyle(fontSize: 15, color: Colors.grey.shade500),
+                  style: TextStyle(fontSize: 15, color: context.surfaces.textSecondary),
                 ),
               ),
               Padding(
@@ -437,7 +438,7 @@ class _SelectDeviceFunctionPageState extends State<SelectDeviceFunctionPage> {
                 border: Border.all(
                   color: groupValue == value
                       ? const Color(0xFF1B4332)
-                      : Colors.grey.shade300,
+                      : context.surfaces.divider,
                   width: 2,
                 ),
               ),
@@ -463,7 +464,7 @@ class _SelectDeviceFunctionPageState extends State<SelectDeviceFunctionPage> {
   Widget _bottomButtons(BuildContext ctx, dynamic Function() getValue) {
     return Container(
       decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: Colors.grey.shade200)),
+        border: Border(top: BorderSide(color: context.surfaces.divider)),
       ),
       child: Row(
         children: [
@@ -472,11 +473,11 @@ class _SelectDeviceFunctionPageState extends State<SelectDeviceFunctionPage> {
               onPressed: () => Navigator.pop(ctx),
               child: Text(
                 AppL10n.of(context).cancel,
-                style: TextStyle(fontSize: 16, color: Colors.black54),
+                style: TextStyle(fontSize: 16, color: context.surfaces.textSecondary),
               ),
             ),
           ),
-          Container(width: 1, height: 48, color: Colors.grey.shade200),
+          Container(width: 1, height: 48, color: context.surfaces.divider),
           Expanded(
             child: TextButton(
               onPressed: () {
@@ -488,7 +489,7 @@ class _SelectDeviceFunctionPageState extends State<SelectDeviceFunctionPage> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Colors.black87,
+                  color: context.surfaces.textPrimary,
                 ),
               ),
             ),
@@ -516,7 +517,7 @@ class _FunctionRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white,
+      color: context.surfaces.card,
       child: InkWell(
         onTap: onTap,
         child: Padding(
@@ -526,7 +527,7 @@ class _FunctionRow extends StatelessWidget {
               Expanded(
                 child: Text(
                   dp.name,
-                  style: const TextStyle(fontSize: 16, color: Colors.black87),
+                  style:  TextStyle(fontSize: 16, color: context.surfaces.textPrimary),
                 ),
               ),
               if (selectedValue != null)
@@ -534,10 +535,10 @@ class _FunctionRow extends StatelessWidget {
                   padding: const EdgeInsetsDirectional.only(end: 8),
                   child: Text(
                     '$selectedValue',
-                    style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
+                    style: TextStyle(fontSize: 14, color: context.surfaces.textSecondary),
                   ),
                 ),
-              Icon(Icons.chevron_right, color: Colors.grey.shade400),
+              Icon(Icons.chevron_right, color: context.surfaces.textMuted),
             ],
           ),
         ),

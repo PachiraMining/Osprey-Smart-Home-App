@@ -12,6 +12,7 @@ import 'features/auth/presentation/bloc/auth_event.dart';
 import 'features/auth/presentation/bloc/auth_state.dart';
 import 'features/auth/presentation/pages/login_page.dart';
 import 'l10n/gen/app_l10n.dart';
+import 'core/theme/app_surfaces.dart';
 
 class SmartSplashScreen extends StatefulWidget {
   const SmartSplashScreen({super.key});
@@ -142,7 +143,7 @@ class _SmartSplashScreenState extends State<SmartSplashScreen>
         }
       },
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.surfaces.pageBg,
         body: Stack(
           children: [
             // Layer 1: Living-room photo background + soft white scrim so the
@@ -152,8 +153,8 @@ class _SmartSplashScreenState extends State<SmartSplashScreen>
                 'assets/images/home_bg.jpg',
                 fit: BoxFit.cover,
                 alignment: Alignment.bottomCenter,
-                errorBuilder: (_, __, ___) => const DecoratedBox(
-                  decoration: BoxDecoration(color: AppColors.background),
+                errorBuilder: (_, __, ___) =>  DecoratedBox(
+                  decoration: BoxDecoration(color: context.surfaces.pageBg),
                 ),
               ),
             ),

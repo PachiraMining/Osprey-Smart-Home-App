@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../../../../l10n/gen/app_l10n.dart';
+import '../../../../core/theme/app_surfaces.dart';
 
 /// In-app storefront: renders the Osprey shop website in a WebView.
 class AppMallPage extends StatefulWidget {
@@ -43,13 +44,13 @@ class _AppMallPageState extends State<AppMallPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: context.surfaces.pageBg,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: context.surfaces.sheet,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios,
-              size: 20, color: Colors.black87),
+          icon:  Icon(Icons.arrow_back_ios,
+              size: 20, color: context.surfaces.textPrimary),
           onPressed: _goBack,
         ),
         centerTitle: true,
@@ -58,12 +59,12 @@ class _AppMallPageState extends State<AppMallPage> {
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
-            color: Colors.black87,
+            color: context.surfaces.textPrimary,
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, size: 22, color: Colors.black87),
+            icon:  Icon(Icons.refresh, size: 22, color: context.surfaces.textPrimary),
             onPressed: _controller.reload,
           ),
         ],

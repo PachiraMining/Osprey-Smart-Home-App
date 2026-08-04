@@ -5,6 +5,7 @@ import 'package:get_it/get_it.dart';
 import '../../../../core/notifications/message_center.dart';
 import '../../../../core/theme/app_colors.dart';
 import 'package:intl/intl.dart';
+import '../../../../core/theme/app_surfaces.dart';
 
 /// Tuya-style in-app notification feed: events grouped by day, card per event
 /// with an icon tile, bold title, "HH:mm:ss | message" body, home footer and
@@ -36,13 +37,13 @@ class _MessageCenterPageState extends State<MessageCenterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F4F7),
+      backgroundColor: context.surfaces.pageBg,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF2F4F7),
+        backgroundColor: context.surfaces.sheet,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios,
-              size: 20, color: Colors.black87),
+          icon:  Icon(Icons.arrow_back_ios,
+              size: 20, color: context.surfaces.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
         centerTitle: true,
@@ -51,14 +52,14 @@ class _MessageCenterPageState extends State<MessageCenterPage> {
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
-            color: Colors.black87,
+            color: context.surfaces.textPrimary,
           ),
         ),
         actions: [
           IconButton(
             tooltip: AppL10n.of(context).markAllAsRead,
-            icon: const Icon(Icons.checklist_rtl,
-                size: 22, color: Colors.black87),
+            icon:  Icon(Icons.checklist_rtl,
+                size: 22, color: context.surfaces.textPrimary),
             onPressed: _center.markAllRead,
           ),
         ],
@@ -73,12 +74,12 @@ class _MessageCenterPageState extends State<MessageCenterPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(Icons.notifications_none_rounded,
-                      size: 56, color: Colors.grey.shade400),
+                      size: 56, color: context.surfaces.textMuted),
                   const SizedBox(height: 14),
                   Text(
                     AppL10n.of(context).noNotificationsYet,
                     style:
-                        TextStyle(fontSize: 15, color: Colors.grey.shade600),
+                        TextStyle(fontSize: 15, color: context.surfaces.textSecondary),
                   ),
                 ],
               ),
@@ -128,16 +129,16 @@ class _DayHeader extends StatelessWidget {
         children: [
           Text(
             day.toString().padLeft(2, '0'),
-            style: const TextStyle(
+            style:  TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.w700,
-              color: Colors.black87,
+              color: context.surfaces.textPrimary,
             ),
           ),
           const SizedBox(width: 6),
           Text(
             month,
-            style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
+            style: TextStyle(fontSize: 14, color: context.surfaces.textSecondary),
           ),
         ],
       ),
@@ -162,7 +163,7 @@ class _MessageCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surfaces.card,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -176,10 +177,10 @@ class _MessageCard extends StatelessWidget {
               children: [
                 Text(
                   message.title,
-                  style: const TextStyle(
+                  style:  TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    color: Colors.black87,
+                    color: context.surfaces.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -188,7 +189,7 @@ class _MessageCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 13.5,
                     height: 1.35,
-                    color: Colors.grey.shade800,
+                    color: context.surfaces.textPrimary,
                   ),
                 ),
                 if (message.homeName != null &&
@@ -197,7 +198,7 @@ class _MessageCard extends StatelessWidget {
                   Row(
                     children: [
                       Icon(Icons.home_outlined,
-                          size: 15, color: Colors.grey.shade500),
+                          size: 15, color: context.surfaces.textSecondary),
                       const SizedBox(width: 4),
                       Flexible(
                         child: Text(
@@ -205,7 +206,7 @@ class _MessageCard extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                              fontSize: 12.5, color: Colors.grey.shade500),
+                              fontSize: 12.5, color: context.surfaces.textSecondary),
                         ),
                       ),
                     ],
@@ -244,9 +245,10 @@ class _TypeTile extends StatelessWidget {
           height: 44,
           padding: const EdgeInsets.all(5),
           decoration: BoxDecoration(
+            // Ô icon giữ trắng ở cả hai chế độ (ảnh PNG nền trắng).
             color: Colors.white,
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: Colors.grey.shade200),
+            border: Border.all(color: context.surfaces.divider),
           ),
           child: Image.asset(
             'assets/icons/curtain_track.png',

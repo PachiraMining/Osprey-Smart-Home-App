@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../../l10n/gen/app_l10n.dart';
 
 import '../theme/app_colors.dart';
+import '../theme/app_surfaces.dart';
+import '../theme/app_surfaces.dart';
 
 /// Custom-styled replacements for the app's stock [AlertDialog]s.
 ///
@@ -121,7 +123,7 @@ class AppDialog {
                 hintText: hintText,
                 hintStyle: const TextStyle(color: AppColors.textMuted),
                 filled: true,
-                fillColor: AppColors.surfaceMuted,
+                fillColor: context.surfaces.divider,
                 contentPadding:
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 border: OutlineInputBorder(
@@ -179,7 +181,7 @@ class AppDialog {
               hintText: hintText,
               hintStyle: const TextStyle(color: AppColors.textMuted),
               filled: true,
-              fillColor: AppColors.surfaceMuted,
+              fillColor: context.surfaces.divider,
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               border: OutlineInputBorder(
@@ -235,7 +237,7 @@ class _DialogFrame extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.fromLTRB(22, 22, 22, 14),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: context.surfaces.card,
             borderRadius: BorderRadius.circular(18),
             boxShadow: [
               BoxShadow(
@@ -273,7 +275,7 @@ class _DialogFrame extends StatelessWidget {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          backgroundColor: AppColors.surfaceMuted,
+                          backgroundColor: context.surfaces.divider,
                         ),
                         child: Text(
                           cancelText,

@@ -738,5 +738,14 @@
     }
   },
   "alexaExamplesIntro": "You can control Alexa-enabled devices with\nAmazon Alexa speakers, such as",
-  "googleExamplesIntro": "You can now use Google Home voicebox to\ncontrol Google Assistant devices, like"
+  "googleExamplesIntro": "You can now use Google Home voicebox to\ncontrol Google Assistant devices, like",
+  "gridView": "Grid View",
+  "listView": "List View",
+  "deviceManagement": "Device Management",
+  "sort": "Sort",
+  "darkMode": "Dark Mode",
+  "followSystem": "Follow system",
+  "system": "System",
+  "systemDarkModeHint": "When enabled, the app will switch the dark mode on or off to match your system settings.",
+  "normalMode": "Normal Mode"
 }

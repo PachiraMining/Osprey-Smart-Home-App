@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart' show ThemeMode;
 import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -28,6 +29,8 @@ class AppSettingsStore extends ChangeNotifier {
   static const _kTemperatureUnit = 'settings_temperature_unit';
   static const _kTouchTone = 'settings_touch_tone';
   static const _kLocale = 'settings_locale';
+  static const _kHomeGrid = 'settings_home_grid_view';
+  static const _kThemeMode = 'settings_theme_mode';
 
   /// Ngôn ngữ app hỗ trợ, kèm tên gọi BẰNG CHÍNH ngôn ngữ đó — người đang mắc
   /// kẹt ở thứ tiếng lạ vẫn tìm được tiếng của mình. Thứ tự này là thứ tự hiện
@@ -99,6 +102,27 @@ class AppSettingsStore extends ChangeNotifier {
         if (l.scriptCode != null) l.scriptCode!,
         if (l.countryCode != null) l.countryCode!,
       ].join('_');
+
+  /// Sáng / tối / theo hệ thống. Mặc định theo hệ thống.
+  ThemeMode get themeMode => switch (_prefs.getString(_kThemeMode)) {
+        'light' => ThemeMode.light,
+        'dark' => ThemeMode.dark,
+        _ => ThemeMode.system,
+      };
+
+  Future<void> setThemeMode(ThemeMode mode) async {
+    await _prefs.setString(_kThemeMode, mode.name);
+    notifyListeners();
+  }
+
+  /// Màn Home hiện thiết bị dạng lưới 2 cột thay vì danh sách 1 cột.
+  /// Mặc định false = danh sách, giống hành vi cũ.
+  bool get homeGridView => _prefs.getBool(_kHomeGrid) ?? false;
+
+  Future<void> setHomeGridView(bool value) async {
+    await _prefs.setBool(_kHomeGrid, value);
+    notifyListeners();
+  }
 
   bool get touchTone => _prefs.getBool(_kTouchTone) ?? false;
 

@@ -499,5 +499,14 @@
   "devicesBeingAdded": "{count, plural, =1{Agregando 1 dispositivo} other{Agregando {count} dispositivos}}",
   "devicesAddedSuccessfully": "{count, plural, =1{1 dispositivo agregado correctamente} other{{count} dispositivos agregados correctamente}}",
   "alexaExamplesIntro": "Puedes controlar dispositivos compatibles con Alexa\ncon bocinas Amazon Alexa, por ejemplo",
-  "googleExamplesIntro": "Ya puedes usar la bocina Google Home para\ncontrolar dispositivos del Asistente de Google, como"
+  "googleExamplesIntro": "Ya puedes usar la bocina Google Home para\ncontrolar dispositivos del Asistente de Google, como",
+  "gridView": "Vista de cuadrícula",
+  "listView": "Vista de lista",
+  "deviceManagement": "Administración de dispositivos",
+  "sort": "Ordenar",
+  "darkMode": "Modo oscuro",
+  "followSystem": "Seguir al sistema",
+  "system": "Sistema",
+  "systemDarkModeHint": "Cuando está activado, la app activa o desactiva el modo oscuro según la configuración de tu sistema.",
+  "normalMode": "Modo normal"
 }

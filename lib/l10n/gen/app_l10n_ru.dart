@@ -1699,4 +1699,32 @@ class AppL10nRu extends AppL10n {
   @override
   String get googleExamplesIntro =>
       'Теперь вы можете использовать колонку Google Home,\nчтобы управлять устройствами Google Ассистента, например';
+
+  @override
+  String get gridView => 'Сетка';
+
+  @override
+  String get listView => 'Список';
+
+  @override
+  String get deviceManagement => 'Управление устройствами';
+
+  @override
+  String get sort => 'Сортировка';
+
+  @override
+  String get darkMode => 'Тёмная тема';
+
+  @override
+  String get followSystem => 'Как в системе';
+
+  @override
+  String get system => 'Система';
+
+  @override
+  String get systemDarkModeHint =>
+      'Когда включено, приложение включает или выключает тёмную тему в соответствии с настройками системы.';
+
+  @override
+  String get normalMode => 'Обычный режим';
 }

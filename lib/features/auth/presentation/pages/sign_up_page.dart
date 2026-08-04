@@ -15,6 +15,7 @@ import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
 import '../utils/auth_error_text.dart';
 import '../widgets/auth_form_widgets.dart';
+import '../../../../core/theme/app_surfaces.dart';
 
 /// Đăng ký kiểu Tuya, 2 bước trên cùng 1 màn (theo spec backend):
 ///  1. nhập email → gửi OTP 6 số
@@ -193,7 +194,7 @@ class _SignUpPageState extends State<SignUpPage> {
       builder: (context, state) {
         final busy = _sending || state is AuthLoading;
         return Scaffold(
-          backgroundColor: AppColors.background,
+          backgroundColor: context.surfaces.pageBg,
           resizeToAvoidBottomInset: true,
           body: SafeArea(
             child: SingleChildScrollView(
@@ -451,7 +452,7 @@ class _CodeField extends StatelessWidget {
       children: [
         Container(
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: context.surfaces.card,
             borderRadius: BorderRadius.circular(AppRadius.lg),
             border: Border.all(
               color: errorText != null ? AppColors.error : AppColors.border,

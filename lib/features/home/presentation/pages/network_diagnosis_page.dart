@@ -10,6 +10,7 @@ import '../../../../l10n/gen/app_l10n.dart';
 import '../../../../core/network/api_endpoints.dart';
 import '../../../control/domain/entities/transport_state.dart';
 import '../../../control/domain/repositories/transport_router.dart';
+import '../../../../core/theme/app_surfaces.dart';
 
 enum _CheckState { running, pass, warn, fail }
 
@@ -32,7 +33,6 @@ class NetworkDiagnosisPage extends StatefulWidget {
 }
 
 class _NetworkDiagnosisPageState extends State<NetworkDiagnosisPage> {
-  static const _pageBg = Color(0xFFF2F4F7);
 
   final List<_CheckResult> _results = [];
   bool _running = false;
@@ -148,12 +148,12 @@ class _NetworkDiagnosisPageState extends State<NetworkDiagnosisPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _pageBg,
+      backgroundColor: context.surfaces.pageBg,
       appBar: AppBar(
-        backgroundColor: _pageBg,
+        backgroundColor: context.surfaces.pageBg,
         elevation: 0,
         centerTitle: true,
-        foregroundColor: Colors.black87,
+        foregroundColor: context.surfaces.textPrimary,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, size: 20),
           onPressed: () => Navigator.pop(context),
@@ -167,7 +167,7 @@ class _NetworkDiagnosisPageState extends State<NetworkDiagnosisPage> {
         children: [
           Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: context.surfaces.card,
               borderRadius: BorderRadius.circular(14),
             ),
             child: Column(
@@ -238,13 +238,13 @@ class _CheckRow extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(result.label,
-                    style: const TextStyle(
-                        fontSize: 16, color: Colors.black87)),
+                    style:  TextStyle(
+                        fontSize: 16, color: context.surfaces.textPrimary)),
                 const SizedBox(height: 3),
                 Text(
                   result.detail,
                   style:
-                      TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                      TextStyle(fontSize: 14, color: context.surfaces.textSecondary),
                 ),
               ],
             ),

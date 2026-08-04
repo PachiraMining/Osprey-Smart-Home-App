@@ -8,6 +8,7 @@ import '../../domain/entities/weather_recommendation.dart';
 import '../bloc/weather_ai_bloc.dart';
 import '../pages/weather_detail_page.dart';
 import '../../../../l10n/gen/app_l10n.dart';
+import '../../../../core/theme/app_surfaces.dart';
 
 /// Tuya-style weather cell for the Home tab: big outdoor temperature with a
 /// condition icon, and a row of outdoor metrics (PM2.5 quality / humidity /
@@ -16,6 +17,11 @@ import '../../../../l10n/gen/app_l10n.dart';
 /// The card frame is ALWAYS present — before the first load (and if weather is
 /// unavailable) it shows `--` placeholders, so the first cell never pops in or
 /// out and the layout never jumps. Tapping retries when unavailable.
+/// Thẻ thời tiết luôn có nền sáng, nên màu chữ neo cứng ở đây thay vì lấy từ
+/// theme — lấy theo theme sẽ ra chữ sáng trên nền sáng khi bật dark mode.
+const _onLightSurface = Color(0xFF0A1929);
+const _onLightSurfaceMuted = Color(0xFF6B8299);
+
 class WeatherCard extends StatelessWidget {
   const WeatherCard({super.key});
 
@@ -40,6 +46,9 @@ class WeatherCard extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.fromLTRB(16, 20, 16, 18),
             decoration: BoxDecoration(
+              // CỐ Ý không theo theme: app tham chiếu giữ thẻ thời tiết
+              // sáng cả ở dark mode (đo được #F5F7F8) làm điểm nhấn. Vì nền
+              // luôn sáng nên chữ bên trong cũng phải neo màu tối.
               color: Colors.white.withAlpha(140),
               borderRadius: BorderRadius.circular(8),
             ),
@@ -54,10 +63,10 @@ class WeatherCard extends StatelessWidget {
                       // Đơn vị theo Settings → Temperature Unit.
                       GetIt.instance<AppSettingsStore>()
                           .formatFromCelsius(w?.temperatureCelsius),
-                      style: const TextStyle(
+                      style:  TextStyle(
                         fontSize: 19,
                         fontWeight: FontWeight.w700,
-                        color: Colors.black87,
+                        color: _onLightSurface,
                         height: 1.0,
                       ),
                     ),
@@ -148,10 +157,10 @@ class _Metric extends StatelessWidget {
             value,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
+            style:  TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: Colors.black87,
+              color: _onLightSurface,
             ),
           ),
           const SizedBox(height: 3),
@@ -159,7 +168,7 @@ class _Metric extends StatelessWidget {
             caption,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+            style: const TextStyle(fontSize: 10, color: _onLightSurfaceMuted),
           ),
         ],
       ),

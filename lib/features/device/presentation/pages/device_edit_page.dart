@@ -6,6 +6,7 @@ import '../../../../core/widgets/app_dialog.dart';
 import '../../../home/domain/entities/room_entity.dart';
 import '../../../home/presentation/bloc/home_management_bloc.dart';
 import '../../../home/presentation/bloc/home_management_event.dart';
+import '../../../../core/theme/app_surfaces.dart';
 
 /// Sửa thông tin trưng bày của thiết bị: ảnh, tên, phòng.
 ///
@@ -27,7 +28,6 @@ class DeviceEditPage extends StatefulWidget {
 }
 
 class _DeviceEditPageState extends State<DeviceEditPage> {
-  static const _pageBg = Color(0xFFF2F4F7);
 
   late String _name = widget.deviceName;
 
@@ -96,7 +96,7 @@ class _DeviceEditPageState extends State<DeviceEditPage> {
         child: Container(
           clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: context.surfaces.card,
             borderRadius: BorderRadius.circular(18),
           ),
           child: Column(
@@ -106,7 +106,7 @@ class _DeviceEditPageState extends State<DeviceEditPage> {
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 child: Text(AppL10n.of(context).location,
                     style:
-                        TextStyle(fontSize: 15, color: Colors.grey.shade500)),
+                        TextStyle(fontSize: 15, color: context.surfaces.textSecondary)),
               ),
               for (final room in rooms)
                 InkWell(
@@ -153,11 +153,11 @@ class _DeviceEditPageState extends State<DeviceEditPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _pageBg,
+      backgroundColor: context.surfaces.pageBg,
       appBar: AppBar(
-        backgroundColor: _pageBg,
+        backgroundColor: context.surfaces.pageBg,
         elevation: 0,
-        foregroundColor: Colors.black87,
+        foregroundColor: context.surfaces.textPrimary,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, size: 20),
           onPressed: () => Navigator.pop(context),
@@ -167,7 +167,7 @@ class _DeviceEditPageState extends State<DeviceEditPage> {
         padding: EdgeInsets.zero,
         children: [
           Container(
-            color: Colors.white,
+            color: context.surfaces.card,
             padding: const EdgeInsets.symmetric(vertical: 26),
             alignment: Alignment.center,
             child: SizedBox(
@@ -178,13 +178,13 @@ class _DeviceEditPageState extends State<DeviceEditPage> {
                 errorBuilder: (_, __, ___) => Icon(
                   Icons.devices_other,
                   size: 80,
-                  color: Colors.grey.shade400,
+                  color: context.surfaces.textMuted,
                 ),
               ),
             ),
           ),
           Container(
-            color: Colors.white,
+            color: context.surfaces.card,
             child: Column(
               children: [
                 _EditRow(label: AppL10n.of(context).icon, onTap: _iconNotSupported),
@@ -219,7 +219,7 @@ class _EditRow extends StatelessWidget {
         child: Row(
           children: [
             Text(label,
-                style: const TextStyle(fontSize: 17, color: Colors.black87)),
+                style:  TextStyle(fontSize: 17, color: context.surfaces.textPrimary)),
             const Spacer(),
             if (value != null && value!.isNotEmpty)
               Flexible(
@@ -230,11 +230,11 @@ class _EditRow extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.end,
-                    style: const TextStyle(fontSize: 17, color: Colors.black87),
+                    style:  TextStyle(fontSize: 17, color: context.surfaces.textPrimary),
                   ),
                 ),
               ),
-            Icon(Icons.chevron_right, size: 22, color: Colors.grey.shade400),
+            Icon(Icons.chevron_right, size: 22, color: context.surfaces.textMuted),
           ],
         ),
       ),

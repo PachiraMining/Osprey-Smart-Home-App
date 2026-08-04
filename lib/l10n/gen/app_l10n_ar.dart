@@ -1701,4 +1701,32 @@ class AppL10nAr extends AppL10n {
   @override
   String get googleExamplesIntro =>
       'يمكنك الآن استخدام مكبر صوت Google Home\nللتحكم في أجهزة Google Assistant، مثل';
+
+  @override
+  String get gridView => 'عرض شبكي';
+
+  @override
+  String get listView => 'عرض قائمة';
+
+  @override
+  String get deviceManagement => 'إدارة الأجهزة';
+
+  @override
+  String get sort => 'ترتيب';
+
+  @override
+  String get darkMode => 'الوضع الداكن';
+
+  @override
+  String get followSystem => 'اتباع النظام';
+
+  @override
+  String get system => 'النظام';
+
+  @override
+  String get systemDarkModeHint =>
+      'عند التفعيل، يقوم التطبيق بتشغيل الوضع الداكن أو إيقافه بما يطابق إعدادات نظامك.';
+
+  @override
+  String get normalMode => 'الوضع العادي';
 }

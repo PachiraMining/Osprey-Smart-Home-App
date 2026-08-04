@@ -5,6 +5,7 @@ import 'package:get_it/get_it.dart';
 import '../../data/device_info_service.dart';
 import '../../domain/entities/device_entity.dart';
 import 'device_network_page.dart';
+import '../../../../core/theme/app_surfaces.dart';
 
 /// Tóm tắt mạng của thiết bị: mạng đang nối + cường độ sóng, và lối vào danh
 /// sách mạng dự phòng (trang [DeviceNetworkPage] sẵn có).
@@ -18,7 +19,6 @@ class DeviceNetworkInfoPage extends StatefulWidget {
 }
 
 class _DeviceNetworkInfoPageState extends State<DeviceNetworkInfoPage> {
-  static const _pageBg = Color(0xFFF2F4F7);
 
   DeviceTechInfo? _info;
   bool _loading = true;
@@ -54,12 +54,12 @@ class _DeviceNetworkInfoPageState extends State<DeviceNetworkInfoPage> {
   Widget build(BuildContext context) {
     final info = _info;
     return Scaffold(
-      backgroundColor: _pageBg,
+      backgroundColor: context.surfaces.pageBg,
       appBar: AppBar(
-        backgroundColor: _pageBg,
+        backgroundColor: context.surfaces.pageBg,
         elevation: 0,
         centerTitle: true,
-        foregroundColor: Colors.black87,
+        foregroundColor: context.surfaces.textPrimary,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, size: 20),
           onPressed: () => Navigator.pop(context),
@@ -75,7 +75,7 @@ class _DeviceNetworkInfoPageState extends State<DeviceNetworkInfoPage> {
               padding: EdgeInsets.zero,
               children: [
                 Container(
-                  color: Colors.white,
+                  color: context.surfaces.card,
                   child: Column(
                     children: [
                       _Row(
@@ -95,7 +95,7 @@ class _DeviceNetworkInfoPageState extends State<DeviceNetworkInfoPage> {
                 ),
                 const SizedBox(height: 12),
                 Container(
-                  color: Colors.white,
+                  color: context.surfaces.card,
                   child: _Row(
                     label: AppL10n.of(context).alternateNetwork,
                     onTap: _openNetworks,
@@ -108,7 +108,7 @@ class _DeviceNetworkInfoPageState extends State<DeviceNetworkInfoPage> {
                     style: TextStyle(
                       fontSize: 15,
                       height: 1.4,
-                      color: Colors.grey.shade600,
+                      color: context.surfaces.textSecondary,
                     ),
                   ),
                 ),
@@ -134,7 +134,7 @@ class _Row extends StatelessWidget {
         child: Row(
           children: [
             Text(label,
-                style: const TextStyle(fontSize: 17, color: Colors.black87)),
+                style:  TextStyle(fontSize: 17, color: context.surfaces.textPrimary)),
             const Spacer(),
             if (value != null)
               Flexible(
@@ -146,13 +146,13 @@ class _Row extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.end,
                     style: TextStyle(
-                        fontSize: 16, color: Colors.grey.shade500),
+                        fontSize: 16, color: context.surfaces.textSecondary),
                   ),
                 ),
               ),
             if (onTap != null) ...[
               const SizedBox(width: 6),
-              Icon(Icons.chevron_right, size: 22, color: Colors.grey.shade400),
+              Icon(Icons.chevron_right, size: 22, color: context.surfaces.textMuted),
             ],
           ],
         ),

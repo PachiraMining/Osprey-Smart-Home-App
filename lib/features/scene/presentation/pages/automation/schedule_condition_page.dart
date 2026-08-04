@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../../l10n/gen/app_l10n.dart';
 import 'package:smart_curtain_app/core/theme/app_colors.dart';
 import 'package:smart_curtain_app/features/scene/domain/entities/schedule_condition_entity.dart';
+import '../../../../../core/theme/app_surfaces.dart';
 
 /// The `yyyyMMdd` date for a one-time schedule at [hour]:[minute], relative to
 /// [now]: today when that time is still ahead today, otherwise tomorrow. So a
@@ -130,7 +131,7 @@ class _ScheduleConditionPageState extends State<ScheduleConditionPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.surfaces.pageBg,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -163,7 +164,7 @@ class _ScheduleConditionPageState extends State<ScheduleConditionPage> {
           GestureDetector(
             onTap: _openRepeatPage,
             child: Container(
-              color: AppColors.surface,
+              color: context.surfaces.card,
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               child: Row(
                 children: [
@@ -187,7 +188,7 @@ class _ScheduleConditionPageState extends State<ScheduleConditionPage> {
           // ── Execution Time label ──
           Container(
             width: double.infinity,
-            color: AppColors.surface,
+            color: context.surfaces.card,
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
             child: Text(AppL10n.of(context).executionTime,
                 style: TextStyle(fontSize: 14, color: AppColors.textSecondary)),
@@ -195,7 +196,7 @@ class _ScheduleConditionPageState extends State<ScheduleConditionPage> {
 
           // ── Scroll wheel picker ──
           Container(
-            color: AppColors.surface,
+            color: context.surfaces.card,
             height: 220,
             child: Stack(
               children: [
@@ -325,7 +326,7 @@ class _RepeatPageState extends State<_RepeatPage> {
         Navigator.pop(context, _days);
       },
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.surfaces.pageBg,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
@@ -357,7 +358,7 @@ class _RepeatPageState extends State<_RepeatPage> {
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
-                color: AppColors.surface,
+                color: context.surfaces.card,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Column(

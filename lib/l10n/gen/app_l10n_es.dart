@@ -1690,6 +1690,34 @@ class AppL10nEs extends AppL10n {
   @override
   String get googleExamplesIntro =>
       'Ya puedes usar el altavoz Google Home para\ncontrolar dispositivos del Asistente de Google, como';
+
+  @override
+  String get gridView => 'Vista de cuadrícula';
+
+  @override
+  String get listView => 'Vista de lista';
+
+  @override
+  String get deviceManagement => 'Gestión de dispositivos';
+
+  @override
+  String get sort => 'Ordenar';
+
+  @override
+  String get darkMode => 'Modo oscuro';
+
+  @override
+  String get followSystem => 'Seguir al sistema';
+
+  @override
+  String get system => 'Sistema';
+
+  @override
+  String get systemDarkModeHint =>
+      'Cuando está activado, la app activa o desactiva el modo oscuro según los ajustes de tu sistema.';
+
+  @override
+  String get normalMode => 'Modo normal';
 }
 
 /// The translations for Spanish Castilian, as used in Latin America and the Caribbean (`es_419`).
@@ -3377,4 +3405,32 @@ class AppL10nEs419 extends AppL10nEs {
   @override
   String get googleExamplesIntro =>
       'Ya puedes usar la bocina Google Home para\ncontrolar dispositivos del Asistente de Google, como';
+
+  @override
+  String get gridView => 'Vista de cuadrícula';
+
+  @override
+  String get listView => 'Vista de lista';
+
+  @override
+  String get deviceManagement => 'Administración de dispositivos';
+
+  @override
+  String get sort => 'Ordenar';
+
+  @override
+  String get darkMode => 'Modo oscuro';
+
+  @override
+  String get followSystem => 'Seguir al sistema';
+
+  @override
+  String get system => 'Sistema';
+
+  @override
+  String get systemDarkModeHint =>
+      'Cuando está activado, la app activa o desactiva el modo oscuro según la configuración de tu sistema.';
+
+  @override
+  String get normalMode => 'Modo normal';
 }

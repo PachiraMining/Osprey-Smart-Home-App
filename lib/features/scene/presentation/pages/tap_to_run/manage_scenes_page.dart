@@ -6,6 +6,7 @@ import '../../../domain/entities/tap_to_run_scene_entity.dart';
 import '../../bloc/tap_to_run/tap_to_run_bloc.dart';
 import '../../bloc/tap_to_run/tap_to_run_event.dart';
 import '../../bloc/tap_to_run/tap_to_run_state.dart';
+import '../../../../../core/theme/app_surfaces.dart';
 
 /// Manage Tap-to-Run scenes: reorder + delete (iOS-style edit list).
 class ManageScenesPage extends StatelessWidget {
@@ -14,14 +15,14 @@ class ManageScenesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F6FA),
+      backgroundColor: context.surfaces.pageBg,
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        backgroundColor: Colors.white,
+        backgroundColor: context.surfaces.sheet,
         elevation: 0.5,
         title:  Text(
           AppL10n.of(context).tapToRun,
-          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: Colors.black87),
+          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: context.surfaces.textPrimary),
         ),
         centerTitle: true,
         actions: [
@@ -50,7 +51,7 @@ class ManageScenesPage extends StatelessWidget {
                   return Center(
                     child: Text(AppL10n.of(context).noScenes,
                         style: TextStyle(
-                            color: Colors.grey.shade400, fontSize: 16)),
+                            color: context.surfaces.textMuted, fontSize: 16)),
                   );
                 }
 
@@ -92,7 +93,7 @@ class _SceneManageRowState extends State<_SceneManageRow> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.white,
+      color: context.surfaces.card,
       child: Column(
         children: [
           Row(
@@ -121,13 +122,13 @@ class _SceneManageRowState extends State<_SceneManageRow> {
               Expanded(
                 child: Text(
                   widget.scene.name,
-                  style: const TextStyle(fontSize: 16, color: Colors.black87),
+                  style:  TextStyle(fontSize: 16, color: context.surfaces.textPrimary),
                 ),
               ),
               // Drag handle
               Padding(
                 padding: const EdgeInsetsDirectional.only(end: 16),
-                child: Icon(Icons.menu, size: 22, color: Colors.grey.shade400),
+                child: Icon(Icons.menu, size: 22, color: context.surfaces.textMuted),
               ),
               // Delete button (slides in)
               if (_showDelete)
@@ -146,7 +147,7 @@ class _SceneManageRowState extends State<_SceneManageRow> {
                 ),
             ],
           ),
-          Divider(height: 1, color: Colors.grey.shade200),
+          Divider(height: 1, color: context.surfaces.divider),
         ],
       ),
     );

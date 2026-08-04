@@ -3,6 +3,7 @@ import '../../../../l10n/gen/app_l10n.dart';
 import 'package:get_it/get_it.dart';
 
 import '../../../../core/time/device_timezone.dart';
+import '../../../../core/theme/app_surfaces.dart';
 
 /// Full-screen searchable IANA timezone picker. Pops with the selected IANA id
 /// (e.g. `America/New_York`) or null if the user backs out.
@@ -62,10 +63,10 @@ class _TimezonePickerPageState extends State<TimezonePickerPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: context.surfaces.pageBg,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
+        backgroundColor: context.surfaces.sheet,
+        foregroundColor: context.surfaces.textPrimary,
         elevation: 0.5,
         title: Text(AppL10n.of(context).timeZone),
       ),
@@ -104,7 +105,7 @@ class _TimezonePickerPageState extends State<TimezonePickerPage> {
                     subtitle: Text(
                       z,
                       style:
-                          TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                          TextStyle(fontSize: 12, color: context.surfaces.textSecondary),
                     ),
                     trailing:
                         selected ? const Icon(Icons.check, color: _green) : null,

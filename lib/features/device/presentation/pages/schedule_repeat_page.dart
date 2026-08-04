@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../l10n/gen/app_l10n.dart';
+import '../../../../core/theme/app_surfaces.dart';
 
 /// Chọn ngày lặp cho một lịch hẹn giờ.
 ///
@@ -15,7 +16,6 @@ class ScheduleRepeatPage extends StatefulWidget {
 }
 
 class _ScheduleRepeatPageState extends State<ScheduleRepeatPage> {
-  static const _pageBg = Color(0xFFF2F4F7);
 
   /// Thứ tự hiển thị bắt đầu từ Chủ nhật, nhưng `loops` lại bắt đầu từ Thứ hai
   /// → mỗi dòng mang sẵn chỉ số của nó trong `loops`.
@@ -50,12 +50,12 @@ class _ScheduleRepeatPageState extends State<ScheduleRepeatPage> {
         if (!didPop) Navigator.pop(context, _loops);
       },
       child: Scaffold(
-        backgroundColor: _pageBg,
+        backgroundColor: context.surfaces.pageBg,
         appBar: AppBar(
-          backgroundColor: _pageBg,
+          backgroundColor: context.surfaces.pageBg,
           elevation: 0,
           centerTitle: true,
-          foregroundColor: Colors.black87,
+          foregroundColor: context.surfaces.textPrimary,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_ios_new, size: 20),
             onPressed: () => Navigator.pop(context, _loops),
@@ -72,11 +72,11 @@ class _ScheduleRepeatPageState extends State<ScheduleRepeatPage> {
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 14),
               child: Text(
                 AppL10n.of(context).runOnceIfNoDayPicked,
-                style: TextStyle(fontSize: 15, color: Colors.grey.shade600),
+                style: TextStyle(fontSize: 15, color: context.surfaces.textSecondary),
               ),
             ),
             Container(
-              color: Colors.white,
+              color: context.surfaces.card,
               child: Column(
                 children: [
                   for (final (label, index) in _rowsFor(AppL10n.of(context)))
@@ -91,8 +91,8 @@ class _ScheduleRepeatPageState extends State<ScheduleRepeatPage> {
                             Expanded(
                               child: Text(
                                 label,
-                                style: const TextStyle(
-                                    fontSize: 17, color: Colors.black87),
+                                style:  TextStyle(
+                                    fontSize: 17, color: context.surfaces.textPrimary),
                               ),
                             ),
                             _RadioDot(selected: _selected[index]),
@@ -124,7 +124,7 @@ class _RadioDot extends StatelessWidget {
         shape: BoxShape.circle,
         color: selected ? const Color(0xFF2ECC71) : Colors.transparent,
         border: Border.all(
-          color: selected ? const Color(0xFF2ECC71) : Colors.grey.shade300,
+          color: selected ? const Color(0xFF2ECC71) : context.surfaces.divider,
           width: 1.5,
         ),
       ),

@@ -3,6 +3,7 @@ import '../../../../l10n/gen/app_l10n.dart';
 import 'package:get_it/get_it.dart';
 
 import '../../data/device_info_service.dart';
+import '../../../../core/theme/app_surfaces.dart';
 
 /// Trạng thái firmware của thiết bị.
 ///
@@ -19,7 +20,6 @@ class DeviceUpdatePage extends StatefulWidget {
 }
 
 class _DeviceUpdatePageState extends State<DeviceUpdatePage> {
-  static const _pageBg = Color(0xFFF2F4F7);
   static const _green = Color(0xFF2ECC71);
 
   DeviceTechInfo? _info;
@@ -47,12 +47,12 @@ class _DeviceUpdatePageState extends State<DeviceUpdatePage> {
     final hasUpdate = info?.updateAvailable ?? false;
 
     return Scaffold(
-      backgroundColor: _pageBg,
+      backgroundColor: context.surfaces.pageBg,
       appBar: AppBar(
-        backgroundColor: _pageBg,
+        backgroundColor: context.surfaces.pageBg,
         elevation: 0,
         centerTitle: true,
-        foregroundColor: Colors.black87,
+        foregroundColor: context.surfaces.textPrimary,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, size: 20),
           onPressed: () => Navigator.pop(context),
@@ -69,7 +69,7 @@ class _DeviceUpdatePageState extends State<DeviceUpdatePage> {
               children: [
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: context.surfaces.card,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 44),
@@ -97,10 +97,10 @@ class _DeviceUpdatePageState extends State<DeviceUpdatePage> {
                         hasUpdate
                             ? AppL10n.of(context).updateAvailable
                             : AppL10n.of(context).noUpdatesAvailable,
-                        style: const TextStyle(
+                        style:  TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
-                          color: Colors.black87,
+                          color: context.surfaces.textPrimary,
                         ),
                       ),
                       const SizedBox(height: 10),
@@ -109,7 +109,7 @@ class _DeviceUpdatePageState extends State<DeviceUpdatePage> {
                             info?.firmwareVersion ?? AppL10n.of(context).unknown),
                         style: TextStyle(
                           fontSize: 16,
-                          color: Colors.grey.shade600,
+                          color: context.surfaces.textSecondary,
                         ),
                       ),
                     ],

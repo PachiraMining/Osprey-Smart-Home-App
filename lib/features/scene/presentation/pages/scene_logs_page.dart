@@ -5,6 +5,7 @@ import 'package:get_it/get_it.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../data/scene_logs_service.dart';
 import 'package:intl/intl.dart';
+import '../../../../core/theme/app_surfaces.dart';
 
 /// Execution logs timeline (Tuya style): scene/automation runs across the home,
 /// grouped by day with a green/red status dot on a vertical timeline.
@@ -35,21 +36,21 @@ class _SceneLogsPageState extends State<SceneLogsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F4F7),
+      backgroundColor: context.surfaces.pageBg,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF2F4F7),
+        backgroundColor: context.surfaces.sheet,
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios,
-              size: 20, color: Colors.black87),
+          icon:  Icon(Icons.arrow_back_ios,
+              size: 20, color: context.surfaces.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(AppL10n.of(context).logs,
             style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: Colors.black87)),
+                color: context.surfaces.textPrimary)),
       ),
       body: FutureBuilder<List<SceneLogEntry>>(
         future: _future,
@@ -112,10 +113,10 @@ class _SceneLogsPageState extends State<SceneLogsPage> {
         textBaseline: TextBaseline.alphabetic,
         children: [
           Text('${day.day}',
-              style: const TextStyle(
+              style:  TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.w800,
-                  color: Colors.black87)),
+                  color: context.surfaces.textPrimary)),
           const SizedBox(width: 6),
           Text(DateFormat.MMM(_tag(context)).format(day),
               style: const TextStyle(
@@ -166,7 +167,7 @@ class _SceneLogsPageState extends State<SceneLogsPage> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: context.surfaces.card,
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Column(
@@ -176,10 +177,10 @@ class _SceneLogsPageState extends State<SceneLogsPage> {
                       e.sceneName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style:  TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w600,
-                          color: Colors.black87),
+                          color: context.surfaces.textPrimary),
                     ),
                     const SizedBox(height: 4),
                     Text(

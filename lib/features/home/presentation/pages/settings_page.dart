@@ -9,10 +9,12 @@ import '../../../../core/settings/cache_manager.dart';
 import 'about_page.dart';
 import '../../../../l10n/gen/app_l10n.dart';
 import 'account_security_page.dart';
+import 'dark_mode_page.dart';
 import 'language_page.dart';
 import 'network_diagnosis_page.dart';
 import 'personal_info_page.dart';
 import '../../../ai/presentation/pages/ai_chat_page.dart';
+import '../../../../core/theme/app_surfaces.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -77,7 +79,7 @@ class _SettingsPageState extends State<SettingsPage> {
         child: Container(
           clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: context.surfaces.card,
             borderRadius: BorderRadius.circular(18),
           ),
           child: Column(
@@ -87,7 +89,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 child: Text(AppL10n.of(ctx).temperatureUnit,
                     style:
-                        TextStyle(fontSize: 15, color: Colors.grey.shade500)),
+                        TextStyle(fontSize: 15, color: context.surfaces.textSecondary)),
               ),
               for (final unit in TemperatureUnit.values)
                 InkWell(
@@ -123,12 +125,12 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     final l10n = AppL10n.of(context);
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F5F0),
+      backgroundColor: context.surfaces.pageBg,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: context.surfaces.sheet,
         elevation: 0.5,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, size: 20, color: Colors.black87),
+          icon:  Icon(Icons.arrow_back_ios, size: 20, color: context.surfaces.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
         centerTitle: true,
@@ -137,7 +139,7 @@ class _SettingsPageState extends State<SettingsPage> {
           style: TextStyle(
             fontSize: 17,
             fontWeight: FontWeight.w600,
-            color: Colors.black87,
+            color: context.surfaces.textPrimary,
           ),
         ),
       ),
@@ -177,6 +179,17 @@ class _SettingsPageState extends State<SettingsPage> {
                   context,
                   MaterialPageRoute(builder: (_) => const AiChatPage()),
                 );
+              },
+            ),
+            _buildNavItem(
+              l10n.darkMode,
+              trailing: _themeModeLabel(l10n),
+              onTap: () async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const DarkModePage()),
+                );
+                if (mounted) setState(() {});
               },
             ),
             _buildNavItem(
@@ -232,7 +245,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: context.surfaces.card,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Center(
@@ -254,6 +267,13 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
+  /// Nhãn bên phải hàng Dark Mode.
+  String _themeModeLabel(AppL10n l10n) => switch (_settings.themeMode) {
+        ThemeMode.dark => l10n.on,
+        ThemeMode.light => l10n.off,
+        ThemeMode.system => l10n.system,
+      };
+
   /// Nhãn bên phải hàng Language: tên ngôn ngữ đang chọn (viết bằng chính ngôn
   /// ngữ đó), hoặc "theo hệ thống".
   String _languageLabel(AppL10n l10n) =>
@@ -262,7 +282,7 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget _buildSection(List<Widget> children) {
     return Container(
       margin: const EdgeInsets.only(top: 10),
-      color: Colors.white,
+      color: context.surfaces.card,
       child: Column(
         children: List.generate(children.length * 2 - 1, (index) {
           if (index.isOdd) {
@@ -270,7 +290,7 @@ class _SettingsPageState extends State<SettingsPage> {
               height: 0.5,
               thickness: 0.5,
               indent: 16,
-              color: Colors.grey.shade200,
+              color: context.surfaces.divider,
             );
           }
           return children[index ~/ 2];
@@ -294,9 +314,9 @@ class _SettingsPageState extends State<SettingsPage> {
             Expanded(
               child: Text(
                 title,
-                style: const TextStyle(
+                style:  TextStyle(
                   fontSize: 15,
-                  color: Colors.black87,
+                  color: context.surfaces.textPrimary,
                 ),
               ),
             ),
@@ -305,11 +325,11 @@ class _SettingsPageState extends State<SettingsPage> {
                 trailing,
                 style: TextStyle(
                   fontSize: 14,
-                  color: Colors.grey.shade500,
+                  color: context.surfaces.textSecondary,
                 ),
               ),
             const SizedBox(width: 4),
-            Icon(Icons.chevron_right, size: 20, color: Colors.grey.shade400),
+            Icon(Icons.chevron_right, size: 20, color: context.surfaces.textMuted),
           ],
         ),
       ),
@@ -328,9 +348,9 @@ class _SettingsPageState extends State<SettingsPage> {
           Expanded(
             child: Text(
               title,
-              style: const TextStyle(
+              style:  TextStyle(
                 fontSize: 15,
-                color: Colors.black87,
+                color: context.surfaces.textPrimary,
               ),
             ),
           ),

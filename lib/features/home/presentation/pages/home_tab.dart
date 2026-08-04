@@ -18,6 +18,7 @@ import '../../domain/entities/home_device_entity.dart';
 import 'home_selector_sheet.dart';
 import 'manage_home_page.dart';
 import 'all_devices_manage_page.dart';
+import 'manage_rooms_page.dart';
 import 'package:smart_curtain_app/features/device/domain/entities/device_entity.dart';
 import 'package:smart_curtain_app/features/device/presentation/pages/curtain_control_page.dart';
 import '../../../ai/domain/entities/voice_intent.dart';
@@ -35,6 +36,8 @@ import '../../../device/domain/usecases/get_device_status.dart';
 import '../../../device/domain/usecases/send_dp_command.dart';
 import '../../../../core/error/failure.dart';
 import 'package:get_it/get_it.dart';
+import '../../../../core/settings/app_settings_store.dart';
+import '../../../../core/theme/app_surfaces.dart';
 
 /// HomeTab backed by HomeManagementBloc with room filtering and home switching.
 class HomeTab extends StatefulWidget {
@@ -52,9 +55,22 @@ class _HomeTabState extends State<HomeTab> {
   /// Expander "Show invisible devices" mở hay đóng.
   bool _showHidden = false;
 
+  /// Lưới 2 cột hay danh sách 1 cột — nhớ giữa các lần mở app.
+  bool get _gridView => _settings.homeGridView;
+
+  AppSettingsStore get _settings => GetIt.instance<AppSettingsStore>();
+
+  /// Đổi kiểu xem phải thấy ngay. ListenableBuilder ở main chỉ dựng lại
+  /// MaterialApp, KHÔNG dựng lại trang đang nằm trong Navigator — nên trang này
+  /// phải tự nghe store.
+  void _onSettingsChanged() {
+    if (mounted) setState(() {});
+  }
+
   @override
   void initState() {
     super.initState();
+    _settings.addListener(_onSettingsChanged);
     HiddenDeviceStore.instance.ensureLoaded();
     final bloc = context.read<HomeManagementBloc>();
     // Revalidate on mount even when hydrated cache restored a `loaded` state —
@@ -69,6 +85,12 @@ class _HomeTabState extends State<HomeTab> {
       context.read<AiSuggestionBloc>().add(const LoadSuggestions());
       context.read<WeatherAiBloc>().add(const RefreshWeather());
     });
+  }
+
+  @override
+  void dispose() {
+    _settings.removeListener(_onSettingsChanged);
+    super.dispose();
   }
 
   void _onVoiceIntent(VoiceCommandReady state) {
@@ -342,35 +364,46 @@ class _HomeTabState extends State<HomeTab> {
 
                   const SizedBox(height: 14),
 
-                  // Room filter chips
+                  // Hàng lọc theo phòng + nút "..." GHIM bên phải: danh sách
+                  // phòng cuộn ngang dưới nút, nút luôn thấy được.
                   if (state.rooms.isNotEmpty)
                     SizedBox(
                       height: 38,
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Row(
-                          children: [
-                            _RoomChip(
-                              label: AppL10n.of(context).all,
-                              isSelected: state.selectedRoomId == null,
-                              onTap: () => context
-                                  .read<HomeManagementBloc>()
-                                  .add(const SelectRoomEvent(null)),
-                            ),
-                            ...state.rooms.map((room) => Padding(
-                                  padding: const EdgeInsetsDirectional.only(start: 8),
-                                  child: _RoomChip(
-                                    label: room.name,
-                                    isSelected:
-                                        state.selectedRoomId == room.id,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              padding:
+                                  const EdgeInsetsDirectional.only(start: 20),
+                              child: Row(
+                                children: [
+                                  _RoomChip(
+                                    label: AppL10n.of(context).allDevices,
+                                    isSelected: state.selectedRoomId == null,
                                     onTap: () => context
                                         .read<HomeManagementBloc>()
-                                        .add(SelectRoomEvent(room.id)),
+                                        .add(const SelectRoomEvent(null)),
                                   ),
-                                )),
-                          ],
-                        ),
+                                  ...state.rooms.map((room) => Padding(
+                                        padding:
+                                            const EdgeInsetsDirectional.only(
+                                                start: 8),
+                                        child: _RoomChip(
+                                          label: room.name,
+                                          isSelected:
+                                              state.selectedRoomId == room.id,
+                                          onTap: () => context
+                                              .read<HomeManagementBloc>()
+                                              .add(SelectRoomEvent(room.id)),
+                                        ),
+                                      )),
+                                ],
+                              ),
+                            ),
+                          ),
+                          _HomeOverflowButton(gridView: _gridView),
+                        ],
                       ),
                     ),
 
@@ -492,6 +525,8 @@ class _HomeTabState extends State<HomeTab> {
         all.where((d) => !hiddenIds.contains(d.deviceId)).toList();
     final hidden = all.where((d) => hiddenIds.contains(d.deviceId)).toList();
 
+    if (_gridView) return _buildDeviceGrid(visible, hidden);
+
     final items = <Widget>[
       for (final d in visible) _deviceTile(d),
       if (hidden.isNotEmpty) _invisibleExpander(hidden.length),
@@ -506,11 +541,54 @@ class _HomeTabState extends State<HomeTab> {
     );
   }
 
-  Widget _deviceTile(HomeDeviceEntity device) {
+  /// Lưới 2 cột. Thẻ ẩn xếp tiếp sau expander, cùng một sliver để cuộn liền
+  /// mạch với phần trên (thời tiết, pill scene).
+  Widget _buildDeviceGrid(
+      List<HomeDeviceEntity> visible, List<HomeDeviceEntity> hidden) {
+    final shown = <HomeDeviceEntity>[
+      ...visible,
+      if (_showHidden) ...hidden,
+    ];
+    return SliverPadding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
+      sliver: SliverMainAxisGroup(
+        slivers: [
+          SliverGrid(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
+              childAspectRatio: 1.12,
+            ),
+            delegate: SliverChildBuilderDelegate(
+              (context, i) => _deviceTile(shown[i], compact: true),
+              childCount: shown.length,
+            ),
+          ),
+          if (hidden.isNotEmpty)
+            SliverToBoxAdapter(child: _invisibleExpander(hidden.length)),
+        ],
+      ),
+    );
+  }
+
+  /// Tra tên phòng của thiết bị từ danh sách phòng đang có trong bloc.
+  String? _roomNameFor(HomeDeviceEntity device) {
+    final id = device.roomId;
+    if (id == null) return null;
+    for (final r in context.read<HomeManagementBloc>().state.rooms) {
+      if (r.id == id) return r.name;
+    }
+    return null;
+  }
+
+  Widget _deviceTile(HomeDeviceEntity device, {bool compact = false}) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: EdgeInsets.only(bottom: compact ? 0 : 10),
       child: _DeviceCard(
         device: device,
+        compact: compact,
+        roomName: _roomNameFor(device),
         // Offline devices can't be controlled — block the tap into the
         // control page and tell the user why instead.
         onTap: () {
@@ -639,7 +717,7 @@ class _RoomChip extends StatelessWidget {
           style: TextStyle(
             fontSize: isSelected ? 16 : 14,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.w400,
-            color: isSelected ? Colors.black87 : Colors.grey,
+            color: isSelected ? context.surfaces.textPrimary : Colors.grey,
           ),
           child: Text(label),
         ),
@@ -655,10 +733,19 @@ class _DeviceCard extends StatefulWidget {
   final VoidCallback onTap;
   final VoidCallback? onLongPress;
 
+  /// true = thẻ vuông trong lưới 2 cột; false = hàng ngang full-width.
+  /// Chỉ khác bố cục — trạng thái, popup và lệnh gửi đi dùng chung.
+  final bool compact;
+
+  /// Tên phòng đã tra sẵn (entity chỉ mang `roomId`).
+  final String? roomName;
+
   const _DeviceCard({
     required this.device,
     required this.onTap,
     this.onLongPress,
+    this.compact = false,
+    this.roomName,
   });
 
   @override
@@ -765,11 +852,181 @@ class _DeviceCardState extends State<_DeviceCard> {
         child: Container(
           clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: context.surfaces.card,
             borderRadius: BorderRadius.circular(18),
           ),
           child: builder(ctx),
         ),
+      ),
+    );
+  }
+
+  /// Sheet Common Functions gộp: 3 tab icon ở đầu (nguồn / % / hướng motor),
+  /// đổi tab ngay trong sheet thay vì phải đóng ra mở lại từng popup riêng.
+  void _commonFunctionsSheet() {
+    var tab = 0;
+    var control = _status?['control'] as String?;
+    var motor = _status?['control_back'] as String? ?? 'forward';
+    final raw = _status?['percent_state'] ?? _status?['percent_control'];
+    var pct = (raw is num ? raw.toInt() : 0).clamp(0, 100);
+
+    _floatingSheet<void>(
+      (sheetCtx) => StatefulBuilder(
+        builder: (sheetCtx, setSheet) {
+          final l10n = AppL10n.of(context);
+          Widget tabIcon(int index, IconData icon) => Expanded(
+                child: InkWell(
+                  onTap: () => setSheet(() => tab = index),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    child: Icon(
+                      icon,
+                      size: 26,
+                      color: tab == index
+                          ? const Color(0xFF1E88E5)
+                          : context.surfaces.textMuted,
+                    ),
+                  ),
+                ),
+              );
+
+          Widget radioPanel(String title, List<(String, String)> options,
+              String? selected, void Function(String) onPick) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 16),
+                Text(title,
+                    style: const TextStyle(
+                        fontSize: 15, color: AppColors.textSecondary)),
+                const SizedBox(height: 8),
+                for (final (value, label) in options)
+                  ListTile(
+                    title: Text(label,
+                        style: const TextStyle(
+                            fontSize: 16, color: AppColors.textPrimary)),
+                    trailing: value == selected
+                        ? const Icon(Icons.check_circle,
+                            color: Color(0xFF1E88E5), size: 24)
+                        : Icon(Icons.circle_outlined,
+                            color: context.surfaces.divider, size: 24),
+                    onTap: () {
+                      if (value == selected) return;
+                      setSheet(() => onPick(value));
+                    },
+                  ),
+              ],
+            );
+          }
+
+          final Widget body = switch (tab) {
+            0 => radioPanel(
+                l10n.control,
+                [
+                  ('open', l10n.open),
+                  ('stop', l10n.stop),
+                  ('close', l10n.close),
+                ],
+                control,
+                (v) {
+                  control = v;
+                  _apply(
+                    () => GetIt.instance<SendDeviceCommand>()(
+                        device.deviceId, v),
+                    optimistic: {'control': v},
+                  );
+                },
+              ),
+            1 => Padding(
+                padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(l10n.curtainPositionSetting,
+                        style: const TextStyle(
+                            fontSize: 15, color: AppColors.textSecondary)),
+                    const SizedBox(height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.arrow_left, size: 34),
+                          color: AppColors.textSecondary,
+                          onPressed: pct <= 0
+                              ? null
+                              : () => setSheet(
+                                  () => pct = (pct - 1).clamp(0, 100)),
+                        ),
+                        SizedBox(
+                          width: 96,
+                          child: Text('$pct%',
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                  fontSize: 34,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.textPrimary)),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.arrow_right, size: 34),
+                          color: AppColors.textSecondary,
+                          onPressed: pct >= 100
+                              ? null
+                              : () => setSheet(
+                                  () => pct = (pct + 1).clamp(0, 100)),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    _PositionBar(
+                      value: pct,
+                      onChanged: (v) => setSheet(() => pct = v),
+                      onChangeEnd: (v) => _apply(
+                        () => GetIt.instance<SendDeviceCommand>()(
+                            device.deviceId, v.toString()),
+                        optimistic: {'percent_control': v.round()},
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            _ => radioPanel(
+                l10n.motorDirection,
+                [('forward', l10n.forward), ('back', l10n.back)],
+                motor,
+                (v) {
+                  motor = v;
+                  _apply(
+                    () => GetIt.instance<SendDpCommand>()(device.deviceId, 5, v),
+                    optimistic: {'control_back': v},
+                  );
+                },
+              ),
+          };
+
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  tabIcon(0, Icons.power_settings_new_rounded),
+                  tabIcon(1, Icons.percent_rounded),
+                  tabIcon(2, Icons.grid_view_rounded),
+                ],
+              ),
+              const Divider(height: 1, color: Color(0xFFEFEFEF)),
+              // Chiều cao cố định: đổi tab không làm sheet nhảy lên nhảy xuống.
+              SizedBox(height: 300, child: SingleChildScrollView(child: body)),
+              InkWell(
+                onTap: () => Navigator.pop(sheetCtx),
+                child:  Padding(
+                  padding: EdgeInsets.symmetric(vertical: 10),
+                  child: Icon(Icons.keyboard_arrow_down_rounded,
+                      size: 28, color: context.surfaces.textMuted),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -804,7 +1061,7 @@ class _DeviceCardState extends State<_DeviceCard> {
                       ? const Icon(Icons.check_circle,
                           color: AppColors.primary, size: 22)
                       : Icon(Icons.circle_outlined,
-                          color: Colors.grey.shade300, size: 22),
+                          color: context.surfaces.divider, size: 22),
                   onTap: () {
                     if (value == selected) return;
                     setSheet(() => selected = value);
@@ -909,9 +1166,148 @@ class _DeviceCardState extends State<_DeviceCard> {
     }
   }
 
+  /// Thẻ vuông cho lưới 2 cột: ảnh + nút nguồn trên một hàng, tên và tên phòng
+  /// ở dưới, mũi tên mở Common Functions ngay trong thẻ.
+  Widget _buildCompact(bool isOnline) {
+    final room = widget.roomName;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: widget.onTap,
+        onLongPress: widget.onLongPress,
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: context.surfaces.photoCard,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: context.surfaces.divider, width: 0.5),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _deviceThumb(isOnline, 44),
+                  const Spacer(),
+                  // Rèm không có nút bật/tắt — điều khiển qua Common Functions.
+                  if (!device.isCurtainTrack)
+                    Icon(
+                      Icons.power_settings_new_rounded,
+                      size: 26,
+                      color: isOnline
+                          ? const Color(0xFF2ECC71)
+                          : AppColors.textMuted,
+                    )
+                  else if (!isOnline)
+                    Text(
+                      AppL10n.of(context).offline,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFFF5A623),
+                      ),
+                    ),
+                ],
+              ),
+              const Spacer(),
+              Text(
+                device.displayName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTypography.titleMedium
+                    .copyWith(color: AppColors.textPrimary),
+              ),
+              // Tên phòng + mũi tên mở Common Functions trên CÙNG một hàng:
+              // thẻ lưới hẹp, không đủ chỗ cho dòng chữ như bản danh sách.
+              Row(
+                children: [
+                  Expanded(
+                    child: room == null || room.isEmpty
+                        ? const SizedBox.shrink()
+                        : Text(
+                            room,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTypography.caption
+                                .copyWith(color: AppColors.textSecondary),
+                          ),
+                  ),
+                  if (isOnline)
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () {
+                        if (_status == null) _fetchStatus();
+                        _commonFunctionsSheet();
+                      },
+                      child: const Padding(
+                        padding: EdgeInsets.only(left: 8),
+                        child: Icon(
+                          Icons.keyboard_arrow_down_rounded,
+                          size: 22,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Ô ảnh thiết bị dùng chung cho cả hai bố cục.
+  Widget _deviceThumb(bool isOnline, double size) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        // Ô icon LUÔN trắng, kể cả dark mode: ảnh PNG cái rèm vẽ cho nền trắng
+        // và icon dự phòng là xám đậm — đặt trên nền tối sẽ mất hút.
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(18),
+            blurRadius: 5,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Opacity(
+          opacity: isOnline ? 1.0 : 0.4,
+          child: device.isCurtainTrack
+              ? Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: Image.asset(
+                    'assets/icons/curtain_track.png',
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => Icon(
+                      Icons.curtains_outlined,
+                      size: size * 0.55,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                )
+              : Icon(
+                  Icons.devices_other,
+                  size: size * 0.5,
+                  color: AppColors.textSecondary,
+                ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isOnline = device.isOnline ?? false;
+    if (widget.compact) return _buildCompact(isOnline);
 
     return Material(
       color: Colors.transparent,
@@ -923,9 +1319,9 @@ class _DeviceCardState extends State<_DeviceCard> {
           // Trong suốt hơn để lộ nền ảnh, cao hơn chút, viền nhạt hơn.
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
           decoration: BoxDecoration(
-            color: Colors.white.withAlpha(140),
+            color: context.surfaces.photoCard,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.white.withAlpha(90), width: 0.5),
+            border: Border.all(color: context.surfaces.divider, width: 0.5),
           ),
           child: Column(
             children: [
@@ -938,7 +1334,8 @@ class _DeviceCardState extends State<_DeviceCard> {
                 width: 52,
                 height: 52,
                 decoration: BoxDecoration(
-                  // Tile trắng ĐỤC luôn (không xuyên thấu) — kể cả khi offline.
+                  // Tile trắng ĐỤC luôn (không xuyên thấu) — kể cả khi
+                  // offline VÀ kể cả ở dark mode (ảnh PNG vẽ cho nền trắng).
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(8),
                   boxShadow: [
@@ -1222,7 +1619,7 @@ class _PositionBar extends StatelessWidget {
                   child: Container(
                     width: _handleWidth,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: context.surfaces.card,
                       borderRadius: BorderRadius.circular(11),
                       border: Border.all(
                           color: const Color(0xFFCBD9E8), width: 1),
@@ -1241,6 +1638,81 @@ class _PositionBar extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+
+/// Nút "..." cuối hàng phòng: đổi kiểu xem, mở Device Management / Room
+/// Management. Trước đây hai màn đó chỉ vào được bằng nhấn-giữ thẻ thiết bị
+/// hoặc chui qua Home Settings — gần như không ai tìm ra.
+class _HomeOverflowButton extends StatelessWidget {
+  final bool gridView;
+
+  const _HomeOverflowButton({required this.gridView});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppL10n.of(context);
+    return PopupMenuButton<String>(
+      icon: const Icon(Icons.more_horiz, color: AppColors.textSecondary),
+      padding: EdgeInsets.zero,
+      color: Colors.white,
+      elevation: 8,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      position: PopupMenuPosition.under,
+      onSelected: (value) async {
+        switch (value) {
+          case 'view':
+            await GetIt.instance<AppSettingsStore>().setHomeGridView(!gridView);
+          case 'devices':
+            if (context.mounted) {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (_) => const AllDevicesManagePage()),
+              );
+            }
+          case 'rooms':
+            final homeId =
+                context.read<HomeManagementBloc>().state.selectedHomeId;
+            if (homeId != null && context.mounted) {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (_) => ManageRoomsPage(homeId: homeId)),
+              );
+            }
+        }
+      },
+      constraints: const BoxConstraints(minWidth: 180, maxWidth: 252),
+      itemBuilder: (context) => [
+        _menuItem(context, 'view', gridView ? Icons.view_list_rounded : Icons.grid_view,
+            gridView ? l10n.listView : l10n.gridView),
+        _menuItem(context, 'devices', Icons.format_list_numbered, l10n.deviceManagement),
+        _menuItem(context, 'rooms', Icons.widgets_outlined, l10n.roomManagement),
+      ],
+    );
+  }
+
+  PopupMenuItem<String> _menuItem(
+      BuildContext context, String value, IconData icon, String label) {
+    return PopupMenuItem<String>(
+      value: value,
+      height: 43,
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: context.surfaces.textPrimary),
+          const SizedBox(width: 11),
+          Flexible(
+            child: Text(label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style:  TextStyle(fontSize: 16, color: context.surfaces.textPrimary)),
+          ),
+        ],
+      ),
     );
   }
 }

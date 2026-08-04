@@ -15,6 +15,7 @@ import '../bloc/osprey_scan_event.dart';
 import '../bloc/osprey_scan_state.dart';
 import 'osprey_pairing_page.dart';
 import '../widgets/radar_sweep.dart';
+import '../../../../core/theme/app_surfaces.dart';
 
 /// Trang "Thêm thiết bị" Osprey — BLE scan filter theo Brand Service UUID,
 /// chỉ hiện thiết bị Osprey đang ở pairing mode (spec §8.2).
@@ -106,9 +107,9 @@ class _OspreyAddDeviceViewState extends State<_OspreyAddDeviceView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.surfaces.pageBg,
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
+        backgroundColor: context.surfaces.sheet,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios,
@@ -173,7 +174,7 @@ class _OspreyAddDeviceViewState extends State<_OspreyAddDeviceView> {
     }
 
     return Container(
-      color: AppColors.surface,
+      color: context.surfaces.card,
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       child: Row(
         children: [
@@ -216,7 +217,7 @@ class _OspreyAddDeviceViewState extends State<_OspreyAddDeviceView> {
   /// that fade in — tap one to pair.
   Widget _buildRadar(List<DiscoveredOspreyDevice> devices) {
     return Container(
-      color: AppColors.surface,
+      color: context.surfaces.card,
       width: double.infinity,
       constraints: const BoxConstraints(minHeight: 230),
       padding: const EdgeInsets.only(top: 10, bottom: 18),
@@ -285,7 +286,7 @@ class _FoundDevice extends StatelessWidget {
                 height: 76,
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: context.surfaces.card,
                   shape: BoxShape.circle,
                   border: Border.all(color: AppColors.borderSubtle, width: 1.5),
                 ),
