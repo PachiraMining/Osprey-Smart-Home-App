@@ -150,17 +150,25 @@ class SocialLoginService {
   ///   - iss  : package name
   ///   - callbackUrlScheme : callback URL scheme registered in the OS
   ///   - exp  : 4 minutes from now (server requires < 5 min)
-  String _buildAppToken() {
+  /// Trả `null` khi build KHÔNG có app secret.
+  ///
+  /// Trước đây chỗ này ném [StateError], và vì `_buildAppToken()` được gọi
+  /// NGOÀI khối try nên lỗi lọt thẳng lên bloc, hiện nguyên câu hướng dẫn build
+  /// ("Bad state: OAuth app secret is not configured...") lên màn login của
+  /// người dùng cuối.
+  ///
+  /// Giờ đi tiếp mà bỏ `appToken` — để xem server có thật sự đòi nó không.
+  /// Nếu server chấp nhận thì đúng là không cần secret; nếu từ chối thì lỗi trả
+  /// về chính là bằng chứng đưa cho bên backend.
+  String? _buildAppToken() {
     final secret = Platform.isIOS
         ? AppConfig.appSecretIos
         : AppConfig.appSecretAndroid;
 
     if (secret.isEmpty) {
-      throw StateError(
-        'OAuth app secret is not configured. Build with '
-        '--dart-define=APP_SECRET_${Platform.isIOS ? "IOS" : "ANDROID"}=<value>. '
-        'See docs/BUILD.md.',
-      );
+      log('SocialLoginService: KHÔNG có app secret — mở OAuth mà bỏ appToken',
+          name: 'SocialLoginService');
+      return null;
     }
 
     // Decode base64 secret to raw bytes for HMAC-SHA256.
@@ -197,13 +205,13 @@ class SocialLoginService {
       base64Url.encode(bytes).replaceAll('=', '');
 
   /// Appends pkg, platform, and appToken query parameters to [providerAuthUrl].
-  String _appendAppToken(String providerAuthUrl, String appToken) {
+  String _appendAppToken(String providerAuthUrl, String? appToken) {
     final platform = Platform.isIOS ? 'IOS' : 'ANDROID';
     final uri = Uri.parse(providerAuthUrl);
     final params = Map<String, String>.from(uri.queryParameters)
       ..['pkg'] = AppConfig.pkgName
-      ..['platform'] = platform
-      ..['appToken'] = appToken;
+      ..['platform'] = platform;
+    if (appToken != null) params['appToken'] = appToken;
     return uri.replace(queryParameters: params).toString();
   }
 
