@@ -478,7 +478,7 @@ class _HomeTabState extends State<HomeTab> {
               Text(
                 _friendlyErrorTitle(state.errorMessage),
                 style: AppTypography.titleMedium
-                    .copyWith(color: AppColors.textPrimary),
+                    .copyWith(color: context.surfaces.textPrimary),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 6),
@@ -487,7 +487,7 @@ class _HomeTabState extends State<HomeTab> {
                 child: Text(
                   _friendlyErrorBody(state.errorMessage),
                   style: AppTypography.bodyMedium
-                      .copyWith(color: AppColors.textSecondary),
+                      .copyWith(color: context.surfaces.textSecondary),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -626,14 +626,14 @@ class _HomeTabState extends State<HomeTab> {
                   ? AppL10n.of(context).hideInvisibleDevices
                   : AppL10n.of(context).showInvisibleDevices(count),
               style: AppTypography.labelMedium
-                  .copyWith(color: AppColors.textSecondary),
+                  .copyWith(color: context.surfaces.textSecondary),
             ),
             const SizedBox(width: 4),
             AnimatedRotation(
               turns: _showHidden ? 0.5 : 0,
               duration: const Duration(milliseconds: 200),
-              child: const Icon(Icons.keyboard_arrow_down,
-                  size: 20, color: AppColors.textSecondary),
+              child: Icon(Icons.keyboard_arrow_down,
+                  size: 20, color: context.surfaces.textSecondary),
             ),
           ],
         ),
@@ -675,14 +675,14 @@ class _BrandEmptyState extends StatelessWidget {
             Text(
               title,
               style: AppTypography.headlineSmall
-                  .copyWith(color: AppColors.textPrimary),
+                  .copyWith(color: context.surfaces.textPrimary),
             ),
             const SizedBox(height: 8),
             Text(
               message,
               textAlign: TextAlign.center,
               style: AppTypography.bodyMedium
-                  .copyWith(color: AppColors.textSecondary, height: 1.5),
+                  .copyWith(color: context.surfaces.textSecondary, height: 1.5),
             ),
           ],
         ),
@@ -897,14 +897,14 @@ class _DeviceCardState extends State<_DeviceCard> {
               children: [
                 const SizedBox(height: 16),
                 Text(title,
-                    style: const TextStyle(
-                        fontSize: 15, color: AppColors.textSecondary)),
+                    style: TextStyle(
+                        fontSize: 15, color: context.surfaces.textSecondary)),
                 const SizedBox(height: 8),
                 for (final (value, label) in options)
                   ListTile(
                     title: Text(label,
-                        style: const TextStyle(
-                            fontSize: 16, color: AppColors.textPrimary)),
+                        style: TextStyle(
+                            fontSize: 16, color: context.surfaces.textPrimary)),
                     trailing: value == selected
                         ? const Icon(Icons.check_circle,
                             color: Color(0xFF1E88E5), size: 24)
@@ -943,15 +943,15 @@ class _DeviceCardState extends State<_DeviceCard> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(l10n.curtainPositionSetting,
-                        style: const TextStyle(
-                            fontSize: 15, color: AppColors.textSecondary)),
+                        style: TextStyle(
+                            fontSize: 15, color: context.surfaces.textSecondary)),
                     const SizedBox(height: 24),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         IconButton(
                           icon: const Icon(Icons.arrow_left, size: 34),
-                          color: AppColors.textSecondary,
+                          color: context.surfaces.textSecondary,
                           onPressed: pct <= 0
                               ? null
                               : () => setSheet(
@@ -961,14 +961,14 @@ class _DeviceCardState extends State<_DeviceCard> {
                           width: 96,
                           child: Text('$pct%',
                               textAlign: TextAlign.center,
-                              style: const TextStyle(
+                              style: TextStyle(
                                   fontSize: 34,
                                   fontWeight: FontWeight.w700,
-                                  color: AppColors.textPrimary)),
+                                  color: context.surfaces.textPrimary)),
                         ),
                         IconButton(
                           icon: const Icon(Icons.arrow_right, size: 34),
-                          color: AppColors.textSecondary,
+                          color: context.surfaces.textSecondary,
                           onPressed: pct >= 100
                               ? null
                               : () => setSheet(
@@ -1013,7 +1013,7 @@ class _DeviceCardState extends State<_DeviceCard> {
                   tabIcon(2, Icons.grid_view_rounded),
                 ],
               ),
-              const Divider(height: 1, color: Color(0xFFEFEFEF)),
+              Divider(height: 1, color: context.surfaces.divider),
               // Chiều cao cố định: đổi tab không làm sheet nhảy lên nhảy xuống.
               SizedBox(height: 300, child: SingleChildScrollView(child: body)),
               InkWell(
@@ -1048,15 +1048,15 @@ class _DeviceCardState extends State<_DeviceCard> {
             children: [
               const SizedBox(height: 13),
               Text(title,
-                  style: const TextStyle(
-                      fontSize: 13, color: AppColors.textSecondary)),
+                  style: TextStyle(
+                      fontSize: 13, color: context.surfaces.textSecondary)),
               const SizedBox(height: 6),
               for (final (value, label) in options)
                 ListTile(
                   dense: true,
                   title: Text(label,
-                      style: const TextStyle(
-                          fontSize: 15, color: AppColors.textPrimary)),
+                      style: TextStyle(
+                          fontSize: 15, color: context.surfaces.textPrimary)),
                   trailing: value == selected
                       ? const Icon(Icons.check_circle,
                           color: AppColors.primary, size: 22)
@@ -1089,14 +1089,14 @@ class _DeviceCardState extends State<_DeviceCard> {
               children: [
                 Text(AppL10n.of(context).curtainPositionSetting,
                     style: TextStyle(
-                        fontSize: 15, color: AppColors.textSecondary)),
+                        fontSize: 15, color: context.surfaces.textSecondary)),
                 const SizedBox(height: 28),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     IconButton(
                       icon: const Icon(Icons.arrow_left, size: 34),
-                      color: AppColors.textSecondary,
+                      color: context.surfaces.textSecondary,
                       onPressed: pct <= 0
                           ? null
                           : () => setSheet(() => pct = (pct - 1).clamp(0, 100)),
@@ -1105,14 +1105,14 @@ class _DeviceCardState extends State<_DeviceCard> {
                       width: 96,
                       child: Text('$pct%',
                           textAlign: TextAlign.center,
-                          style: const TextStyle(
+                          style: TextStyle(
                               fontSize: 34,
                               fontWeight: FontWeight.w700,
-                              color: AppColors.textPrimary)),
+                              color: context.surfaces.textPrimary)),
                     ),
                     IconButton(
                       icon: const Icon(Icons.arrow_right, size: 34),
-                      color: AppColors.textSecondary,
+                      color: context.surfaces.textSecondary,
                       onPressed: pct >= 100
                           ? null
                           : () => setSheet(() => pct = (pct + 1).clamp(0, 100)),
@@ -1198,7 +1198,7 @@ class _DeviceCardState extends State<_DeviceCard> {
                       size: 26,
                       color: isOnline
                           ? const Color(0xFF2ECC71)
-                          : AppColors.textMuted,
+                          : context.surfaces.textMuted,
                     )
                   else if (!isOnline)
                     Text(
@@ -1217,7 +1217,7 @@ class _DeviceCardState extends State<_DeviceCard> {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: AppTypography.titleMedium
-                    .copyWith(color: AppColors.textPrimary),
+                    .copyWith(color: context.surfaces.textPrimary),
               ),
               // Tên phòng + mũi tên mở Common Functions trên CÙNG một hàng:
               // thẻ lưới hẹp, không đủ chỗ cho dòng chữ như bản danh sách.
@@ -1231,7 +1231,7 @@ class _DeviceCardState extends State<_DeviceCard> {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: AppTypography.caption
-                                .copyWith(color: AppColors.textSecondary),
+                                .copyWith(color: context.surfaces.textSecondary),
                           ),
                   ),
                   if (isOnline)
@@ -1241,12 +1241,12 @@ class _DeviceCardState extends State<_DeviceCard> {
                         if (_status == null) _fetchStatus();
                         _commonFunctionsSheet();
                       },
-                      child: const Padding(
+                      child: Padding(
                         padding: EdgeInsets.only(left: 8),
                         child: Icon(
                           Icons.keyboard_arrow_down_rounded,
                           size: 22,
-                          color: AppColors.textSecondary,
+                          color: context.surfaces.textSecondary,
                         ),
                       ),
                     ),
@@ -1297,7 +1297,7 @@ class _DeviceCardState extends State<_DeviceCard> {
               : Icon(
                   Icons.devices_other,
                   size: size * 0.5,
-                  color: AppColors.textSecondary,
+                  color: context.surfaces.textSecondary,
                 ),
         ),
       ),
@@ -1364,10 +1364,10 @@ class _DeviceCardState extends State<_DeviceCard> {
                               ),
                             ),
                           )
-                        : const Icon(
+                        : Icon(
                             Icons.devices_other,
                             size: 26,
-                            color: AppColors.textSecondary,
+                            color: context.surfaces.textSecondary,
                           ),
                   ),
                 ),
@@ -1382,7 +1382,7 @@ class _DeviceCardState extends State<_DeviceCard> {
                     Text(
                       device.displayName,
                       style: AppTypography.titleMedium.copyWith(
-                        color: AppColors.textPrimary,
+                        color: context.surfaces.textPrimary,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -1448,7 +1448,7 @@ class _DeviceCardState extends State<_DeviceCard> {
                     shape: BoxShape.circle,
                     color: (isOnline
                             ? const Color(0xFF2ECC71)
-                            : AppColors.textMuted)
+                            : context.surfaces.textMuted)
                         .withAlpha(28),
                   ),
                   child: Icon(
@@ -1456,7 +1456,7 @@ class _DeviceCardState extends State<_DeviceCard> {
                     size: 22,
                     color: isOnline
                         ? const Color(0xFF2ECC71)
-                        : AppColors.textMuted,
+                        : context.surfaces.textMuted,
                   ),
                 ),
             ],
@@ -1534,7 +1534,7 @@ class _CommonFn extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: AppTypography.caption
-                  .copyWith(color: AppColors.textPrimary),
+                  .copyWith(color: context.surfaces.textPrimary),
             ),
             const SizedBox(height: 2),
             Text(
@@ -1542,7 +1542,7 @@ class _CommonFn extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: AppTypography.caption
-                  .copyWith(color: AppColors.textMuted),
+                  .copyWith(color: context.surfaces.textMuted),
             ),
           ],
         ),
@@ -1655,9 +1655,9 @@ class _HomeOverflowButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppL10n.of(context);
     return PopupMenuButton<String>(
-      icon: const Icon(Icons.more_horiz, color: AppColors.textSecondary),
+      icon: Icon(Icons.more_horiz, color: context.surfaces.textSecondary),
       padding: EdgeInsets.zero,
-      color: Colors.white,
+      color: context.surfaces.card,
       elevation: 8,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       position: PopupMenuPosition.under,

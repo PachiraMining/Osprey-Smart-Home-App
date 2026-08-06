@@ -42,6 +42,13 @@ class AppSurfaces extends ThemeExtension<AppSurfaces> {
 
   final Color divider;
 
+  /// Viền có chủ đích: ô nhập, nút phụ, chip. Đậm hơn [divider] để nhìn rõ
+  /// là một cạnh chứ không phải đường phân cách.
+  final Color border;
+
+  /// Nền của thành phần bị vô hiệu hoá (nút disabled, ô khoá).
+  final Color surfaceMuted;
+
   /// Độ phủ đen lên ảnh nền. 0 = giữ nguyên ảnh (chế độ sáng).
   final double photoDim;
 
@@ -56,6 +63,8 @@ class AppSurfaces extends ThemeExtension<AppSurfaces> {
     required this.textSecondary,
     required this.textMuted,
     required this.divider,
+    required this.border,
+    required this.surfaceMuted,
     required this.photoDim,
   });
 
@@ -71,6 +80,8 @@ class AppSurfaces extends ThemeExtension<AppSurfaces> {
     textSecondary: AppColors.textSecondary,
     textMuted: AppColors.textMuted,
     divider: Color(0xFFECECEC),
+    border: AppColors.border,
+    surfaceMuted: AppColors.surfaceMuted,
     photoDim: 0,
   );
 
@@ -85,6 +96,9 @@ class AppSurfaces extends ThemeExtension<AppSurfaces> {
     textSecondary: Color(0xFF9D9E9F),
     textMuted: Color(0xFF5F5F5F),
     divider: Color(0xFF2A2A2A),
+    // Sáng hơn card (#191919) đủ để thấy cạnh ô nhập, chưa tới mức phát sáng.
+    border: Color(0xFF3A3A3A),
+    surfaceMuted: Color(0xFF2A2A2A),
     // Ảnh nền tối còn ~#63676A so với bản sáng -> phủ đen khoảng 45%.
     photoDim: 0.45,
   );
@@ -105,6 +119,8 @@ class AppSurfaces extends ThemeExtension<AppSurfaces> {
     Color? textSecondary,
     Color? textMuted,
     Color? divider,
+    Color? border,
+    Color? surfaceMuted,
     double? photoDim,
   }) {
     return AppSurfaces(
@@ -118,6 +134,8 @@ class AppSurfaces extends ThemeExtension<AppSurfaces> {
       textSecondary: textSecondary ?? this.textSecondary,
       textMuted: textMuted ?? this.textMuted,
       divider: divider ?? this.divider,
+      border: border ?? this.border,
+      surfaceMuted: surfaceMuted ?? this.surfaceMuted,
       photoDim: photoDim ?? this.photoDim,
     );
   }
@@ -136,6 +154,8 @@ class AppSurfaces extends ThemeExtension<AppSurfaces> {
       textSecondary: Color.lerp(textSecondary, other.textSecondary, t)!,
       textMuted: Color.lerp(textMuted, other.textMuted, t)!,
       divider: Color.lerp(divider, other.divider, t)!,
+      border: Color.lerp(border, other.border, t)!,
+      surfaceMuted: Color.lerp(surfaceMuted, other.surfaceMuted, t)!,
       photoDim: photoDim + (other.photoDim - photoDim) * t,
     );
   }

@@ -23,12 +23,12 @@ class AuthBackButton extends StatelessWidget {
       decoration: BoxDecoration(
         color: context.surfaces.card,
         borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: AppColors.borderSubtle),
+        border: Border.all(color: context.surfaces.divider),
       ),
       child: IconButton(
         icon: const Icon(Icons.arrow_back, size: 20),
         padding: EdgeInsets.zero,
-        color: AppColors.textPrimary,
+        color: context.surfaces.textPrimary,
         onPressed: onPressed,
       ),
     );
@@ -49,7 +49,9 @@ class AgreementRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final borderColor = highlight ? AppColors.error : AppColors.border;
+    final borderColor = highlight ? AppColors.error : context.surfaces.border;
+    final subtle = AppTypography.bodySmall
+        .copyWith(color: context.surfaces.textSecondary);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -69,11 +71,7 @@ class AgreementRow extends StatelessWidget {
         Expanded(
           child: Wrap(
             children: [
-              Text(
-                'I agree to the ',
-                style: AppTypography.bodySmall
-                    .copyWith(color: AppColors.textSecondary),
-              ),
+              Text('I agree to the ', style: subtle),
               GestureDetector(
                 onTap: () => launchUrl(Uri.parse(AppConfig.privacyPolicyUrl)),
                 child: Text(
@@ -84,11 +82,7 @@ class AgreementRow extends StatelessWidget {
                   ),
                 ),
               ),
-              Text(
-                ' and ',
-                style: AppTypography.bodySmall
-                    .copyWith(color: AppColors.textSecondary),
-              ),
+              Text(' and ', style: subtle),
               GestureDetector(
                 onTap: () => launchUrl(Uri.parse(AppConfig.userAgreementUrl)),
                 child: Text(
@@ -99,11 +93,7 @@ class AgreementRow extends StatelessWidget {
                   ),
                 ),
               ),
-              Text(
-                '.',
-                style: AppTypography.bodySmall
-                    .copyWith(color: AppColors.textSecondary),
-              ),
+              Text('.', style: subtle),
             ],
           ),
         ),
@@ -133,9 +123,9 @@ class AuthPrimaryButton extends StatelessWidget {
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           disabledBackgroundColor:
-              busy ? AppColors.primary : AppColors.surfaceMuted,
+              busy ? AppColors.primary : context.surfaces.surfaceMuted,
           foregroundColor: AppColors.textInverse,
-          disabledForegroundColor: AppColors.textMuted,
+          disabledForegroundColor: context.surfaces.textMuted,
           minimumSize: const Size(0, 56),
           elevation: 0,
           shape: RoundedRectangleBorder(
@@ -173,6 +163,9 @@ class AuthErrorBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Nền đỏ 7% chìm hẳn trên nền đen — chế độ tối cần đậm hơn mới thấy.
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final fillAlpha = isDark ? 46 : 18;
     return AnimatedSize(
       duration: const Duration(milliseconds: 220),
       curve: Curves.easeOut,
@@ -185,7 +178,7 @@ class AuthErrorBanner extends StatelessWidget {
               padding:
                   const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               decoration: BoxDecoration(
-                color: AppColors.error.withAlpha(18),
+                color: AppColors.error.withAlpha(fillAlpha),
                 borderRadius: BorderRadius.circular(AppRadius.md),
                 border: Border.all(color: AppColors.error.withAlpha(70)),
               ),
@@ -306,12 +299,13 @@ class _AuthFieldState extends State<AuthField> {
 
   @override
   Widget build(BuildContext context) {
+    final surfaces = context.surfaces;
     final hasError = widget.errorText != null;
     final borderColor = hasError
         ? AppColors.error
         : _focused
             ? AppColors.primary
-            : AppColors.border;
+            : surfaces.border;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -324,7 +318,7 @@ class _AuthFieldState extends State<AuthField> {
                   ? AppColors.error
                   : _focused
                       ? AppColors.primary
-                      : AppColors.textSecondary,
+                      : surfaces.textSecondary,
             ),
           ),
         ),
@@ -332,7 +326,7 @@ class _AuthFieldState extends State<AuthField> {
           duration: const Duration(milliseconds: 180),
           curve: Curves.easeOut,
           decoration: BoxDecoration(
-            color: context.surfaces.card,
+            color: surfaces.card,
             borderRadius: BorderRadius.circular(AppRadius.field),
             border: Border.all(
               color: borderColor,
@@ -361,11 +355,11 @@ class _AuthFieldState extends State<AuthField> {
             cursorColor: AppColors.primary,
             cursorWidth: 1.6,
             style:
-                AppTypography.bodyLarge.copyWith(color: AppColors.textPrimary),
+                AppTypography.bodyLarge.copyWith(color: surfaces.textPrimary),
             decoration: InputDecoration(
               hintText: widget.hintText,
               hintStyle:
-                  AppTypography.bodyLarge.copyWith(color: AppColors.textMuted),
+                  AppTypography.bodyLarge.copyWith(color: surfaces.textMuted),
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
               border: InputBorder.none,

@@ -259,7 +259,7 @@ class _SignUpPageState extends State<SignUpPage> {
         Text(
           AppL10n.of(context).createYourAccount,
           style: AppTypography.displayMedium
-              .copyWith(color: AppColors.textPrimary),
+              .copyWith(color: context.surfaces.textPrimary),
         ),
         const SizedBox(height: 28),
         AuthField(
@@ -275,8 +275,8 @@ class _SignUpPageState extends State<SignUpPage> {
             if (_emailError != null) setState(() => _emailError = null);
           },
           onSubmitted: (_) => _sendCode(),
-          prefix: const Icon(Icons.alternate_email_rounded,
-              color: AppColors.textMuted, size: 20),
+          prefix: Icon(Icons.alternate_email_rounded,
+              color: context.surfaces.textMuted, size: 20),
         ),
         const SizedBox(height: 22),
         Shakeable(
@@ -310,7 +310,7 @@ class _SignUpPageState extends State<SignUpPage> {
         Text(
           AppL10n.of(context).checkYourEmail,
           style: AppTypography.displayMedium
-              .copyWith(color: AppColors.textPrimary),
+              .copyWith(color: context.surfaces.textPrimary),
         ),
         const SizedBox(height: 8),
         Text.rich(
@@ -319,19 +319,19 @@ class _SignUpPageState extends State<SignUpPage> {
               TextSpan(
                 text: 'We sent a 6-digit code to ',
                 style: AppTypography.bodyMedium
-                    .copyWith(color: AppColors.textSecondary),
+                    .copyWith(color: context.surfaces.textSecondary),
               ),
               TextSpan(
                 text: emailController.text.trim(),
                 style: AppTypography.bodyMedium.copyWith(
-                  color: AppColors.textPrimary,
+                  color: context.surfaces.textPrimary,
                   fontWeight: FontWeight.w600,
                 ),
               ),
               TextSpan(
                 text: '. The code expires in 5 minutes.',
                 style: AppTypography.bodyMedium
-                    .copyWith(color: AppColors.textSecondary),
+                    .copyWith(color: context.surfaces.textSecondary),
               ),
             ],
           ),
@@ -360,14 +360,14 @@ class _SignUpPageState extends State<SignUpPage> {
               setState(() => _passwordError = null);
             }
           },
-          prefix: const Icon(Icons.lock_outline_rounded,
-              color: AppColors.textMuted, size: 20),
+          prefix: Icon(Icons.lock_outline_rounded,
+              color: context.surfaces.textMuted, size: 20),
           suffix: IconButton(
             icon: Icon(
               _obscurePassword
                   ? Icons.visibility_off_outlined
                   : Icons.visibility_outlined,
-              color: AppColors.textMuted,
+              color: context.surfaces.textMuted,
               size: 20,
             ),
             onPressed: () =>
@@ -417,7 +417,7 @@ class _SignUpPageState extends State<SignUpPage> {
             child: Text(
               _resendIn > 0 ? AppL10n.of(context).resendCodeIn(_resendIn) : AppL10n.of(context).resendCode,
               style: AppTypography.labelMedium.copyWith(
-                color: _resendIn > 0 ? AppColors.textMuted : AppColors.primary,
+                color: _resendIn > 0 ? context.surfaces.textMuted : AppColors.primary,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -455,7 +455,7 @@ class _CodeField extends StatelessWidget {
             color: context.surfaces.card,
             borderRadius: BorderRadius.circular(AppRadius.lg),
             border: Border.all(
-              color: errorText != null ? AppColors.error : AppColors.border,
+              color: errorText != null ? AppColors.error : context.surfaces.border,
               width: errorText != null ? 1.6 : 1.2,
             ),
           ),
@@ -473,11 +473,11 @@ class _CodeField extends StatelessWidget {
             autofillHints: const [AutofillHints.oneTimeCode],
             onChanged: onChanged,
             cursorColor: AppColors.primary,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.w700,
               letterSpacing: 14,
-              color: AppColors.textPrimary,
+              color: context.surfaces.textPrimary,
             ),
             decoration: InputDecoration(
               counterText: '',
@@ -485,7 +485,7 @@ class _CodeField extends StatelessWidget {
               hintStyle: TextStyle(
                 fontSize: 28,
                 letterSpacing: 14,
-                color: AppColors.textMuted.withAlpha(120),
+                color: context.surfaces.textMuted.withAlpha(120),
               ),
               contentPadding: const EdgeInsets.symmetric(vertical: 18),
               border: InputBorder.none,

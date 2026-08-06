@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 import 'package:flutter/material.dart';
 import '../../../../l10n/gen/app_l10n.dart';
 import 'package:flutter/services.dart';
@@ -156,13 +158,13 @@ class _LoginPageState extends State<LoginPage> {
                     Text(
                       AppL10n.of(context).welcome,
                       style: AppTypography.displayMedium
-                          .copyWith(color: AppColors.textPrimary),
+                          .copyWith(color: context.surfaces.textPrimary),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       AppL10n.of(context).signInSubtitle,
                       style: AppTypography.bodyMedium
-                          .copyWith(color: AppColors.textSecondary),
+                          .copyWith(color: context.surfaces.textSecondary),
                     ),
                     const SizedBox(height: 28),
                     AuthField(
@@ -185,9 +187,9 @@ class _LoginPageState extends State<LoginPage> {
                           });
                         }
                       },
-                      prefix: const Icon(
+                      prefix: Icon(
                         Icons.alternate_email_rounded,
-                        color: AppColors.textMuted,
+                        color: context.surfaces.textMuted,
                         size: 20,
                       ),
                     ),
@@ -210,9 +212,9 @@ class _LoginPageState extends State<LoginPage> {
                         }
                       },
                       onSubmitted: (_) => _signIn(),
-                      prefix: const Icon(
+                      prefix: Icon(
                         Icons.lock_outline_rounded,
-                        color: AppColors.textMuted,
+                        color: context.surfaces.textMuted,
                         size: 20,
                       ),
                       suffix: IconButton(
@@ -220,7 +222,7 @@ class _LoginPageState extends State<LoginPage> {
                           obscurePassword
                               ? Icons.visibility_off_outlined
                               : Icons.visibility_outlined,
-                          color: AppColors.textMuted,
+                          color: context.surfaces.textMuted,
                           size: 20,
                         ),
                         onPressed: () => setState(() {
@@ -257,7 +259,7 @@ class _LoginPageState extends State<LoginPage> {
                               TextSpan(
                                 text: 'New to osprey.life? ',
                                 style: AppTypography.labelMedium.copyWith(
-                                  color: AppColors.textSecondary,
+                                  color: context.surfaces.textSecondary,
                                 ),
                               ),
                               TextSpan(
@@ -279,65 +281,67 @@ class _LoginPageState extends State<LoginPage> {
                         child: Text(
                           AppL10n.of(context).forgotPassword,
                           style: AppTypography.labelMedium.copyWith(
-                            color: AppColors.textSecondary,
+                            color: context.surfaces.textSecondary,
                           ),
                         ),
                       ),
                     ),
                     const SizedBox(height: 24),
-                    // Social login — ẩn tới khi server cấu hình OAuth provider
-                    if (_googleProviderUrl != null ||
-                        _appleProviderUrl != null) ...[
-                      Row(
-                        children: [
-                          Expanded(child: Divider(color: AppColors.divider)),
-                          Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 16),
-                            child: Text(
-                              AppL10n.of(context).orContinueWith,
-                              style: AppTypography.labelSmall
-                                  .copyWith(color: AppColors.textMuted),
-                            ),
+                    // Khối social luôn hiện, kể cả khi chưa lấy được cấu hình
+                    // provider từ server — bấm vào sẽ báo bằng snackbar thay
+                    // vì để nút biến mất không rõ lý do.
+                    Row(
+                      children: [
+                        Expanded(child: Divider(color: context.surfaces.divider)),
+                        Padding(
+                          padding:
+                              const EdgeInsets.symmetric(horizontal: 16),
+                          child: Text(
+                            AppL10n.of(context).orContinueWith,
+                            style: AppTypography.labelSmall
+                                .copyWith(color: context.surfaces.textMuted),
                           ),
-                          Expanded(child: Divider(color: AppColors.divider)),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          if (_googleProviderUrl != null)
-                            _SocialIconButton(
+                        ),
+                        Expanded(child: Divider(color: context.surfaces.divider)),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _SocialIconButton(
+                          onTap: busy
+                              ? null
+                              : () =>
+                                  _onSocialTap(_googleProviderUrl, 'Google'),
+                          child: Image.asset(
+                            'assets/icons/google_logo.png',
+                            width: 28,
+                            height: 28,
+                          ),
+                        ),
+                        // Apple chỉ có trên iOS — Android cố ý chỉ dùng
+                        // Google, nút Apple ở đó sẽ luôn hỏng.
+                        if (Platform.isIOS) ...[
+                          const SizedBox(width: 16),
+                          // Nút nền đen biến mất trên nền đen; chế độ tối
+                          // dùng thẻ có viền, giữ nguyên logo trắng.
+                          Builder(builder: (context) {
+                            final dark = Theme.of(context).brightness ==
+                                Brightness.dark;
+                            return _SocialIconButton(
+                              bgColor: dark ? null : Colors.black,
                               onTap: busy
                                   ? null
                                   : () => _onSocialTap(
-                                      _googleProviderUrl, 'Google'),
-                              child: const Text(
-                                'G',
-                                style: TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w700,
-                                  color: Color(0xFF4285F4),
-                                ),
-                              ),
-                            ),
-                          if (_googleProviderUrl != null &&
-                              _appleProviderUrl != null)
-                            const SizedBox(width: 16),
-                          if (_appleProviderUrl != null)
-                            _SocialIconButton(
-                              bgColor: Colors.black,
-                              onTap: busy
-                                  ? null
-                                  : () =>
-                                      _onSocialTap(_appleProviderUrl, 'Apple'),
+                                      _appleProviderUrl, 'Apple'),
                               child: const Icon(Icons.apple,
                                   color: Colors.white, size: 28),
-                            ),
+                            );
+                          }),
                         ],
-                      ),
-                    ],
+                      ],
+                    ),
                     const SizedBox(height: 32),
                   ],
                 ),
@@ -437,14 +441,14 @@ class _ResetPasswordSheetState extends State<_ResetPasswordSheet> {
           AppL10n.of(context).resetYourPassword,
           style: AppTypography.displayMedium.copyWith(
             fontSize: 22,
-            color: AppColors.textPrimary,
+            color: context.surfaces.textPrimary,
           ),
         ),
         const SizedBox(height: 8),
         Text(
           "Enter your account email and we'll send you a reset link.",
           style:
-              AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary),
+              AppTypography.bodyMedium.copyWith(color: context.surfaces.textSecondary),
         ),
         const SizedBox(height: 20),
         AuthField(
@@ -459,8 +463,8 @@ class _ResetPasswordSheetState extends State<_ResetPasswordSheet> {
             if (_error != null) setState(() => _error = null);
           },
           onSubmitted: (_) => _submit(),
-          prefix: const Icon(Icons.alternate_email_rounded,
-              color: AppColors.textMuted, size: 20),
+          prefix: Icon(Icons.alternate_email_rounded,
+              color: context.surfaces.textMuted, size: 20),
         ),
         const SizedBox(height: 20),
         AuthPrimaryButton(
@@ -480,8 +484,12 @@ class _ResetPasswordSheetState extends State<_ResetPasswordSheet> {
         Container(
           width: 72,
           height: 72,
-          decoration: const BoxDecoration(
-            color: AppColors.primarySubtle,
+          decoration: BoxDecoration(
+            // Đĩa xanh nhạt của bản sáng sẽ chói trên nền tối — dùng chính
+            // màu thương hiệu pha loãng để giữ sắc mà không lóa.
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.primary.withAlpha(46)
+                : AppColors.primarySubtle,
             shape: BoxShape.circle,
           ),
           child: const Icon(Icons.mark_email_read_outlined,
@@ -492,7 +500,7 @@ class _ResetPasswordSheetState extends State<_ResetPasswordSheet> {
           AppL10n.of(context).checkYourInbox,
           style: AppTypography.displayMedium.copyWith(
             fontSize: 20,
-            color: AppColors.textPrimary,
+            color: context.surfaces.textPrimary,
           ),
         ),
         const SizedBox(height: 8),
@@ -501,7 +509,7 @@ class _ResetPasswordSheetState extends State<_ResetPasswordSheet> {
               .resetLinkSent(widget.emailController.text.trim()),
           textAlign: TextAlign.center,
           style:
-              AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary),
+              AppTypography.bodyMedium.copyWith(color: context.surfaces.textSecondary),
         ),
         const SizedBox(height: 20),
         AuthPrimaryButton(
@@ -516,12 +524,14 @@ class _ResetPasswordSheetState extends State<_ResetPasswordSheet> {
 
 class _SocialIconButton extends StatelessWidget {
   final Widget child;
-  final Color bgColor;
+
+  /// Bỏ trống = nút "trung tính": lấy màu thẻ theo chế độ và thêm viền.
+  final Color? bgColor;
   final VoidCallback? onTap;
 
   const _SocialIconButton({
     required this.child,
-    this.bgColor = AppColors.surface,
+    this.bgColor,
     this.onTap,
   });
 
@@ -535,10 +545,10 @@ class _SocialIconButton extends StatelessWidget {
           width: 56,
           height: 56,
           decoration: BoxDecoration(
-            color: bgColor,
+            color: bgColor ?? context.surfaces.card,
             borderRadius: BorderRadius.circular(AppRadius.lg),
-            border: bgColor == AppColors.surface
-                ? Border.all(color: AppColors.border)
+            border: bgColor == null
+                ? Border.all(color: context.surfaces.border)
                 : null,
             boxShadow: [
               BoxShadow(

@@ -47,9 +47,9 @@ class AppConfig {
   );
   static const String callbackScheme = 'osprey';
   static const String privacyPolicyUrl =
-      'https://pachiramining.github.io/Osprey-Smart-Home-App/privacy-policy/';
+      'https://osprey.life/policies/privacy-policy';
   static const String userAgreementUrl =
-      'https://pachiramining.github.io/Osprey-Smart-Home-App/terms/';
+      'https://osprey.life/pages/terms-of-use';
 
   /// Package name used as the OAuth2 app identifier sent to ThingsBoard.
   static const String pkgName = 'io.dracaena.curtainai';

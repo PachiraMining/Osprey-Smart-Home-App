@@ -90,6 +90,7 @@ class HomePageState extends State<HomePage> {
   /// Scenes tabs.
   Widget _buildHomeGreeting(BuildContext context) {
     final state = context.watch<HomeManagementBloc>().state;
+    final dark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTap: state.homes.isNotEmpty ? () => _openHomeSelector(context) : null,
       child: Row(
@@ -99,11 +100,12 @@ class HomePageState extends State<HomePage> {
             child: Text(
               state.selectedHome?.name ?? 'My Home',
               // Đo từ app tham chiếu: ~21pt, nét vừa, màu xám chì (KHÔNG phải
-              // đen đậm) — chữ đậm quá làm nặng góc trên trái.
-              style: const TextStyle(
+              // đen đậm) — chữ đậm quá làm nặng góc trên trái. Chế độ tối giữ
+              // đúng tinh thần đó: xám nhạt hoà vào ảnh nền, không phải trắng.
+              style: TextStyle(
                 fontSize: 21,
                 fontWeight: FontWeight.w500,
-                color: Color(0xFF535B5F),
+                color: dark ? const Color(0xFFAFB1B2) : const Color(0xFF535B5F),
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -111,9 +113,9 @@ class HomePageState extends State<HomePage> {
           ),
           const SizedBox(width: 2),
           // Tam giác đặc chỉ xuống, nhạt hơn chữ — không phải mũi tên hai chiều.
-          const Icon(
+          Icon(
             Icons.arrow_drop_down,
-            color: Color(0xFF7A848A),
+            color: dark ? const Color(0xFF9DA2A4) : const Color(0xFF7A848A),
             size: 24,
           ),
         ],
@@ -287,7 +289,7 @@ class HomePageState extends State<HomePage> {
                             },
                             child: Icon(
                               Icons.add,
-                              color: AppColors.textPrimary,
+                              color: context.surfaces.textPrimary,
                               size: 26,
                             ),
                           )
@@ -296,8 +298,8 @@ class HomePageState extends State<HomePage> {
                             offset: const Offset(0, 50),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(AppRadius.lg),
-                              side: const BorderSide(
-                                color: AppColors.borderSubtle,
+                              side: BorderSide(
+                                color: context.surfaces.divider,
                               ),
                             ),
                             color: context.surfaces.card,
@@ -393,7 +395,9 @@ class _AutomationTile extends StatelessWidget {
       width: 46,
       height: 46,
       decoration: BoxDecoration(
-        color: context.surfaces.card,
+        // LUÔN trắng, kể cả dark mode: bản tham chiếu đo ra #FFFFFF, và icon
+        // bên trong (curtain_track.png, icon xanh/xám) đều vẽ cho nền sáng.
+        color: Colors.white,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
@@ -596,7 +600,7 @@ class _SceneTabState extends State<SceneTab> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  color: Colors.white,
+                  color: context.surfaces.sheet,
                   elevation: 4,
                   onSelected: (value) {
                     if (value == 'manage') {
@@ -1295,10 +1299,10 @@ class _SceneTabState extends State<SceneTab> {
             color: AppColors.primary,
           );
         default:
-          child = Icon(
+          child = const Icon(
             Icons.settings_remote_outlined,
             size: 22,
-            color: context.surfaces.textSecondary,
+            color: AppColors.textSecondary,
           );
       }
       tiles.add(
@@ -1315,12 +1319,13 @@ class _SceneTabState extends State<SceneTab> {
         Padding(
           padding: const EdgeInsetsDirectional.only(start: 6),
           child: _AutomationTile(
+            // Ô luôn trắng nên chữ giữ màu bản sáng.
             child: Text(
               '+$rest',
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: context.surfaces.textSecondary,
+                color: AppColors.textSecondary,
               ),
             ),
           ),
