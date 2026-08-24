@@ -19,6 +19,10 @@ class DataPointEntity extends Equatable {
 
   bool get isWritable => mode == 'RW' || mode == 'WO';
 
+  /// Dùng được làm điều kiện automation. DP ghi-only không đọc lại được trạng
+  /// thái nên không thể so sánh.
+  bool get isReadable => mode == 'RW' || mode == 'RO';
+
   List<String> get enumOptions {
     final range = constraints['range'];
     final values = constraints['values'];

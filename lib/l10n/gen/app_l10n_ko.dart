@@ -1665,4 +1665,62 @@ class AppL10nKo extends AppL10n {
 
   @override
   String get normalMode => '일반 모드';
+
+  @override
+  String get deviceStatus => '기기 상태';
+
+  @override
+  String get selectDevice => '기기 선택';
+
+  @override
+  String get condition => '조건';
+
+  @override
+  String get precondition => '사전 조건';
+
+  @override
+  String get customTime => '사용자 지정';
+
+  @override
+  String get startTime => '시작 시간';
+
+  @override
+  String get endTime => '종료 시간';
+
+  @override
+  String get overnightNote => '이 시간대는 자정을 넘깁니다. 시작하는 날을 기준으로 계산됩니다.';
+
+  @override
+  String get automationDelayNote =>
+      '상태가 바뀐 뒤 약 5초 안에 실행되고, 그 후 60초 동안 멈춥니다. 새로 만든 자동화는 조건이 이미 충족되어 있으면 바로 실행되지 않고 다음에 바뀔 때 실행됩니다.';
+
+  @override
+  String get selectCity => '도시 선택';
+
+  @override
+  String get searchCity => '도시 검색';
+
+  @override
+  String get equals => '같음';
+
+  @override
+  String get notEquals => '같지 않음';
+
+  @override
+  String get greaterThan => '초과';
+
+  @override
+  String get greaterOrEqual => '이상';
+
+  @override
+  String get lessThan => '미만';
+
+  @override
+  String get lessOrEqual => '이하';
+
+  @override
+  String get noReadableDataPoints => '이 기기에는 조건으로 사용할 수 있는 읽기 가능한 상태가 없습니다.';
+
+  @override
+  String get bluetoothOffMessage => '블루투스가 꺼져 있습니다. 켜면 주변 기기를 찾을 수 있습니다';
 }

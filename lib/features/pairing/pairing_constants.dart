@@ -73,6 +73,20 @@ class PairingConstants {
 
   static const Duration scanTimeout = Duration(seconds: 30);
   static const Duration connectTimeout = Duration(seconds: 10);
+
+  /// Advertisement cuối cùng cũ hơn ngưỡng này → entry scan coi là stale
+  /// (device đã tắt / rời pairing mode), lọc khỏi danh sách Add Device để
+  /// user không bấm vào và ăn connect timeout.
+  static const Duration scanStaleAfter = Duration(seconds: 15);
+
+  /// Chu kỳ re-emit danh sách scan để entry stale rơi khỏi UI kể cả khi
+  /// không có advertisement mới nào tới.
+  static const Duration scanPruneInterval = Duration(seconds: 5);
+
+  /// Tổng số lần thử BLE connect trong pairing (1 lần đầu + 2 retry) —
+  /// stack BLE Android hay fail vu vơ lần đầu, retry là hết.
+  static const int connectAttempts = 3;
+  static const Duration connectRetryDelay = Duration(seconds: 1);
   static const Duration statusNotifyTimeout = Duration(seconds: 5);
 
   /// Poll backend mỗi 2s, tối đa 45 lần (= 90s).

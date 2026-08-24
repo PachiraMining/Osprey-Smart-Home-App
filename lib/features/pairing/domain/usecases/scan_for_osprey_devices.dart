@@ -7,6 +7,10 @@ class ScanForOspreyDevices {
 
   Stream<List<DiscoveredOspreyDevice>> call() => repository.scanForDevices();
 
+  Stream<bool> bluetoothOn() => repository.bluetoothOn();
+
+  Stream<bool> scanning() => repository.scanning();
+
   Future<void> start() => repository.startScan();
   Future<void> stop() => repository.stopScan();
 }

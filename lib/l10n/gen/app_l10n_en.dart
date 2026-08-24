@@ -1706,4 +1706,65 @@ class AppL10nEn extends AppL10n {
 
   @override
   String get normalMode => 'Normal Mode';
+
+  @override
+  String get deviceStatus => 'Device status';
+
+  @override
+  String get selectDevice => 'Select device';
+
+  @override
+  String get condition => 'Condition';
+
+  @override
+  String get precondition => 'Precondition';
+
+  @override
+  String get customTime => 'Custom';
+
+  @override
+  String get startTime => 'Start time';
+
+  @override
+  String get endTime => 'End time';
+
+  @override
+  String get overnightNote =>
+      'This period crosses midnight. It is counted from the day it starts.';
+
+  @override
+  String get automationDelayNote =>
+      'Runs within about 5 seconds of the change, then pauses for 60 seconds. A new automation does not run if its condition is already met — only on the next change.';
+
+  @override
+  String get selectCity => 'Select city';
+
+  @override
+  String get searchCity => 'Search city';
+
+  @override
+  String get equals => 'Equals';
+
+  @override
+  String get notEquals => 'Does not equal';
+
+  @override
+  String get greaterThan => 'Greater than';
+
+  @override
+  String get greaterOrEqual => 'Greater than or equal';
+
+  @override
+  String get lessThan => 'Less than';
+
+  @override
+  String get lessOrEqual => 'Less than or equal';
+
+  @override
+  String get noReadableDataPoints =>
+      'This device has no readable status to use as a condition.';
+
+  @override
+  String get bluetoothOffMessage =>
+      'Bluetooth is off — turn it on to find nearby devices';
 }

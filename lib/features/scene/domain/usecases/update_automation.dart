@@ -2,7 +2,7 @@ import 'package:dartz/dartz.dart';
 import '../../../../core/error/failure.dart';
 import '../entities/automation_scene_entity.dart';
 import '../entities/scene_action_entity.dart';
-import '../entities/schedule_condition_entity.dart';
+import '../entities/automation_condition_entity.dart';
 import '../entities/effective_time_entity.dart';
 import '../repositories/automation_repository.dart';
 
@@ -15,7 +15,7 @@ class UpdateAutomation {
     required String name,
     String? icon,
     required bool enabled,
-    required List<ScheduleConditionEntity> conditions,
+    required List<AutomationConditionEntity> conditions,
     required String conditionLogic,
     EffectiveTimeEntity? effectiveTime,
     required List<SceneActionEntity> actions,

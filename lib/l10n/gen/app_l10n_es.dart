@@ -1718,6 +1718,67 @@ class AppL10nEs extends AppL10n {
 
   @override
   String get normalMode => 'Modo normal';
+
+  @override
+  String get deviceStatus => 'Estado del dispositivo';
+
+  @override
+  String get selectDevice => 'Seleccionar dispositivo';
+
+  @override
+  String get condition => 'Condición';
+
+  @override
+  String get precondition => 'Condición previa';
+
+  @override
+  String get customTime => 'Personalizado';
+
+  @override
+  String get startTime => 'Hora de inicio';
+
+  @override
+  String get endTime => 'Hora de fin';
+
+  @override
+  String get overnightNote =>
+      'Este periodo cruza la medianoche. Se cuenta desde el día en que empieza.';
+
+  @override
+  String get automationDelayNote =>
+      'Se ejecuta unos 5 segundos después del cambio y luego se pausa 60 segundos. Una automatización nueva no se ejecuta si su condición ya se cumple: solo en el siguiente cambio.';
+
+  @override
+  String get selectCity => 'Seleccionar ciudad';
+
+  @override
+  String get searchCity => 'Buscar ciudad';
+
+  @override
+  String get equals => 'Igual a';
+
+  @override
+  String get notEquals => 'Distinto de';
+
+  @override
+  String get greaterThan => 'Mayor que';
+
+  @override
+  String get greaterOrEqual => 'Mayor o igual que';
+
+  @override
+  String get lessThan => 'Menor que';
+
+  @override
+  String get lessOrEqual => 'Menor o igual que';
+
+  @override
+  String get noReadableDataPoints =>
+      'Este dispositivo no tiene un estado legible que se pueda usar como condición.';
+
+  @override
+  String get bluetoothOffMessage =>
+      'El Bluetooth está desactivado: actívalo para encontrar dispositivos cercanos';
 }
 
 /// The translations for Spanish Castilian, as used in Latin America and the Caribbean (`es_419`).
@@ -3433,4 +3494,65 @@ class AppL10nEs419 extends AppL10nEs {
 
   @override
   String get normalMode => 'Modo normal';
+
+  @override
+  String get deviceStatus => 'Estado del dispositivo';
+
+  @override
+  String get selectDevice => 'Seleccionar dispositivo';
+
+  @override
+  String get condition => 'Condición';
+
+  @override
+  String get precondition => 'Condición previa';
+
+  @override
+  String get customTime => 'Personalizado';
+
+  @override
+  String get startTime => 'Hora de inicio';
+
+  @override
+  String get endTime => 'Hora de término';
+
+  @override
+  String get overnightNote =>
+      'Este periodo cruza la medianoche. Se cuenta desde el día en que comienza.';
+
+  @override
+  String get automationDelayNote =>
+      'Se ejecuta unos 5 segundos después del cambio y luego se pausa 60 segundos. Una automatización nueva no se ejecuta si su condición ya se cumple: solo en el siguiente cambio.';
+
+  @override
+  String get selectCity => 'Seleccionar ciudad';
+
+  @override
+  String get searchCity => 'Buscar ciudad';
+
+  @override
+  String get equals => 'Igual a';
+
+  @override
+  String get notEquals => 'Distinto de';
+
+  @override
+  String get greaterThan => 'Mayor que';
+
+  @override
+  String get greaterOrEqual => 'Mayor o igual que';
+
+  @override
+  String get lessThan => 'Menor que';
+
+  @override
+  String get lessOrEqual => 'Menor o igual que';
+
+  @override
+  String get noReadableDataPoints =>
+      'Este dispositivo no tiene un estado legible que se pueda usar como condición.';
+
+  @override
+  String get bluetoothOffMessage =>
+      'El Bluetooth está desactivado: actívalo para encontrar dispositivos cercanos';
 }

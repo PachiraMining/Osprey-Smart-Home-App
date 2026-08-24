@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 import '../../../domain/entities/scene_action_entity.dart';
-import '../../../domain/entities/schedule_condition_entity.dart';
+import '../../../domain/entities/automation_condition_entity.dart';
 import '../../../domain/entities/effective_time_entity.dart';
 
 abstract class AutomationEvent extends Equatable {
@@ -21,7 +21,7 @@ class LoadAutomationsEvent extends AutomationEvent {
 class CreateAutomationEvent extends AutomationEvent {
   final String name;
   final String? icon;
-  final List<ScheduleConditionEntity> conditions;
+  final List<AutomationConditionEntity> conditions;
   final String conditionLogic;
   final EffectiveTimeEntity? effectiveTime;
   final List<SceneActionEntity> actions;
@@ -45,7 +45,7 @@ class UpdateAutomationEvent extends AutomationEvent {
   final String name;
   final String? icon;
   final bool enabled;
-  final List<ScheduleConditionEntity> conditions;
+  final List<AutomationConditionEntity> conditions;
   final String conditionLogic;
   final EffectiveTimeEntity? effectiveTime;
   final List<SceneActionEntity> actions;

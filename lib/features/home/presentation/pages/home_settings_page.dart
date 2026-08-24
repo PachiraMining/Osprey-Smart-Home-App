@@ -9,6 +9,8 @@ import '../../domain/usecases/get_home_members.dart';
 import '../../domain/usecases/get_rooms.dart';
 import '../bloc/home_management_bloc.dart';
 import '../bloc/home_management_event.dart';
+import '../../data/city_catalog.dart';
+import 'city_picker_page.dart';
 import 'manage_rooms_page.dart';
 import '../../../../core/theme/app_surfaces.dart';
 
@@ -39,9 +41,14 @@ class _HomeSettingsPageState extends State<HomeSettingsPage> {
   int? _roomCount;
   List<HomeMemberEntity> _members = const [];
 
+  /// geoName hiển thị — giữ cục bộ để cập nhật ngay sau khi chọn thành phố,
+  /// thay vì chờ trang được dựng lại với widget.geoName mới.
+  String? _geoName;
+
   @override
   void initState() {
     super.initState();
+    _geoName = widget.geoName;
     _load();
   }
 
@@ -55,6 +62,26 @@ class _HomeSettingsPageState extends State<HomeSettingsPage> {
       rooms.fold((_) {}, (list) => _roomCount = list.length);
       members.fold((_) {}, (list) => _members = list);
     });
+  }
+
+  /// Chọn thành phố → ghi geoName + toạ độ. Toạ độ là điều kiện tiên quyết
+  /// cho automation theo thời tiết.
+  Future<void> _pickCity() async {
+    final navigator = Navigator.of(context);
+    final bloc = context.read<HomeManagementBloc>();
+    final city = await navigator.push<CityEntry>(
+      MaterialPageRoute(builder: (_) => const CityPickerPage()),
+    );
+    if (city == null || !mounted) return;
+    final geoName = '${city.name}, ${city.country}';
+    bloc.add(UpdateHomeEvent(
+      homeId: widget.homeId,
+      name: widget.homeName,
+      geoName: geoName,
+      latitude: city.latitude,
+      longitude: city.longitude,
+    ));
+    setState(() => _geoName = geoName);
   }
 
   Future<void> _renameHome() async {
@@ -132,10 +159,10 @@ class _HomeSettingsPageState extends State<HomeSettingsPage> {
                 ),
                 _SettingsRow(
                   label: AppL10n.of(context).location,
-                  value: (widget.geoName == null || widget.geoName!.isEmpty)
+                  value: (_geoName == null || _geoName!.isEmpty)
                       ? AppL10n.of(context).toBeSet
-                      : widget.geoName!,
-                  onTap: () => _notYet(AppL10n.of(context).location),
+                      : _geoName!,
+                  onTap: _pickCity,
                 ),
                 _SettingsRow(
                   label: AppL10n.of(context).managePermissions,

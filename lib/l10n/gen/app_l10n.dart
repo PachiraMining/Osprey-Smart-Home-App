@@ -3171,6 +3171,120 @@ abstract class AppL10n {
   /// In en, this message translates to:
   /// **'Normal Mode'**
   String get normalMode;
+
+  /// No description provided for @deviceStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Device status'**
+  String get deviceStatus;
+
+  /// No description provided for @selectDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Select device'**
+  String get selectDevice;
+
+  /// No description provided for @condition.
+  ///
+  /// In en, this message translates to:
+  /// **'Condition'**
+  String get condition;
+
+  /// No description provided for @precondition.
+  ///
+  /// In en, this message translates to:
+  /// **'Precondition'**
+  String get precondition;
+
+  /// No description provided for @customTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get customTime;
+
+  /// No description provided for @startTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Start time'**
+  String get startTime;
+
+  /// No description provided for @endTime.
+  ///
+  /// In en, this message translates to:
+  /// **'End time'**
+  String get endTime;
+
+  /// No description provided for @overnightNote.
+  ///
+  /// In en, this message translates to:
+  /// **'This period crosses midnight. It is counted from the day it starts.'**
+  String get overnightNote;
+
+  /// No description provided for @automationDelayNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Runs within about 5 seconds of the change, then pauses for 60 seconds. A new automation does not run if its condition is already met — only on the next change.'**
+  String get automationDelayNote;
+
+  /// No description provided for @selectCity.
+  ///
+  /// In en, this message translates to:
+  /// **'Select city'**
+  String get selectCity;
+
+  /// No description provided for @searchCity.
+  ///
+  /// In en, this message translates to:
+  /// **'Search city'**
+  String get searchCity;
+
+  /// No description provided for @equals.
+  ///
+  /// In en, this message translates to:
+  /// **'Equals'**
+  String get equals;
+
+  /// No description provided for @notEquals.
+  ///
+  /// In en, this message translates to:
+  /// **'Does not equal'**
+  String get notEquals;
+
+  /// No description provided for @greaterThan.
+  ///
+  /// In en, this message translates to:
+  /// **'Greater than'**
+  String get greaterThan;
+
+  /// No description provided for @greaterOrEqual.
+  ///
+  /// In en, this message translates to:
+  /// **'Greater than or equal'**
+  String get greaterOrEqual;
+
+  /// No description provided for @lessThan.
+  ///
+  /// In en, this message translates to:
+  /// **'Less than'**
+  String get lessThan;
+
+  /// No description provided for @lessOrEqual.
+  ///
+  /// In en, this message translates to:
+  /// **'Less than or equal'**
+  String get lessOrEqual;
+
+  /// No description provided for @noReadableDataPoints.
+  ///
+  /// In en, this message translates to:
+  /// **'This device has no readable status to use as a condition.'**
+  String get noReadableDataPoints;
+
+  /// Add Device screen header when the Bluetooth adapter is off
+  ///
+  /// In en, this message translates to:
+  /// **'Bluetooth is off — turn it on to find nearby devices'**
+  String get bluetoothOffMessage;
 }
 
 class _AppL10nDelegate extends LocalizationsDelegate<AppL10n> {

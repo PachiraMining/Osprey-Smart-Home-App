@@ -7,7 +7,7 @@ import 'package:smart_curtain_app/core/error/failure.dart';
 import 'package:smart_curtain_app/features/scene/domain/entities/automation_scene_entity.dart';
 import 'package:smart_curtain_app/features/scene/domain/entities/effective_time_entity.dart';
 import 'package:smart_curtain_app/features/scene/domain/entities/scene_action_entity.dart';
-import 'package:smart_curtain_app/features/scene/domain/entities/schedule_condition_entity.dart';
+import 'package:smart_curtain_app/features/scene/domain/entities/automation_condition_entity.dart';
 import 'package:smart_curtain_app/features/scene/domain/repositories/automation_repository.dart';
 import 'package:smart_curtain_app/features/scene/domain/usecases/create_automation.dart';
 import 'package:smart_curtain_app/features/scene/domain/usecases/delete_automation.dart';
@@ -37,7 +37,7 @@ class _FakeAutomationRepository implements AutomationRepository {
     required String homeId,
     required String name,
     String? icon,
-    required List<ScheduleConditionEntity> conditions,
+    required List<AutomationConditionEntity> conditions,
     required String conditionLogic,
     EffectiveTimeEntity? effectiveTime,
     required List<SceneActionEntity> actions,
@@ -65,7 +65,7 @@ class _FakeAutomationRepository implements AutomationRepository {
     required String name,
     String? icon,
     required bool enabled,
-    required List<ScheduleConditionEntity> conditions,
+    required List<AutomationConditionEntity> conditions,
     required String conditionLogic,
     EffectiveTimeEntity? effectiveTime,
     required List<SceneActionEntity> actions,
@@ -178,5 +178,33 @@ void main() {
       expect(repo.lastCreateHomeId, 'home-42');
       await bloc.close();
     });
+  });
+  test('create automation chấp nhận điều kiện thiết bị', () async {
+    final repo = _FakeAutomationRepository();
+    final bloc = AutomationBloc(
+      getAutomations: GetAutomations(repo),
+      createAutomation: CreateAutomation(repo),
+      updateAutomation: UpdateAutomation(repo),
+      deleteAutomation: DeleteAutomation(repo),
+      toggleAutomation: ToggleAutomation(repo),
+    );
+    bloc.add(const LoadAutomationsEvent('home-1'));
+    await Future<void>.delayed(const Duration(milliseconds: 10));
+    bloc.add(const CreateAutomationEvent(
+      name: 'Rèm mở thì bật quạt',
+      conditions: [
+        DeviceStatusConditionEntity(
+          entityId: 'dev-1',
+          dpCode: 'control',
+          operator: '==',
+          value: 'open',
+          valueType: 'STRING',
+        ),
+      ],
+      actions: [],
+    ));
+    await Future<void>.delayed(const Duration(milliseconds: 10));
+    expect(repo.lastCreateHomeId, 'home-1');
+    await bloc.close();
   });
 }

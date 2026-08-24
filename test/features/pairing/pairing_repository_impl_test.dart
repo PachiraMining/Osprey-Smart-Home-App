@@ -296,6 +296,7 @@ void main() {
       required List<int> manufacturerBytes,
       String name = 'Osprey-CR-A1B2',
       int rssi = -50,
+      DateTime? timeStamp,
     }) {
       return ScanResult(
         device: BluetoothDevice.fromId('AA:BB:CC:DD:EE:FF'),
@@ -309,7 +310,7 @@ void main() {
           serviceUuids: const [],
         ),
         rssi: rssi,
-        timeStamp: DateTime.now(),
+        timeStamp: timeStamp ?? DateTime.now(),
       );
     }
 
@@ -372,6 +373,107 @@ void main() {
 
       expect(devices.length, 2);
       expect(devices.first.rssi, -40);
+    });
+
+    test('kết quả scan cũ hơn scanStaleAfter bị lọc bỏ (entry stale)',
+        () async {
+      when(() => ble.scanResults).thenAnswer((_) => Stream.value([
+            // Advertisement cuối cùng thấy từ 20s trước — device đã tắt
+            // hoặc rời pairing mode, bấm vào chỉ ăn connect timeout.
+            buildScanResult(
+              manufacturerBytes: [0x00, 0x00, 0x01, 0xA0, 0xCE, 0x10],
+              timeStamp:
+                  DateTime.now().subtract(const Duration(seconds: 20)),
+            ),
+          ]));
+
+      final devices = await repository.scanForDevices().first;
+
+      expect(devices, isEmpty);
+    });
+
+    test('kết quả scan mới (trong ngưỡng stale) vẫn hiển thị', () async {
+      when(() => ble.scanResults).thenAnswer((_) => Stream.value([
+            buildScanResult(
+              manufacturerBytes: [0x00, 0x00, 0x01, 0xA0, 0xCE, 0x10],
+              timeStamp:
+                  DateTime.now().subtract(const Duration(seconds: 5)),
+            ),
+          ]));
+
+      final devices = await repository.scanForDevices().first;
+
+      expect(devices.length, 1);
+    });
+  });
+
+  group('pairDevice — retry connect', () {
+    test('connect fail 2 lần đầu → tự retry và pair thành công', () async {
+      stubHappyPath();
+      var attempts = 0;
+      when(() => ble.openSession(any())).thenAnswer((_) async {
+        attempts++;
+        if (attempts < 3) {
+          throw BlePairingException('Could not connect: timed out');
+        }
+      });
+
+      final steps = await repository
+          .pairDevice(device: device, ssid: 'MyWiFi', wifiPassword: 'pw')
+          .toList();
+
+      expect(steps.last.step, PairingStep.done);
+      verify(() => ble.openSession(any())).called(3);
+    });
+
+    test('connect fail cả 3 lần → báo lỗi, không retry thêm', () async {
+      stubHappyPath();
+      when(() => ble.openSession(any())).thenThrow(
+          BlePairingException('Could not connect: timed out'));
+
+      await expectLater(
+        repository.pairDevice(
+            device: device, ssid: 'MyWiFi', wifiPassword: 'pw'),
+        emitsInOrder([
+          const PairingProgress(PairingStep.connecting),
+          emitsError(isA<ServerFailure>()),
+        ]),
+      );
+      verify(() => ble.openSession(any())).called(3);
+    });
+  });
+
+  group('pairDevice — poll PAIRED chịu lỗi mạng lẻ', () {
+    test('1 request rớt giữa lúc chờ device → poll tiếp, pair vẫn thành công',
+        () async {
+      stubHappyPath();
+      var calls = 0;
+      when(() => remote.getPairingTokenStatus('ABCD1234'))
+          .thenAnswer((_) async {
+        calls++;
+        if (calls == 1) throw ServerException(message: 'network blip');
+        return const PairingTokenModel(
+            token: 'ABCD1234', status: 'PAIRED', deviceId: 'dev-99');
+      });
+
+      final steps = await repository
+          .pairDevice(device: device, ssid: 'MyWiFi', wifiPassword: 'pw')
+          .toList();
+
+      expect(steps.last.step, PairingStep.done);
+      verify(() => remote.getPairingTokenStatus('ABCD1234')).called(2);
+    });
+
+    test('401 trong lúc poll → fail ngay, không được nuốt', () async {
+      stubHappyPath();
+      when(() => remote.getPairingTokenStatus('ABCD1234'))
+          .thenThrow(UnauthorizedException());
+
+      await expectLater(
+        repository.pairDevice(
+            device: device, ssid: 'MyWiFi', wifiPassword: 'pw'),
+        emitsThrough(emitsError(isA<UnauthorizedFailure>())),
+      );
     });
   });
 }

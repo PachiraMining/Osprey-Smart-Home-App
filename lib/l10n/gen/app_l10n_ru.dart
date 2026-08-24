@@ -1727,4 +1727,65 @@ class AppL10nRu extends AppL10n {
 
   @override
   String get normalMode => 'Обычный режим';
+
+  @override
+  String get deviceStatus => 'Состояние устройства';
+
+  @override
+  String get selectDevice => 'Выбрать устройство';
+
+  @override
+  String get condition => 'Условие';
+
+  @override
+  String get precondition => 'Предусловие';
+
+  @override
+  String get customTime => 'Свой вариант';
+
+  @override
+  String get startTime => 'Время начала';
+
+  @override
+  String get endTime => 'Время окончания';
+
+  @override
+  String get overnightNote =>
+      'Этот интервал переходит через полночь. Он отсчитывается от дня начала.';
+
+  @override
+  String get automationDelayNote =>
+      'Срабатывает примерно через 5 секунд после изменения, затем делает паузу на 60 секунд. Новая автоматизация не срабатывает, если её условие уже выполнено, — только при следующем изменении.';
+
+  @override
+  String get selectCity => 'Выбрать город';
+
+  @override
+  String get searchCity => 'Поиск города';
+
+  @override
+  String get equals => 'Равно';
+
+  @override
+  String get notEquals => 'Не равно';
+
+  @override
+  String get greaterThan => 'Больше';
+
+  @override
+  String get greaterOrEqual => 'Больше или равно';
+
+  @override
+  String get lessThan => 'Меньше';
+
+  @override
+  String get lessOrEqual => 'Меньше или равно';
+
+  @override
+  String get noReadableDataPoints =>
+      'У этого устройства нет читаемого состояния, которое можно использовать как условие.';
+
+  @override
+  String get bluetoothOffMessage =>
+      'Bluetooth выключен — включите его, чтобы найти устройства поблизости';
 }

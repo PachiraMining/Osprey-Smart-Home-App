@@ -1713,4 +1713,65 @@ class AppL10nIt extends AppL10n {
 
   @override
   String get normalMode => 'Modalità normale';
+
+  @override
+  String get deviceStatus => 'Stato del dispositivo';
+
+  @override
+  String get selectDevice => 'Seleziona dispositivo';
+
+  @override
+  String get condition => 'Condizione';
+
+  @override
+  String get precondition => 'Condizione preliminare';
+
+  @override
+  String get customTime => 'Personalizzato';
+
+  @override
+  String get startTime => 'Ora di inizio';
+
+  @override
+  String get endTime => 'Ora di fine';
+
+  @override
+  String get overnightNote =>
+      'Questo intervallo supera la mezzanotte. Viene conteggiato dal giorno in cui inizia.';
+
+  @override
+  String get automationDelayNote =>
+      'Viene eseguita entro circa 5 secondi dal cambiamento, poi si ferma per 60 secondi. Un\'automazione nuova non viene eseguita se la sua condizione è già soddisfatta: solo al cambiamento successivo.';
+
+  @override
+  String get selectCity => 'Seleziona città';
+
+  @override
+  String get searchCity => 'Cerca città';
+
+  @override
+  String get equals => 'Uguale a';
+
+  @override
+  String get notEquals => 'Diverso da';
+
+  @override
+  String get greaterThan => 'Maggiore di';
+
+  @override
+  String get greaterOrEqual => 'Maggiore o uguale a';
+
+  @override
+  String get lessThan => 'Minore di';
+
+  @override
+  String get lessOrEqual => 'Minore o uguale a';
+
+  @override
+  String get noReadableDataPoints =>
+      'Questo dispositivo non ha uno stato leggibile da usare come condizione.';
+
+  @override
+  String get bluetoothOffMessage =>
+      'Il Bluetooth è disattivato: attivalo per trovare i dispositivi nelle vicinanze';
 }

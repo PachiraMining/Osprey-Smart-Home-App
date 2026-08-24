@@ -36,6 +36,14 @@ abstract class BlePairingDataSource {
   /// scan response chứa local name "Osprey-CR-XXXX").
   Stream<List<ScanResult>> get scanResults;
 
+  /// Trạng thái Bluetooth adapter (on/off/unknown...) — FBP replay giá trị
+  /// hiện tại cho listener mới.
+  Stream<BluetoothAdapterState> get adapterStates;
+
+  /// Scan đang chạy? — FBP tự dừng khi hết scanTimeout, stream này là cách
+  /// duy nhất để UI biết điều đó.
+  Stream<bool> get scanningStates;
+
   Future<void> startScan();
   Future<void> stopScan();
 
@@ -74,12 +82,24 @@ class BlePairingDataSourceImpl implements BlePairingDataSource {
   Stream<List<ScanResult>> get scanResults => FlutterBluePlus.scanResults;
 
   @override
+  Stream<BluetoothAdapterState> get adapterStates =>
+      FlutterBluePlus.adapterState;
+
+  @override
+  Stream<bool> get scanningStates => FlutterBluePlus.isScanning;
+
+  @override
   Future<void> startScan() async {
     if (FlutterBluePlus.isScanningNow) return;
     await FlutterBluePlus.startScan(
       withServices: [Guid(PairingConstants.brandServiceUuid)],
       timeout: PairingConstants.scanTimeout,
       androidUsesFineLocation: true,
+      // BẮT BUỘC cho bộ lọc stale: mặc định FBP chỉ ghi timeStamp lần đầu
+      // thấy device — không bật thì device đang phát sóng vẫn bị coi là
+      // stale sau scanStaleAfter. removeIfGone để FBP tự loại entry chết.
+      continuousUpdates: true,
+      removeIfGone: PairingConstants.scanStaleAfter,
     );
   }
 

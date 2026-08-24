@@ -3,7 +3,7 @@ import '../../../../core/error/failure.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../domain/entities/automation_scene_entity.dart';
 import '../../domain/entities/scene_action_entity.dart';
-import '../../domain/entities/schedule_condition_entity.dart';
+import '../../domain/entities/automation_condition_entity.dart';
 import '../../domain/entities/effective_time_entity.dart';
 import '../../domain/repositories/automation_repository.dart';
 import '../datasources/automation_remote_datasource.dart';
@@ -56,7 +56,7 @@ class AutomationRepositoryImpl implements AutomationRepository {
     required String homeId,
     required String name,
     String? icon,
-    required List<ScheduleConditionEntity> conditions,
+    required List<AutomationConditionEntity> conditions,
     required String conditionLogic,
     EffectiveTimeEntity? effectiveTime,
     required List<SceneActionEntity> actions,
@@ -90,7 +90,7 @@ class AutomationRepositoryImpl implements AutomationRepository {
     required String name,
     String? icon,
     required bool enabled,
-    required List<ScheduleConditionEntity> conditions,
+    required List<AutomationConditionEntity> conditions,
     required String conditionLogic,
     EffectiveTimeEntity? effectiveTime,
     required List<SceneActionEntity> actions,
@@ -159,7 +159,7 @@ class AutomationRepositoryImpl implements AutomationRepository {
   Map<String, dynamic> _buildBody({
     required String name,
     String? icon,
-    required List<ScheduleConditionEntity> conditions,
+    required List<AutomationConditionEntity> conditions,
     required String conditionLogic,
     EffectiveTimeEntity? effectiveTime,
     required List<SceneActionEntity> actions,
@@ -169,16 +169,21 @@ class AutomationRepositoryImpl implements AutomationRepository {
       'sceneType': 'AUTOMATION',
       if (icon != null) 'icon': icon,
       'conditions': conditions.map((c) {
-        return ScheduleConditionModel(
-          conditionType: c.conditionType,
-          // Deliberately NOT forwarding c.timeZoneId: the backend derives the
-          // zone from home.timezone. Re-sending it (legacy scenes carry a
-          // hardcoded 'Asia/Ho_Chi_Minh' from before this change) would override
-          // the home timezone on every edit — even an unrelated rename/toggle.
-          loops: c.loops,
-          time: c.time,
-          date: c.date,
-        ).toJson();
+        return switch (c) {
+          ScheduleConditionEntity() => ScheduleConditionModel(
+              conditionType: c.conditionType,
+              // Deliberately NOT forwarding c.timeZoneId: the backend derives
+              // the zone from home.timezone. Re-sending it (legacy scenes carry
+              // a hardcoded 'Asia/Ho_Chi_Minh' from before this change) would
+              // override the home timezone on every edit — even an unrelated
+              // rename/toggle. Đây là lý do KHÔNG dùng
+              // automationConditionToJson cho nhánh này.
+              loops: c.loops,
+              time: c.time,
+              date: c.date,
+            ).toJson(),
+          DeviceStatusConditionEntity() => automationConditionToJson(c),
+        };
       }).toList(),
       'conditionLogic': conditionLogic,
       if (effectiveTime != null)

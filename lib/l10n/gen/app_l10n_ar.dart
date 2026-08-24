@@ -1729,4 +1729,65 @@ class AppL10nAr extends AppL10n {
 
   @override
   String get normalMode => 'الوضع العادي';
+
+  @override
+  String get deviceStatus => 'حالة الجهاز';
+
+  @override
+  String get selectDevice => 'اختر الجهاز';
+
+  @override
+  String get condition => 'الشرط';
+
+  @override
+  String get precondition => 'شرط مسبق';
+
+  @override
+  String get customTime => 'مخصص';
+
+  @override
+  String get startTime => 'وقت البدء';
+
+  @override
+  String get endTime => 'وقت الانتهاء';
+
+  @override
+  String get overnightNote =>
+      'تمتد هذه الفترة بعد منتصف الليل. تُحتسب من اليوم الذي تبدأ فيه.';
+
+  @override
+  String get automationDelayNote =>
+      'يعمل خلال 5 ثوانٍ تقريبًا من التغيير، ثم يتوقف 60 ثانية. لا يعمل التشغيل التلقائي الجديد إذا كان شرطه مستوفى بالفعل — بل عند التغيير التالي فقط.';
+
+  @override
+  String get selectCity => 'اختر المدينة';
+
+  @override
+  String get searchCity => 'ابحث عن مدينة';
+
+  @override
+  String get equals => 'يساوي';
+
+  @override
+  String get notEquals => 'لا يساوي';
+
+  @override
+  String get greaterThan => 'أكبر من';
+
+  @override
+  String get greaterOrEqual => 'أكبر من أو يساوي';
+
+  @override
+  String get lessThan => 'أصغر من';
+
+  @override
+  String get lessOrEqual => 'أصغر من أو يساوي';
+
+  @override
+  String get noReadableDataPoints =>
+      'لا تتوفر لهذا الجهاز حالة قابلة للقراءة لاستخدامها كشرط.';
+
+  @override
+  String get bluetoothOffMessage =>
+      'البلوتوث مطفأ — شغّله للعثور على الأجهزة القريبة';
 }

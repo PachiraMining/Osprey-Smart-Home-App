@@ -11,7 +11,8 @@ import '../../features/home/domain/entities/room_entity.dart';
 import '../../features/scene/domain/entities/automation_scene_entity.dart';
 import '../../features/scene/domain/entities/effective_time_entity.dart';
 import '../../features/scene/domain/entities/scene_action_entity.dart';
-import '../../features/scene/domain/entities/schedule_condition_entity.dart';
+import '../../features/scene/data/models/automation_condition_model.dart';
+import '../../features/scene/domain/entities/automation_condition_entity.dart';
 import '../../features/scene/domain/entities/tap_to_run_scene_entity.dart';
 
 // ─── Home ───────────────────────────────────────────────────────────────
@@ -94,23 +95,14 @@ SceneActionEntity actionFromJson(Map<String, dynamic> j) => SceneActionEntity(
       functionName: j['functionName'] as String?,
     );
 
-// ─── Schedule condition ─────────────────────────────────────────────────
-Map<String, dynamic> conditionToJson(ScheduleConditionEntity c) => {
-      'conditionType': c.conditionType,
-      'timeZoneId': c.timeZoneId,
-      'loops': c.loops,
-      'time': c.time,
-      'date': c.date,
-    };
+// ─── Automation condition ───────────────────────────────────────────────
+Map<String, dynamic> conditionToJson(AutomationConditionEntity c) =>
+    automationConditionToJson(c);
 
-ScheduleConditionEntity conditionFromJson(Map<String, dynamic> j) =>
-    ScheduleConditionEntity(
-      conditionType: j['conditionType'] as String? ?? 'SCHEDULE',
-      timeZoneId: j['timeZoneId'] as String?,
-      loops: j['loops'] as String? ?? '0000000',
-      time: j['time'] as String? ?? '00:00',
-      date: j['date'] as String?,
-    );
+/// Trả null khi bản ghi cache thuộc loại điều kiện app này chưa biết — người
+/// gọi lọc bỏ, giống hệt đường phân giải từ mạng.
+AutomationConditionEntity? conditionFromJson(Map<String, dynamic> j) =>
+    automationConditionFromJson(j);
 
 // ─── Effective time ─────────────────────────────────────────────────────
 Map<String, dynamic> effectiveTimeToJson(EffectiveTimeEntity e) => {
@@ -178,6 +170,7 @@ AutomationSceneEntity automationFromJson(Map<String, dynamic> j) =>
       conditions: ((j['conditions'] as List?) ?? const [])
           .whereType<Map>()
           .map((c) => conditionFromJson(c.cast<String, dynamic>()))
+          .whereType<AutomationConditionEntity>()
           .toList(),
       effectiveTime: j['effectiveTime'] == null
           ? null

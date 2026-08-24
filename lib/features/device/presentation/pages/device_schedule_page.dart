@@ -5,6 +5,7 @@ import 'package:get_it/get_it.dart';
 
 import '../../../../core/widgets/app_dialog.dart';
 import '../../../home/presentation/bloc/home_management_bloc.dart';
+import '../../../scene/domain/entities/automation_condition_entity.dart';
 import '../../../scene/domain/entities/automation_scene_entity.dart';
 import '../../../scene/domain/usecases/delete_automation.dart';
 import '../../../scene/domain/usecases/get_automations.dart';
@@ -242,7 +243,8 @@ class _ScheduleRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final condition = schedule.conditions.firstOrNull;
+    final condition =
+        schedule.conditions.whereType<ScheduleConditionEntity>().firstOrNull;
     final time = condition?.time ?? '--:--';
     final repeat = condition == null
         ? ''

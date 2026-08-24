@@ -1644,6 +1644,64 @@ class AppL10nZh extends AppL10n {
 
   @override
   String get normalMode => '普通模式';
+
+  @override
+  String get deviceStatus => '设备状态';
+
+  @override
+  String get selectDevice => '选择设备';
+
+  @override
+  String get condition => '条件';
+
+  @override
+  String get precondition => '前置条件';
+
+  @override
+  String get customTime => '自定义';
+
+  @override
+  String get startTime => '开始时间';
+
+  @override
+  String get endTime => '结束时间';
+
+  @override
+  String get overnightNote => '该时段跨越午夜，按开始的那一天计算。';
+
+  @override
+  String get automationDelayNote =>
+      '状态变化后约 5 秒内执行，之后暂停 60 秒。新建的自动化如果条件已经满足不会立即执行，只在下一次变化时执行。';
+
+  @override
+  String get selectCity => '选择城市';
+
+  @override
+  String get searchCity => '搜索城市';
+
+  @override
+  String get equals => '等于';
+
+  @override
+  String get notEquals => '不等于';
+
+  @override
+  String get greaterThan => '大于';
+
+  @override
+  String get greaterOrEqual => '大于或等于';
+
+  @override
+  String get lessThan => '小于';
+
+  @override
+  String get lessOrEqual => '小于或等于';
+
+  @override
+  String get noReadableDataPoints => '该设备没有可读取的状态可用作条件。';
+
+  @override
+  String get bluetoothOffMessage => '蓝牙已关闭 — 请开启蓝牙以查找附近设备';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -3287,4 +3345,62 @@ class AppL10nZhHant extends AppL10nZh {
 
   @override
   String get normalMode => '普通模式';
+
+  @override
+  String get deviceStatus => '裝置狀態';
+
+  @override
+  String get selectDevice => '選擇裝置';
+
+  @override
+  String get condition => '條件';
+
+  @override
+  String get precondition => '前置條件';
+
+  @override
+  String get customTime => '自訂';
+
+  @override
+  String get startTime => '開始時間';
+
+  @override
+  String get endTime => '結束時間';
+
+  @override
+  String get overnightNote => '該時段跨越午夜，以開始的那一天計算。';
+
+  @override
+  String get automationDelayNote =>
+      '狀態變化後約 5 秒內執行，之後暫停 60 秒。新建立的自動化如果條件已經滿足不會立即執行，只在下一次變化時執行。';
+
+  @override
+  String get selectCity => '選擇城市';
+
+  @override
+  String get searchCity => '搜尋城市';
+
+  @override
+  String get equals => '等於';
+
+  @override
+  String get notEquals => '不等於';
+
+  @override
+  String get greaterThan => '大於';
+
+  @override
+  String get greaterOrEqual => '大於或等於';
+
+  @override
+  String get lessThan => '小於';
+
+  @override
+  String get lessOrEqual => '小於或等於';
+
+  @override
+  String get noReadableDataPoints => '此裝置沒有可讀取的狀態可用作條件。';
+
+  @override
+  String get bluetoothOffMessage => '藍牙已關閉 — 請開啟藍牙以尋找附近裝置';
 }

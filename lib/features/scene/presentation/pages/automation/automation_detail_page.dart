@@ -17,6 +17,10 @@ import 'package:smart_curtain_app/features/scene/presentation/bloc/tap_to_run/ta
 import 'package:smart_curtain_app/features/scene/presentation/pages/tap_to_run/select_device_function_page.dart';
 import 'package:smart_curtain_app/features/scene/presentation/pages/tap_to_run/delay_config_sheet.dart';
 import 'package:smart_curtain_app/features/home/domain/entities/home_device_entity.dart';
+import 'package:smart_curtain_app/features/scene/domain/entities/effective_time_entity.dart';
+import 'package:smart_curtain_app/features/scene/presentation/pages/automation/condition_type_sheet.dart';
+import 'package:smart_curtain_app/features/scene/presentation/pages/automation/precondition_page.dart';
+import 'package:smart_curtain_app/features/scene/presentation/pages/automation/device_condition_page.dart';
 import 'package:smart_curtain_app/features/scene/presentation/pages/automation/schedule_condition_page.dart';
 import '../../../../../core/theme/app_surfaces.dart';
 
@@ -49,7 +53,7 @@ class AutomationDetailPage extends StatefulWidget {
   final AutomationSceneEntity? automation;
 
   /// Pre-populated condition (from Schedule picker when creating).
-  final ScheduleConditionEntity? initialCondition;
+  final AutomationConditionEntity? initialCondition;
 
   const AutomationDetailPage({
     super.key,
@@ -63,10 +67,11 @@ class AutomationDetailPage extends StatefulWidget {
 
 class _AutomationDetailPageState extends State<AutomationDetailPage> {
   late TextEditingController _nameController;
-  late List<ScheduleConditionEntity> _conditions;
+  late List<AutomationConditionEntity> _conditions;
   late String _conditionLogic;
   late List<SceneActionEntity> _actions;
   late bool _enabled;
+  EffectiveTimeEntity? _effectiveTime;
 
   bool get _isCreating => widget.automation == null;
 
@@ -89,6 +94,7 @@ class _AutomationDetailPageState extends State<AutomationDetailPage> {
       _conditionLogic = a.conditionLogic;
       _actions = List.of(a.actions);
       _enabled = a.enabled;
+      _effectiveTime = a.effectiveTime;
     } else {
       // Create mode
       _nameController = TextEditingController();
@@ -109,9 +115,21 @@ class _AutomationDetailPageState extends State<AutomationDetailPage> {
   }
 
   String get _effectiveTimeText {
-    final et = widget.automation?.effectiveTime;
+    final et = _effectiveTime;
     if (et == null || et.isAllDay) return AppL10n.of(context).allDay;
     return '${et.startTime ?? ''} - ${et.endTime ?? ''}';
+  }
+
+  Future<void> _editPrecondition() async {
+    final navigator = Navigator.of(context);
+    final result = await navigator.push<EffectiveTimeEntity>(
+      MaterialPageRoute(
+        builder: (_) => PreconditionPage(existing: _effectiveTime),
+      ),
+    );
+    if (result != null && mounted) {
+      setState(() => _effectiveTime = result);
+    }
   }
 
   String get _conditionLogicText {
@@ -146,6 +164,7 @@ class _AutomationDetailPageState extends State<AutomationDetailPage> {
             name: name,
             conditions: _conditions,
             conditionLogic: _conditionLogic,
+            effectiveTime: _effectiveTime,
             actions: _actions,
           ));
     } else {
@@ -162,7 +181,7 @@ class _AutomationDetailPageState extends State<AutomationDetailPage> {
             enabled: _enabled,
             conditions: _conditions,
             conditionLogic: _conditionLogic,
-            effectiveTime: widget.automation!.effectiveTime,
+            effectiveTime: _effectiveTime,
             actions: _actions,
           ));
     }
@@ -283,24 +302,79 @@ class _AutomationDetailPageState extends State<AutomationDetailPage> {
 
   Future<void> _editCondition(int index) async {
     final existing = _conditions[index];
-    final updated = await Navigator.push<ScheduleConditionEntity>(
-      context,
-      MaterialPageRoute(
-        builder: (_) => ScheduleConditionPage(existing: existing),
-      ),
-    );
+    final navigator = Navigator.of(context);
+    final AutomationConditionEntity? updated = switch (existing) {
+      DeviceStatusConditionEntity() =>
+        await navigator.push<DeviceStatusConditionEntity>(
+          MaterialPageRoute(
+            builder: (_) => DeviceConditionPage(existing: existing),
+          ),
+        ),
+      ScheduleConditionEntity() =>
+        await navigator.push<ScheduleConditionEntity>(
+          MaterialPageRoute(
+            builder: (_) => ScheduleConditionPage(existing: existing),
+          ),
+        ),
+    };
     if (updated != null && mounted) {
       setState(() => _conditions[index] = updated);
     }
   }
 
   Future<void> _addScheduleCondition() async {
-    final condition = await Navigator.push<ScheduleConditionEntity>(
-      context,
-      MaterialPageRoute(builder: (_) => const ScheduleConditionPage()),
-    );
+    final navigator = Navigator.of(context);
+    final kind = await showConditionTypeSheet(context);
+    if (kind == null || !mounted) return;
+    final AutomationConditionEntity? condition = kind == 'device'
+        ? await navigator.push<DeviceStatusConditionEntity>(
+            MaterialPageRoute(builder: (_) => const DeviceConditionPage()),
+          )
+        : await navigator.push<ScheduleConditionEntity>(
+            MaterialPageRoute(builder: (_) => const ScheduleConditionPage()),
+          );
     if (condition != null && mounted) {
       setState(() => _conditions.add(condition));
+    }
+  }
+
+  /// Đổi giữa AND và OR cho danh sách điều kiện.
+  Future<void> _pickConditionLogic() async {
+    final l10n = AppL10n.of(context);
+    final picked = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: context.surfaces.sheet,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            ListTile(
+              title: Text(l10n.whenAllConditionsMet,
+                  style: TextStyle(color: ctx.surfaces.textPrimary)),
+              trailing: _conditionLogic == 'AND'
+                  ? Icon(Icons.check, color: ctx.surfaces.navActive)
+                  : null,
+              onTap: () => Navigator.pop(ctx, 'AND'),
+            ),
+            ListTile(
+              title: Text(l10n.whenAnyConditionMet,
+                  style: TextStyle(color: ctx.surfaces.textPrimary)),
+              trailing: _conditionLogic == 'OR'
+                  ? Icon(Icons.check, color: ctx.surfaces.navActive)
+                  : null,
+              onTap: () => Navigator.pop(ctx, 'OR'),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+    if (picked != null && mounted) {
+      setState(() => _conditionLogic = picked);
     }
   }
 
@@ -654,6 +728,10 @@ class _AutomationDetailPageState extends State<AutomationDetailPage> {
   Widget build(BuildContext context) {
     return BlocListener<AutomationBloc, AutomationState>(
       listener: (context, state) {
+        // AutomationBloc là singleton toàn cục: mọi màn dùng chung nó. Chỉ phản
+        // ứng khi màn này đang trên cùng, nếu không sẽ pop nhầm route của màn
+        // khác — và pop quá tay thì Navigator rỗng, ra màn hình đen.
+        if (!(ModalRoute.of(context)?.isCurrent ?? true)) return;
         if (state is AutomationCreated) {
           Navigator.pop(context, true);
         } else if (state is AutomationError) {
@@ -728,6 +806,7 @@ class _AutomationDetailPageState extends State<AutomationDetailPage> {
               _IfCard(
                 conditionLogicText: _conditionLogicText,
                 conditions: _conditions,
+                onChangeLogic: _pickConditionLogic,
                 onAdd: _showAddConditionSheet,
                 onRemoveCondition: (index) =>
                     setState(() => _conditions.removeAt(index)),
@@ -746,6 +825,12 @@ class _AutomationDetailPageState extends State<AutomationDetailPage> {
               ),
 
               const SizedBox(height: 10),
+
+              // ── Precondition (khung giờ hiệu lực) ──
+              _buildOptionRow(
+                title: AppL10n.of(context).precondition,
+                onTap: _editPrecondition,
+              ),
 
               // ── More Settings ──
               _buildOptionRow(
@@ -817,7 +902,8 @@ class _AutomationDetailPageState extends State<AutomationDetailPage> {
 // ─────────────────────────────────────────────────────────────────────────────
 class _IfCard extends StatelessWidget {
   final String conditionLogicText;
-  final List<ScheduleConditionEntity> conditions;
+  final List<AutomationConditionEntity> conditions;
+  final VoidCallback onChangeLogic;
   final VoidCallback onAdd;
   final void Function(int index) onRemoveCondition;
   final void Function(int index) onTapCondition;
@@ -825,6 +911,7 @@ class _IfCard extends StatelessWidget {
   const _IfCard({
     required this.conditionLogicText,
     required this.conditions,
+    required this.onChangeLogic,
     required this.onAdd,
     required this.onRemoveCondition,
     required this.onTapCondition,
@@ -864,17 +951,30 @@ class _IfCard extends StatelessWidget {
               ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-            child: Text(conditionLogicText,
-                style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+          GestureDetector(
+            onTap: onChangeLogic,
+            behavior: HitTestBehavior.opaque,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(conditionLogicText,
+                      style: TextStyle(
+                          fontSize: 13,
+                          color: context.surfaces.textSecondary)),
+                  Icon(Icons.keyboard_arrow_down_rounded,
+                      size: 18, color: context.surfaces.textSecondary),
+                ],
+              ),
+            ),
           ),
           if (conditions.isNotEmpty) ...[
             const Divider(height: 1, color: AppColors.borderSubtle),
             ...conditions.asMap().entries.map((entry) {
               final c = entry.value;
               return Dismissible(
-                key: Key('condition_${entry.key}_${c.time}'),
+                key: ValueKey('condition_${entry.key}_${c.conditionType}'),
                 direction: DismissDirection.endToStart,
                 onDismissed: (_) => onRemoveCondition(entry.key),
                 background: Container(
@@ -895,27 +995,43 @@ class _IfCard extends StatelessWidget {
                           width: 40,
                           height: 40,
                           decoration: BoxDecoration(
-                            color: AppColors.surfaceMuted,
+                            // Trắng cố định kể cả dark mode — icon bên trong
+                            // vẽ cho nền sáng, giống ô icon thẻ automation.
+                            color: Colors.white,
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: const Icon(Icons.access_time,
-                              size: 22, color: AppColors.primary),
+                          child: switch (c) {
+                            ScheduleConditionEntity() => const Icon(
+                                Icons.access_time,
+                                size: 22,
+                                color: AppColors.primary),
+                            DeviceStatusConditionEntity() => const Icon(
+                                Icons.lightbulb_outline,
+                                size: 22,
+                                color: Color(0xFF2ECC71)),
+                          },
                       ),
                       const SizedBox(width: 14),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(AppL10n.of(context).schedule,
+                            Text(
+                                switch (c) {
+                                  ScheduleConditionEntity() =>
+                                    AppL10n.of(context).schedule,
+                                  DeviceStatusConditionEntity() =>
+                                    AppL10n.of(context).deviceStatus,
+                                },
                                 style: TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w500,
-                                    color: AppColors.textPrimary)),
+                                    color: context.surfaces.textPrimary)),
                             const SizedBox(height: 2),
                             Text(c.displayText,
-                                style: const TextStyle(
+                                style: TextStyle(
                                     fontSize: 13,
-                                    color: AppColors.textSecondary)),
+                                    color: context.surfaces.textSecondary)),
                           ],
                         ),
                       ),
@@ -927,6 +1043,19 @@ class _IfCard extends StatelessWidget {
                 ),
               );
             }),
+            // Ba hành vi người dùng không thể tự đoán: độ trễ ~5s, nghỉ 60s,
+            // và automation mới không nổ khi điều kiện đang thoả sẵn.
+            if (conditions.any((c) => c is DeviceStatusConditionEntity))
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+                child: Text(
+                  AppL10n.of(context).automationDelayNote,
+                  style: TextStyle(
+                      fontSize: 12,
+                      height: 1.35,
+                      color: context.surfaces.textMuted),
+                ),
+              ),
           ],
         ],
       ),

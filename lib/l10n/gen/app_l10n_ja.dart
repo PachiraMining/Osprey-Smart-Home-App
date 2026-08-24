@@ -1666,4 +1666,62 @@ class AppL10nJa extends AppL10n {
 
   @override
   String get normalMode => '通常モード';
+
+  @override
+  String get deviceStatus => 'デバイスの状態';
+
+  @override
+  String get selectDevice => 'デバイスを選択';
+
+  @override
+  String get condition => '条件';
+
+  @override
+  String get precondition => '前提条件';
+
+  @override
+  String get customTime => 'カスタム';
+
+  @override
+  String get startTime => '開始時刻';
+
+  @override
+  String get endTime => '終了時刻';
+
+  @override
+  String get overnightNote => 'この時間帯は日をまたぎます。開始する日を基準に数えます。';
+
+  @override
+  String get automationDelayNote =>
+      '変化から約 5 秒以内に実行され、その後 60 秒間停止します。新しいオートメーションは条件がすでに満たされている場合は実行されず、次に変化したときに実行されます。';
+
+  @override
+  String get selectCity => '都市を選択';
+
+  @override
+  String get searchCity => '都市を検索';
+
+  @override
+  String get equals => '等しい';
+
+  @override
+  String get notEquals => '等しくない';
+
+  @override
+  String get greaterThan => 'より大きい';
+
+  @override
+  String get greaterOrEqual => '以上';
+
+  @override
+  String get lessThan => 'より小さい';
+
+  @override
+  String get lessOrEqual => '以下';
+
+  @override
+  String get noReadableDataPoints => 'このデバイスには条件として使える読み取り可能な状態がありません。';
+
+  @override
+  String get bluetoothOffMessage => 'Bluetoothがオフです。オンにすると近くのデバイスを検索できます';
 }

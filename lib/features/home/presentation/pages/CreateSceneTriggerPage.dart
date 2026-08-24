@@ -1,6 +1,7 @@
 import 'package:smart_curtain_app/features/scene/domain/entities/schedule_condition_entity.dart';
 import '../../../../l10n/gen/app_l10n.dart';
 import 'package:smart_curtain_app/features/scene/presentation/pages/automation/automation_detail_page.dart';
+import 'package:smart_curtain_app/features/scene/presentation/pages/automation/device_condition_page.dart';
 import 'package:smart_curtain_app/features/scene/presentation/pages/automation/schedule_condition_page.dart';
 import 'package:flutter/material.dart';
 import 'package:smart_curtain_app/features/scene/presentation/pages/tap_to_run/create_tap_to_run_page.dart';
@@ -105,8 +106,25 @@ class CreateSceneTriggerPage extends StatelessWidget {
                     iconColor: const Color(0xFF2ECC71),
                     title: AppL10n.of(context).whenDeviceStatusChanges,
                     example: AppL10n.of(context).exampleDeviceStatus,
-                    onTap: () =>
-                        _comingSoon(context, AppL10n.of(context).deviceStatusTrigger),
+                    onTap: () async {
+                      // Cùng khuôn mẫu với cell Schedule: chọn điều kiện rồi
+                      // thay màn bằng trình soạn automation If–Then.
+                      final navigator = Navigator.of(context);
+                      final condition =
+                          await navigator.push<DeviceStatusConditionEntity>(
+                        MaterialPageRoute(
+                          builder: (_) => const DeviceConditionPage(),
+                        ),
+                      );
+                      if (condition == null) return;
+                      navigator.pushReplacement(
+                        MaterialPageRoute(
+                          builder: (_) => AutomationDetailPage(
+                            initialCondition: condition,
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),

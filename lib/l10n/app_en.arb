@@ -747,5 +747,27 @@
   "followSystem": "Follow system",
   "system": "System",
   "systemDarkModeHint": "When enabled, the app will switch the dark mode on or off to match your system settings.",
-  "normalMode": "Normal Mode"
+  "normalMode": "Normal Mode",
+  "deviceStatus": "Device status",
+  "selectDevice": "Select device",
+  "condition": "Condition",
+  "precondition": "Precondition",
+  "customTime": "Custom",
+  "startTime": "Start time",
+  "endTime": "End time",
+  "overnightNote": "This period crosses midnight. It is counted from the day it starts.",
+  "automationDelayNote": "Runs within about 5 seconds of the change, then pauses for 60 seconds. A new automation does not run if its condition is already met — only on the next change.",
+  "selectCity": "Select city",
+  "searchCity": "Search city",
+  "equals": "Equals",
+  "notEquals": "Does not equal",
+  "greaterThan": "Greater than",
+  "greaterOrEqual": "Greater than or equal",
+  "lessThan": "Less than",
+  "lessOrEqual": "Less than or equal",
+  "noReadableDataPoints": "This device has no readable status to use as a condition.",
+  "bluetoothOffMessage": "Bluetooth is off — turn it on to find nearby devices",
+  "@bluetoothOffMessage": {
+    "description": "Add Device screen header when the Bluetooth adapter is off"
+  }
 }

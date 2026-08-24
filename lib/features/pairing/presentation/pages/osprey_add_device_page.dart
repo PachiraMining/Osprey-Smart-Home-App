@@ -92,12 +92,18 @@ class _OspreyAddDeviceViewState extends State<_OspreyAddDeviceView> {
       if (!mounted) return;
       // Pairing succeeded → refresh the home's devices right away so the new
       // device is already in the list when the user lands back on Home.
-      if (paired == true) {
+      // (paired là deviceId; `true` là giá trị pop của bản cũ.)
+      if (paired == true || paired is String) {
         final hm = context.read<HomeManagementBloc>();
         final homeId = hm.state.selectedHomeId;
         if (homeId != null) {
           hm.add(LoadHomeDevicesEvent(homeId));
           hm.add(LoadRoomsEvent(homeId));
+        }
+        // TB set `active=true` trễ hơn PAIRED vài giây → snapshot đầu thấy
+        // offline. Poll riêng thiết bị mới tới khi TB xác nhận online.
+        if (paired is String && paired.isNotEmpty) {
+          hm.add(WaitDeviceOnlineEvent(paired, optimistic: true));
         }
       }
       context.read<OspreyScanBloc>().add(const StartOspreyScanEvent());
@@ -165,7 +171,9 @@ class _OspreyAddDeviceViewState extends State<_OspreyAddDeviceView> {
 
   Widget _buildHeader(bool isScanning, OspreyScanState state) {
     final String text;
-    if (state is OspreyScanError) {
+    if (state is OspreyScanBluetoothOff) {
+      text = AppL10n.of(context).bluetoothOffMessage;
+    } else if (state is OspreyScanError) {
       text = state.message;
     } else if (isScanning) {
       text = AppL10n.of(context).searchingNearbyDevices;
@@ -189,11 +197,14 @@ class _OspreyAddDeviceViewState extends State<_OspreyAddDeviceView> {
             )
           else
             Icon(
-              state is OspreyScanError
-                  ? Icons.error_outline
-                  : Icons.bluetooth_searching,
-              color:
-                  state is OspreyScanError ? AppColors.error : AppColors.primary,
+              state is OspreyScanBluetoothOff
+                  ? Icons.bluetooth_disabled
+                  : state is OspreyScanError
+                      ? Icons.error_outline
+                      : Icons.bluetooth_searching,
+              color: state is OspreyScanError || state is OspreyScanBluetoothOff
+                  ? AppColors.error
+                  : AppColors.primary,
               size: 22,
             ),
           const SizedBox(width: 12),

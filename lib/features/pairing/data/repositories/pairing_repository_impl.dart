@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:typed_data';
 
 import 'package:dartz/dartz.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart'
+    show BluetoothAdapterState, ScanResult;
 
 import '../../../../core/config/app_config.dart';
 import '../../../../core/error/exceptions.dart';
@@ -17,6 +20,7 @@ import '../../pairing_constants.dart';
 import '../crypto/hex_utils.dart';
 import '../crypto/pairing_crypto.dart';
 import '../datasources/ble_pairing_datasource.dart';
+import '../models/pairing_token_model.dart';
 import '../datasources/osprey_adv_parser.dart';
 import '../datasources/pairing_remote_datasource.dart';
 import '../datasources/product_catalog_cache.dart';
@@ -75,6 +79,14 @@ class PairingRepositoryImpl implements PairingRepository {
   }
 
   @override
+  Stream<bool> bluetoothOn() => bleDataSource.adapterStates
+      .where((s) => s != BluetoothAdapterState.unknown)
+      .map((s) => s == BluetoothAdapterState.on);
+
+  @override
+  Stream<bool> scanning() => bleDataSource.scanningStates;
+
+  @override
   Future<void> startScan() => bleDataSource.startScan();
 
   @override
@@ -82,10 +94,45 @@ class PairingRepositoryImpl implements PairingRepository {
 
   @override
   Stream<List<DiscoveredOspreyDevice>> scanForDevices() {
-    return bleDataSource.scanResults.map((results) {
-      final devices = <DiscoveredOspreyDevice>[];
-      for (final r in results) {
+    var latest = const <ScanResult>[];
+    StreamSubscription<List<ScanResult>>? sub;
+    Timer? pruneTimer;
+    late StreamController<List<DiscoveredOspreyDevice>> controller;
+    controller = StreamController(
+      onListen: () {
+        sub = bleDataSource.scanResults.listen(
+          (results) {
+            latest = results;
+            controller.add(_mapScanResults(results));
+          },
+          onError: controller.addError,
+        );
+        // Re-emit định kỳ để entry stale rơi khỏi UI kể cả khi không có
+        // advertisement mới nào tới (device tắt → FBP không emit gì nữa).
+        pruneTimer = Timer.periodic(
+          PairingConstants.scanPruneInterval,
+          (_) => controller.add(_mapScanResults(latest)),
+        );
+      },
+      onCancel: () async {
+        pruneTimer?.cancel();
+        await sub?.cancel();
+      },
+    );
+    return controller.stream;
+  }
+
+  List<DiscoveredOspreyDevice> _mapScanResults(List<ScanResult> results) {
+    final now = DateTime.now();
+    final devices = <DiscoveredOspreyDevice>[];
+    for (final r in results) {
         final id = r.device.remoteId.str;
+        // Advertisement cuối đã quá cũ → device không còn phát nữa
+        // (đã pair xong / tắt nguồn) — bấm vào chỉ ăn connect timeout.
+        if (now.difference(r.timeStamp) > PairingConstants.scanStaleAfter) {
+          _logScan(id, r.rssi, 'SKIP: stale (last adv ${r.timeStamp})');
+          continue;
+        }
         final raw = r.advertisementData
             .manufacturerData[PairingConstants.manufacturerCompanyId];
         if (raw == null) {
@@ -123,7 +170,6 @@ class PairingRepositoryImpl implements PairingRepository {
       // Tín hiệu mạnh hiển thị trước
       devices.sort((a, b) => b.rssi.compareTo(a.rssi));
       return devices;
-    });
   }
 
   // Tránh spam log: chỉ log khi verdict của 1 device thay đổi.
@@ -157,7 +203,19 @@ class PairingRepositoryImpl implements PairingRepository {
       // Firmware watchdog 30s armed lúc connect, DISARM ngay khi app
       // READ char DEVICE_UUID — sau đó gọi backend bao lâu cũng được.
       yield const PairingProgress(PairingStep.connecting);
-      await bleDataSource.openSession(device.remoteId);
+      // Stack BLE (nhất là Android) hay timeout vu vơ lần đầu — thử lại
+      // trước khi bắt user bấm Retry bằng tay.
+      for (var attempt = 1; ; attempt++) {
+        try {
+          await bleDataSource.openSession(device.remoteId);
+          break;
+        } on BlePairingException {
+          if (attempt >= PairingConstants.connectAttempts) rethrow;
+          log('[BLE-PAIR] connect attempt $attempt failed — retrying',
+              name: 'PairingRepository');
+          await Future<void>.delayed(PairingConstants.connectRetryDelay);
+        }
+      }
       final deviceUuid = await bleDataSource.readDeviceUuid();
 
       // ── 2. Backend: auth-challenge + pairing token ───────────
@@ -256,17 +314,28 @@ class PairingRepositoryImpl implements PairingRepository {
   Future<String> _pollUntilPaired(String token) async {
     final pollTimer = Stopwatch()..start();
     for (var i = 0; i < PairingConstants.pollMaxAttempts; i++) {
-      final status = await remoteDataSource.getPairingTokenStatus(token);
-      if (status.isPaired) {
-        print('⏱ [PairTiming] PAIRED tại lần poll #${i + 1} sau '
-            '${pollTimer.elapsedMilliseconds}ms (phase chờ device online)');
-        return status.deviceId ?? '';
+      // Mạng rớt lẻ tẻ đúng lúc chờ device không được phép giết cả pairing
+      // (device thật ra vẫn đang lên) — nuốt ServerException, poll tiếp.
+      // 401 vẫn phải nổ ngay: token hỏng thì chờ thêm cũng vô ích.
+      PairingTokenModel? status;
+      try {
+        status = await remoteDataSource.getPairingTokenStatus(token);
+      } on ServerException catch (e) {
+        log('[PAIRING] poll #${i + 1} network error (ignored): ${e.message}',
+            name: 'PairingRepository');
       }
-      print('⏱ [PairTiming] poll #${i + 1}: chưa PAIRED '
-          '(${pollTimer.elapsedMilliseconds}ms)');
-      if (status.isExpired) {
-        throw ServerException(
-            message: 'Pairing token has expired — please try again');
+      if (status != null) {
+        if (status.isPaired) {
+          print('⏱ [PairTiming] PAIRED tại lần poll #${i + 1} sau '
+              '${pollTimer.elapsedMilliseconds}ms (phase chờ device online)');
+          return status.deviceId ?? '';
+        }
+        print('⏱ [PairTiming] poll #${i + 1}: chưa PAIRED '
+            '(${pollTimer.elapsedMilliseconds}ms)');
+        if (status.isExpired) {
+          throw ServerException(
+              message: 'Pairing token has expired — please try again');
+        }
       }
       await Future.delayed(PairingConstants.pollInterval);
     }

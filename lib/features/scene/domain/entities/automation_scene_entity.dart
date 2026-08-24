@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'scene_action_entity.dart';
-import 'schedule_condition_entity.dart';
+import 'automation_condition_entity.dart';
 import 'effective_time_entity.dart';
 
 class AutomationSceneEntity extends Equatable {
@@ -9,7 +9,7 @@ class AutomationSceneEntity extends Equatable {
   final String sceneType; // "AUTOMATION"
   final String? icon;
   final bool enabled;
-  final List<ScheduleConditionEntity> conditions;
+  final List<AutomationConditionEntity> conditions;
   final String conditionLogic; // "AND" or "OR"
   final EffectiveTimeEntity? effectiveTime;
   final List<SceneActionEntity> actions;

@@ -129,8 +129,8 @@ class _OspreyPairingViewState extends State<_OspreyPairingView> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                // Trả true để trang trước refresh danh sách thiết bị.
-                onPressed: () => Navigator.pop(context, true),
+                // Trả deviceId để trang trước refresh list + poll online.
+                onPressed: () => Navigator.pop(context, state.deviceId),
                 child: Text(AppL10n.of(context).done,
                     style: TextStyle(
                         fontSize: 16, fontWeight: FontWeight.w600)),

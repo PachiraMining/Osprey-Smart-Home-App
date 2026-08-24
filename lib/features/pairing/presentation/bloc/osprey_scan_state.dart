@@ -32,6 +32,9 @@ class OspreyScanStopped extends OspreyScanState {
   List<Object?> get props => [devices];
 }
 
+/// Bluetooth đang tắt — chờ user bật, bloc sẽ tự scan lại.
+class OspreyScanBluetoothOff extends OspreyScanState {}
+
 class OspreyScanError extends OspreyScanState {
   final String message;
   const OspreyScanError(this.message);

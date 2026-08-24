@@ -9,6 +9,7 @@ import '../../../../core/notifications/message_center.dart';
 import '../../../../core/widget/home_widget_service.dart';
 import '../../data/datasources/home_remote_datasource.dart';
 import '../../domain/entities/home_entity.dart';
+import '../../domain/home_update_merge.dart';
 import '../../domain/usecases/get_homes.dart';
 import '../../domain/usecases/create_home.dart';
 import '../../domain/usecases/update_home.dart';
@@ -42,6 +43,11 @@ class HomeManagementBloc extends Bloc<HomeManagementEvent, HomeManagementState>
   final DeleteRoom deleteRoom;
   final HomeRemoteDataSource homeRemoteDataSource;
 
+  /// Thiết bị vừa pair xong đang được coi là online (optimistic) cho tới khi
+  /// ThingsBoard xác nhận hoặc hết thời gian chờ. LoadHomeDevices enrich tôn
+  /// trọng danh sách này để tile không nháy offline ở lần render đầu.
+  final Set<String> _optimisticOnlineIds = {};
+
   HomeManagementBloc({
     required this.getHomes,
     required this.createHome,
@@ -69,6 +75,7 @@ class HomeManagementBloc extends Bloc<HomeManagementEvent, HomeManagementState>
     on<UpdateHomeDeviceEvent>(_onUpdateHomeDevice);
     on<RemoveDeviceFromHomeEvent>(_onRemoveDeviceFromHome);
     on<FactoryResetDeviceEvent>(_onFactoryResetDevice);
+    on<WaitDeviceOnlineEvent>(_onWaitDeviceOnline);
     on<LoadRoomsEvent>(_onLoadRooms);
     on<CreateRoomEvent>(_onCreateRoom);
     on<UpdateRoomEvent>(_onUpdateRoom);
@@ -243,11 +250,27 @@ class HomeManagementBloc extends Bloc<HomeManagementEvent, HomeManagementState>
   ) async {
     emit(state.copyWith(mutationStatus: MutationStatus.loading));
 
+    // PUT là full-replace — lấp lại các trường event không nói tới từ bản ghi
+    // hiện tại, nếu không đổi tên sẽ xoá sạch toạ độ và timezone.
+    final current =
+        state.homes.where((h) => h.id == event.homeId).firstOrNull;
+    final merged = current == null
+        ? null
+        : mergeHomeUpdate(
+            current: current,
+            name: event.name,
+            geoName: event.geoName,
+            latitude: event.latitude,
+            longitude: event.longitude,
+            timezone: event.timezone,
+          );
     final result = await updateHome(
       homeId: event.homeId,
       name: event.name,
-      geoName: event.geoName,
-      timezone: event.timezone,
+      geoName: merged?.geoName ?? event.geoName,
+      latitude: merged?.latitude ?? event.latitude,
+      longitude: merged?.longitude ?? event.longitude,
+      timezone: merged?.timezone ?? event.timezone,
     );
     result.fold(
       (failure) => emit(state.copyWith(
@@ -354,7 +377,8 @@ class HomeManagementBloc extends Bloc<HomeManagementEvent, HomeManagementState>
                     (info['deviceProfileId'] as Map<String, dynamic>?)?['id']
                         as String?,
                 type: info['type'] as String?,
-                isOnline: info['active'] == true,
+                isOnline: info['active'] == true ||
+                    _optimisticOnlineIds.contains(d.deviceId),
               );
             } catch (_) {
               return d; // swallow individual enrichment errors
@@ -416,6 +440,82 @@ class HomeManagementBloc extends Bloc<HomeManagementEvent, HomeManagementState>
         add(LoadHomeDevicesEvent(event.homeId));
       },
     );
+  }
+
+  /// Chờ ThingsBoard flip `active=true` cho thiết bị mới pair rồi patch state.
+  /// PAIRED (backend) đến trước khi TB thấy device connect MQTT, nên lần
+  /// enrich đầu tiên luôn ra offline — đây là nửa "revalidate" cho 1 thiết bị.
+  Future<void> _onWaitDeviceOnline(
+    WaitDeviceOnlineEvent event,
+    Emitter<HomeManagementState> emit,
+  ) async {
+    var optimisticShown = false;
+    // Đăng ký TRƯỚC mọi await — enrichment của LoadHomeDevices (đang chạy
+    // song song) sẽ thấy và emit online ngay từ lần đầu.
+    if (event.optimistic) _optimisticOnlineIds.add(event.deviceId);
+
+    bool deviceInList() =>
+        state.devices.any((d) => d.deviceId == event.deviceId);
+
+    void patchOnline(bool online) {
+      if (!deviceInList()) return;
+      emit(state.copyWith(
+        devices: [
+          for (final d in state.devices)
+            d.deviceId == event.deviceId
+                ? d.copyWithDeviceInfo(isOnline: online)
+                : d,
+        ],
+      ));
+    }
+
+    for (var attempt = 0; attempt < event.maxAttempts; attempt++) {
+      // Optimistic: hiện online ngay khi thiết bị xuất hiện trong list —
+      // PAIRED nghĩa là nó vừa gọi backend qua WiFi thành công. Poll bên
+      // dưới chỉ để xác nhận (hoặc revert nếu TB không bao giờ thấy nó).
+      if (event.optimistic && !optimisticShown && deviceInList()) {
+        patchOnline(true);
+        optimisticShown = true;
+      }
+
+      await Future<void>.delayed(event.interval);
+      if (isClosed) return;
+
+      final current =
+          state.devices.where((d) => d.deviceId == event.deviceId).firstOrNull;
+      if (!event.optimistic && current != null && current.isOnline == true) {
+        return; // đã online (nguồn khác xác nhận)
+      }
+
+      try {
+        final info = await homeRemoteDataSource.getDeviceInfo(event.deviceId);
+        if (info['active'] != true) continue;
+        if (isClosed) return;
+        // LoadHomeDevices có thể về chậm hơn poll — chưa có trong list thì
+        // đợi vòng sau rồi patch.
+        if (!deviceInList()) continue;
+        _optimisticOnlineIds.remove(event.deviceId); // TB đã xác nhận
+        final confirmed = state.devices
+            .where((d) => d.deviceId == event.deviceId)
+            .firstOrNull;
+        if (confirmed?.isOnline != true) patchOnline(true);
+        return;
+      } catch (_) {
+        // Lỗi mạng lẻ tẻ — thử lại vòng sau.
+      }
+    }
+
+    // Hết attempts mà TB chưa xác nhận → trả tile về sự thật.
+    _optimisticOnlineIds.remove(event.deviceId);
+    if (!isClosed &&
+        (optimisticShown ||
+            state.devices
+                    .where((d) => d.deviceId == event.deviceId)
+                    .firstOrNull
+                    ?.isOnline ==
+                true)) {
+      patchOnline(false);
+    }
   }
 
   Future<void> _onUpdateHomeDevice(

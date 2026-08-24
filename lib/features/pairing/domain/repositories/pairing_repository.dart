@@ -15,6 +15,13 @@ abstract class PairingRepository {
   /// (đã skip device paired, đã match product theo hash).
   Stream<List<DiscoveredOspreyDevice>> scanForDevices();
 
+  /// Bluetooth adapter đang bật? Bỏ qua trạng thái `unknown` lúc khởi động
+  /// (iOS) — chỉ emit khi đã biết chắc on/off.
+  Stream<bool> bluetoothOn();
+
+  /// Scan BLE có đang chạy không (FBP tự dừng sau scanTimeout).
+  Stream<bool> scanning();
+
   Future<void> startScan();
   Future<void> stopScan();
 

@@ -67,7 +67,10 @@ class _DeviceScheduleEditPageState extends State<DeviceScheduleEditPage> {
   void initState() {
     super.initState();
     final existing = widget.existing;
-    final condition = existing?.conditions.firstOrNull;
+    // Lịch thiết bị chỉ quan tâm điều kiện SCHEDULE; scene có thể mang thêm
+    // điều kiện loại khác do người dùng thêm ở màn automation.
+    final condition =
+        existing?.conditions.whereType<ScheduleConditionEntity>().firstOrNull;
     final now = DateTime.now();
 
     final parts = (condition?.time ?? '').split(':');

@@ -1,6 +1,7 @@
+import '../../domain/entities/automation_condition_entity.dart';
 import '../../domain/entities/automation_scene_entity.dart';
 import 'scene_action_model.dart';
-import 'schedule_condition_model.dart';
+import 'automation_condition_model.dart';
 import 'effective_time_model.dart';
 
 class AutomationSceneModel extends AutomationSceneEntity {
@@ -32,7 +33,8 @@ class AutomationSceneModel extends AutomationSceneEntity {
       enabled: json['enabled'] as bool? ?? true,
       conditions: conditionsList
           .whereType<Map<String, dynamic>>()
-          .map((c) => ScheduleConditionModel.fromJson(c))
+          .map(automationConditionFromJson)
+          .whereType<AutomationConditionEntity>()
           .toList(),
       conditionLogic: json['conditionLogic'] as String? ?? 'AND',
       effectiveTime: json['effectiveTime'] is Map<String, dynamic>
@@ -51,9 +53,7 @@ class AutomationSceneModel extends AutomationSceneEntity {
       'name': name,
       'sceneType': 'AUTOMATION',
       if (icon != null) 'icon': icon,
-      'conditions': conditions
-          .map((c) => (c as ScheduleConditionModel).toJson())
-          .toList(),
+      'conditions': conditions.map(automationConditionToJson).toList(),
       'conditionLogic': conditionLogic,
       if (effectiveTime != null)
         'effectiveTime': (effectiveTime as EffectiveTimeModel).toJson(),

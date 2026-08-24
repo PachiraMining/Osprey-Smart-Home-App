@@ -1720,6 +1720,67 @@ class AppL10nPt extends AppL10n {
 
   @override
   String get normalMode => 'Modo normal';
+
+  @override
+  String get deviceStatus => 'Estado do dispositivo';
+
+  @override
+  String get selectDevice => 'Selecionar dispositivo';
+
+  @override
+  String get condition => 'Condição';
+
+  @override
+  String get precondition => 'Pré-condição';
+
+  @override
+  String get customTime => 'Personalizado';
+
+  @override
+  String get startTime => 'Hora de início';
+
+  @override
+  String get endTime => 'Hora de fim';
+
+  @override
+  String get overnightNote =>
+      'Este período passa da meia-noite. É contado a partir do dia em que começa.';
+
+  @override
+  String get automationDelayNote =>
+      'É executada cerca de 5 segundos após a alteração e depois faz uma pausa de 60 segundos. Uma automatização nova não é executada se a condição já estiver cumprida — apenas na alteração seguinte.';
+
+  @override
+  String get selectCity => 'Selecionar cidade';
+
+  @override
+  String get searchCity => 'Procurar cidade';
+
+  @override
+  String get equals => 'Igual a';
+
+  @override
+  String get notEquals => 'Diferente de';
+
+  @override
+  String get greaterThan => 'Maior que';
+
+  @override
+  String get greaterOrEqual => 'Maior ou igual a';
+
+  @override
+  String get lessThan => 'Menor que';
+
+  @override
+  String get lessOrEqual => 'Menor ou igual a';
+
+  @override
+  String get noReadableDataPoints =>
+      'Este dispositivo não tem um estado legível para usar como condição.';
+
+  @override
+  String get bluetoothOffMessage =>
+      'O Bluetooth está desligado — ative-o para encontrar dispositivos próximos';
 }
 
 /// The translations for Portuguese, as used in Brazil (`pt_BR`).
@@ -3435,4 +3496,65 @@ class AppL10nPtBr extends AppL10nPt {
 
   @override
   String get normalMode => 'Modo normal';
+
+  @override
+  String get deviceStatus => 'Status do dispositivo';
+
+  @override
+  String get selectDevice => 'Selecionar dispositivo';
+
+  @override
+  String get condition => 'Condição';
+
+  @override
+  String get precondition => 'Pré-condição';
+
+  @override
+  String get customTime => 'Personalizado';
+
+  @override
+  String get startTime => 'Hora de início';
+
+  @override
+  String get endTime => 'Hora de término';
+
+  @override
+  String get overnightNote =>
+      'Este período passa da meia-noite. Ele é contado a partir do dia em que começa.';
+
+  @override
+  String get automationDelayNote =>
+      'É executada cerca de 5 segundos após a mudança e depois pausa por 60 segundos. Uma automação nova não é executada se a condição já estiver atendida — apenas na próxima mudança.';
+
+  @override
+  String get selectCity => 'Selecionar cidade';
+
+  @override
+  String get searchCity => 'Buscar cidade';
+
+  @override
+  String get equals => 'Igual a';
+
+  @override
+  String get notEquals => 'Diferente de';
+
+  @override
+  String get greaterThan => 'Maior que';
+
+  @override
+  String get greaterOrEqual => 'Maior ou igual a';
+
+  @override
+  String get lessThan => 'Menor que';
+
+  @override
+  String get lessOrEqual => 'Menor ou igual a';
+
+  @override
+  String get noReadableDataPoints =>
+      'Este dispositivo não tem um status legível para usar como condição.';
+
+  @override
+  String get bluetoothOffMessage =>
+      'O Bluetooth está desligado — ative-o para encontrar dispositivos próximos';
 }

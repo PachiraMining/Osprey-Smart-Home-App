@@ -49,6 +49,8 @@ class UpdateHomeEvent extends HomeManagementEvent {
   final String homeId;
   final String name;
   final String? geoName;
+  final double? latitude;
+  final double? longitude;
 
   /// IANA timezone id. When provided, the backend re-syncs every AUTOMATION
   /// scene of the home to the new zone.
@@ -57,11 +59,14 @@ class UpdateHomeEvent extends HomeManagementEvent {
     required this.homeId,
     required this.name,
     this.geoName,
+    this.latitude,
+    this.longitude,
     this.timezone,
   });
 
   @override
-  List<Object?> get props => [homeId, name, geoName, timezone];
+  List<Object?> get props =>
+      [homeId, name, geoName, latitude, longitude, timezone];
 }
 
 /// Delete a home
@@ -202,4 +207,29 @@ class DeleteRoomEvent extends HomeManagementEvent {
 
   @override
   List<Object?> get props => [homeId, roomId];
+}
+
+/// Poll trạng thái online của thiết bị vừa pair xong: backend trả PAIRED
+/// trước khi ThingsBoard set server attribute `active=true`, nên snapshot
+/// devices đầu tiên luôn thấy offline. Event này chờ TB xác nhận rồi patch
+/// đúng 1 thiết bị vào state (không reload cả list).
+class WaitDeviceOnlineEvent extends HomeManagementEvent {
+  final String deviceId;
+  final Duration interval;
+  final int maxAttempts;
+
+  /// Hiện online NGAY khi thiết bị xuất hiện trong list (PAIRED chứng tỏ nó
+  /// vừa gọi backend qua WiFi thành công) — poll chỉ để xác nhận; nếu hết
+  /// [maxAttempts] mà TB vẫn không thấy device thì revert về offline.
+  final bool optimistic;
+
+  const WaitDeviceOnlineEvent(
+    this.deviceId, {
+    this.interval = const Duration(seconds: 3),
+    this.maxAttempts = 10,
+    this.optimistic = false,
+  });
+
+  @override
+  List<Object?> get props => [deviceId, interval, maxAttempts, optimistic];
 }
